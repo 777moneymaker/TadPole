@@ -68,6 +68,7 @@ def parse_phrog(
 
     gff_files.sort()
     phrog_files.sort()
+    file_counter = 1
 
     paragraph: list = []
     for gff_file, phrog_file in zip(gff_files, phrog_files):
@@ -94,25 +95,35 @@ def parse_phrog(
         starts = df_phrogs["start"].values.tolist()[1:]
         ends = df_phrogs["end"].values.tolist()[:-1]
 
-        assert len(phrogs) == len(strands), "Len of phrogs and strands is wrong. Oof"
+        assert len(phrogs) == len(
+            strands), "Len of phrogs and strands is wrong. Oof"
 
         dists = [float(s) - float(e) for s, e in zip(starts, ends)]
         dists.insert(0, 0)
 
         assert len(dists) == len(phrogs), "Len of dists is not valid"
 
-
         sentence: list = []
         i: int = 0
         prev_strand: str = strands[0]
+        unknown_counter: int = 1
         for i, _ in enumerate(phrogs):
             if strands[i] != prev_strand or dists[i] > max_dist:
-                paragraph.append(sentence if prev_strand == '+' else list(reversed(sentence)))
+                paragraph.append(sentence if prev_strand ==
+                                 '+' else list(reversed(sentence)))
                 sentence = []
-            sentence.append(phrogs[i])
+            if add_number and phrogs[i] == unknown_prot:
+                sentence.append(phrogs[i] + str(unknown_counter))
+                unknown_counter += 1
+            else:
+                sentence.append(phrogs[i])
             prev_strand = strands[i]
-        paragraph.append(sentence if prev_strand == '+' else list(reversed(sentence))) # Push last slice which for loop didnt pushed
-    
+
+        # Push last slice which for loop didnt pushed
+        paragraph.append(sentence if prev_strand ==
+                         '+' else list(reversed(sentence)))
+        print(f"Done {file_counter}/{len(phrog_files)}", end="\r")
+
     return paragraph
 
 
@@ -127,7 +138,7 @@ def main():
         add_number=args.add_number,
         collapse=args.collapse,
     )
-    
+
     pickle_path = f"{args.output}.pickle"
     text_path = f"{args.output}.txt"
     try:
@@ -137,8 +148,8 @@ def main():
     except TypeError:
         eprint("Pickle or json serialization oofed.")
         raise
-    
-    print("Done.")    
+
+    print("\nDone.")
 
 
 if __name__ == "__main__":
