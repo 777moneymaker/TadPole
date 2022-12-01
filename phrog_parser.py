@@ -144,6 +144,7 @@ def parse_phrog(
     if collapse:
         for i in range(len(paragraph)):
             prev = object()
+            # Remove consecutive duplicated unknown jokers
             paragraph[i] = [prev := x for x in paragraph[i] if prev != x]
     if add_number:
         unknown_counter: int = 1
