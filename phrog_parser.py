@@ -1,14 +1,13 @@
 import argparse
-import pandas as pd
-import gffpandas.gffpandas as gffpd
-from io import StringIO
+import json
+import sys
 from pathlib import Path
 import tempfile
 import pickle
-from itertools import chain
+
+import pandas as pd
 import numpy as np
-import json
-import sys
+import gffpandas.gffpandas as gffpd
 
 parser = argparse.ArgumentParser(
     prog="TadPole", description="viruses go brrr lol", epilog="Yo"
