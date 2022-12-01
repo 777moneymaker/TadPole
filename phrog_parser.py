@@ -53,7 +53,7 @@ def parse_phrog(phrog_dir: Path, gff_dir: Path, max_dist: int, add_number: bool 
             f_name = Path(td) / 'test'
             with open(f_name, 'w') as fh:
                 fh.write(text)
-            gff_data = gffpd.read_gff3(fh).attributes_to_columns()
+            gff_data = gffpd.read_gff3(f_name).attributes_to_columns()
         
         phrogs = pd.read_csv(phrog_file)
         phrogs = phrogs.rename(columns={"prot_id": "ID"})
@@ -61,10 +61,18 @@ def parse_phrog(phrog_dir: Path, gff_dir: Path, max_dist: int, add_number: bool 
         df_phrogs = pd.merge(phrogs, gff_data, how="right", on="ID")[["ID", "hmm_id", "seq_id", "start", "end", "strand"]]
         df_phrogs.fillna(unknown_prot, inplace=True)
 
-        g = df_phrogs.groupby((df_phrogs['strand'].shift() != df_phrogs["strand"]).cumsum())
-        names = g.apply(lambda x: x.iloc[::-1] if x["strand"].iloc[0] == "-" else x)['hmm_id'].to_list()
-        line = ' '.join(names)
-        print(line)
+        # g = df_phrogs.groupby((df_phrogs['strand'].shift() != df_phrogs["strand"]).cumsum())
+        phrogs = df_phrogs["hmm_id"].values.tolist()
+        strands = df_phrogs["strand"].values.tolist()
+        
+        curr_strand = strands[0]
+        paragraph = []
+        word = []
+        for p, s in zip(phrogs, strands):
+            pass
+                
+            
+
 
 def main():
     args = parser.parse_args()
