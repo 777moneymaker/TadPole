@@ -17,20 +17,23 @@ parser.add_argument("phrog_dir", type=str)
 parser.add_argument("gff_dir", type=str)  # positional argument
 parser.add_argument(
     "-d", "--max-dist", dest="max_dist", type=int, default=np.inf, required=False
-)  # option that takes a value
-parser.add_argument(
-    "-a", "--add-number", dest="add_number", type=bool, required=False, default=True
-)
-parser.add_argument(
-    "-c", "--collapse", dest="collapse", help="Should we collapse unknown proteins into one string with prefix?", type=bool, required=False, default=False
 )
 parser.add_argument(
     "-o", "--output", dest="output", help="prefix/prefix-path for output files", type=str, required=True
 )
 
+# Store true
+parser.add_argument(
+    "--add-number", dest="add_number", help="Add numbers to jokers?", action="store_true"
+)
+parser.add_argument(
+    "--collapse", dest="collapse", help="Should we collapse unknown proteins into one string with prefix?", action="store_true"
+)
+
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
+
 
 def parse_phrog(
     phrog_dir: Path,
