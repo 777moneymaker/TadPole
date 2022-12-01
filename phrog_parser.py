@@ -5,6 +5,10 @@ from io import StringIO
 from pathlib import Path
 import tempfile
 import pickle
+from itertools import chain
+import numpy as np
+import json
+import sys
 
 parser = argparse.ArgumentParser(
     prog="TadPole", description="viruses go brrr lol", epilog="Yo"
@@ -13,15 +17,21 @@ parser = argparse.ArgumentParser(
 parser.add_argument("phrog_dir", type=str)
 parser.add_argument("gff_dir", type=str)  # positional argument
 parser.add_argument(
-    "-d", "--max-dist", dest="max_dist", type=int, default=1, required=False
+    "-d", "--max-dist", dest="max_dist", type=int, default=np.inf, required=False
 )  # option that takes a value
 parser.add_argument(
     "-a", "--add-number", dest="add_number", type=bool, required=False, default=True
 )
 parser.add_argument(
-    "-c", "--collapse", dest="collapse", type=bool, required=False, default=False
+    "-c", "--collapse", dest="collapse", help="Should we collapse unknown proteins into one string with prefix?", type=bool, required=False, default=False
+)
+parser.add_argument(
+    "-o", "--output", dest="output", help="prefix/prefix-path for output files", type=str, required=True
 )
 
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 def parse_phrog(
     phrog_dir: Path,
@@ -57,6 +67,7 @@ def parse_phrog(
     gff_files.sort()
     phrog_files.sort()
 
+    paragraph: list = []
     for gff_file, phrog_file in zip(gff_files, phrog_files):
         with open(gff_file, "r") as fh:
             text = "".join(line.rstrip(";") for line in fh)
@@ -77,33 +88,55 @@ def parse_phrog(
         # g = df_phrogs.groupby((df_phrogs['strand'].shift() != df_phrogs["strand"]).cumsum())
         phrogs = df_phrogs["hmm_id"].values.tolist()
         strands = df_phrogs["strand"].values.tolist()
+
         starts = df_phrogs["start"].values.tolist()[1:]
         ends = df_phrogs["end"].values.tolist()[:-1]
+
+        assert len(phrogs) == len(strands), "Len of phrogs and strands is wrong. Oof"
+
         dists = [float(s) - float(e) for s, e in zip(starts, ends)]
-        # Jest good
+        dists.insert(0, 0)
 
-        print(dists)
+        assert len(dists) == len(phrogs), "Len of dists is not valid"
 
-        curr_strand = strands[0]
-        paragraph = []
-        word = []
-        for p, s in zip(phrogs, strands):
-            pass
-        
-        return paragraph
+
+        sentence: list = []
+        i: int = 0
+        prev_strand: str = strands[0]
+        for i, _ in enumerate(phrogs):
+            if strands[i] != prev_strand or dists[i] > max_dist:
+                paragraph.append(sentence if prev_strand == '+' else list(reversed(sentence)))
+                sentence = []
+            sentence.append(phrogs[i])
+            prev_strand = strands[i]
+        paragraph.append(sentence if prev_strand == '+' else list(reversed(sentence))) # Push last slice which for loop didnt pushed
+    
+    return paragraph
 
 
 def main():
     args = parser.parse_args()
     phrog_dir = Path(args.phrog_dir)
     gff_dir = Path(args.gff_dir)
-    parse_phrog(
+    res = parse_phrog(
         phrog_dir=phrog_dir,
         gff_dir=gff_dir,
         max_dist=args.max_dist,
         add_number=args.add_number,
         collapse=args.collapse,
     )
+    
+    pickle_path = f"{args.output}.pickle"
+    text_path = f"{args.output}.txt"
+    try:
+        with open(pickle_path, "wb") as fh1, open(text_path, "w") as fh2:
+            pickle.dump(res, fh1)
+            fh2.write(json.dumps(res))
+    except TypeError:
+        eprint("Pickle or json serialization oofed.")
+        raise
+    
+    print("Done.")    
 
 
 if __name__ == "__main__":
