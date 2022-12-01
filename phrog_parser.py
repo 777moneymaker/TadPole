@@ -126,7 +126,6 @@ def parse_phrog(
         sentence: list = []
         i: int = 0
         prev_strand: str = strands[0]
-        unknown_counter: int = 1
         for i, _ in enumerate(phrogs):
             # If strand changed or dist is too big then
             # push the current sentence and start a new one (clear list)
@@ -134,17 +133,25 @@ def parse_phrog(
                 paragraph.append(sentence if prev_strand ==
                                  '+' else list(reversed(sentence)))
                 sentence = []
-            if add_number and phrogs[i] == unknown_prot:
-                sentence.append(phrogs[i] + str(unknown_counter))
-                unknown_counter += 1
-            else:
-                sentence.append(phrogs[i])
+            sentence.append(phrogs[i])
             prev_strand = strands[i]
 
         # Push last slice which for loop didnt pushed
         paragraph.append(sentence if prev_strand ==
                          '+' else list(reversed(sentence)))
         print(f"Done {file_counter}/{len(phrog_files)}", end="\r")
+
+    if collapse:
+        for i in range(len(paragraph)):
+            prev = object()
+            paragraph[i] = [prev := x for x in paragraph[i] if prev != x]
+    if add_number:
+        unknown_counter: int = 1
+        for i in range(len(paragraph)):
+            for j in range(len(paragraph[i])):
+                if paragraph[i][j] == unknown_prot:
+                    paragraph[i][j] = unknown_prot + str(unknown_counter)
+                    unknown_counter += 1
 
     return paragraph
 
@@ -153,6 +160,7 @@ def main():
     args = parser.parse_args()
     phrog_dir = Path(args.phrog_dir)
     gff_dir = Path(args.gff_dir)
+    print("Started parsing...")
     res = parse_phrog(
         phrog_dir=phrog_dir,
         gff_dir=gff_dir,
