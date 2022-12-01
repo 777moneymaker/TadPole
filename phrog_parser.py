@@ -42,11 +42,20 @@ def parse_phrog(
     add_number: bool = True,
     collapse: bool = False,
 ) -> list[list]:
+    """Parse phrog files with their respective gff metadata into list of phrogs.
+
+    Args:
+        gff_dir (Path): Dir containing gff files
+        phrog_dir (Path): Dir containing phrog files
+        max_dist (int): Describes how big is the distance between two words
+        add_number (bool): Should the jokers be counted?
+        collapse (bool): Should consecutive jokers be merged into one?
+    Returns:
+        list of sentences (lists) containing phrogs
+    Raises:
+        AssertionError: If parsed files are in wrong format/length.
     """
-    :param gff_dir: Dir containing gff files
-    :param phrog_dir: Dir containing phrog files
-    :param max_dist: Describes how big is the distance between two words
-    """
+    # Check if objs are valid
     if not isinstance(gff_dir, Path):
         raise TypeError("Gff dir is not a Path obj")
     if not isinstance(phrog_dir, Path):
@@ -62,45 +71,56 @@ def parse_phrog(
     if not gff_dir.is_dir():
         raise TypeError("Gff dir is not dir")
 
+    # Name for unknown
     unknown_prot = "joker"
     gff_files = list(gff_dir.iterdir())
     phrog_files = list(phrog_dir.iterdir())
 
+    # Sort file names so the are always on the same indicies
     gff_files.sort()
     phrog_files.sort()
+    # Count files to print how many are done
     file_counter = 1
 
+    # Outer list containing sentences
     paragraph: list = []
     for gff_file, phrog_file in zip(gff_files, phrog_files):
+        # Remove ';' from right side of line
         with open(gff_file, "r") as fh:
             text = "".join(line.rstrip(";") for line in fh)
+        # Create tmp dir to save fixed file and parse fixed gff from it
         with tempfile.TemporaryDirectory() as td:
             f_name = Path(td) / "test"
             with open(f_name, "w") as fh:
                 fh.write(text)
             gff_data = gffpd.read_gff3(f_name).attributes_to_columns()
 
+        # Read phrogs
         phrogs = pd.read_csv(phrog_file)
         phrogs = phrogs.rename(columns={"prot_id": "ID"})
-
+        # Sql Join
         df_phrogs = pd.merge(phrogs, gff_data, how="right", on="ID")[
             ["ID", "hmm_id", "seq_id", "start", "end", "strand"]
         ]
+        # Replace NAs with jokers
         df_phrogs.fillna(unknown_prot, inplace=True)
 
-        # g = df_phrogs.groupby((df_phrogs['strand'].shift() != df_phrogs["strand"]).cumsum())
+        # Extract cols
         phrogs = df_phrogs["hmm_id"].values.tolist()
         strands = df_phrogs["strand"].values.tolist()
-
         starts = df_phrogs["start"].values.tolist()[1:]
         ends = df_phrogs["end"].values.tolist()[:-1]
 
+        # Check trivial conditions just to make sure
         assert len(phrogs) == len(
             strands), "Len of phrogs and strands is wrong. Oof"
 
         dists = [float(s) - float(e) for s, e in zip(starts, ends)]
-        dists.insert(0, 0)
+        # Add zero so each dist on index 'i' is a distance of 'i' phrog to previous phrog
+        # So - dist of first phrog is 0 because it's first etc...
+        dists.insert(0, 0) 
 
+        # Again trivial assertion
         assert len(dists) == len(phrogs), "Len of dists is not valid"
 
         sentence: list = []
@@ -108,6 +128,8 @@ def parse_phrog(
         prev_strand: str = strands[0]
         unknown_counter: int = 1
         for i, _ in enumerate(phrogs):
+            # If strand changed or dist is too big then
+            # push the current sentence and start a new one (clear list)
             if strands[i] != prev_strand or dists[i] > max_dist:
                 paragraph.append(sentence if prev_strand ==
                                  '+' else list(reversed(sentence)))
