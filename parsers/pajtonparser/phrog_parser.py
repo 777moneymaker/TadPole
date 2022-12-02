@@ -61,12 +61,12 @@ def parse_phrog(location: PhrogLocation, options: PhrogOptions) -> list[list[str
         raise TypeError("Gff dir is not a Path obj")
     if not isinstance(location.phrog_dir, Path):
         raise TypeError("Phrog dir is not a Path obj")
-    if not isinstance(options.max_dist, (int, float, complex)):
-        raise TypeError("max_dist is not an int")
+    if not isinstance(options.distance, (int, float, complex)):
+        raise TypeError("distance is not an int")
     if not isinstance(options.collapse, bool):
         raise TypeError("collapse should be a bool obj")
-    if not isinstance(options.add_number, bool):
-        raise TypeError("add_number should be a bool obj")
+    if not isinstance(options.number, bool):
+        raise TypeError("number should be a bool obj")
     if not location.phrog_dir.is_dir():
         raise TypeError("Phrog dir is not dir")
     if not location.gff_dir.is_dir():
@@ -82,17 +82,16 @@ def parse_phrog(location: PhrogLocation, options: PhrogOptions) -> list[list[str
     for gff_file, phrog_file in zip(gff_files, phrog_files):
         # Remove ';' from right side of lines
         with open(gff_file, "r") as fh:
-            text = "".join(line.rstrip(";") for line in fh)
+            text = "\n".join(line.strip().rstrip(";") for line in fh)
         # Create tmp dir to save fixed file and parse fixed gff from it
         with tempfile.TemporaryDirectory() as td:
             f_name = Path(td) / "test"
             with open(f_name, "w") as fh:
                 fh.write(text)
             gff_data = gffpd.read_gff3(f_name).attributes_to_columns()
-
         # Read phrogs
         phrogs = pd.read_csv(phrog_file)
-        phrogs.rename(columns={"prot_id": "ID"}, inplace=True)
+        phrogs = phrogs.rename(columns={"prot_id": "ID"})
         
         # Sql Join
         df_phrogs = pd.merge(phrogs, gff_data, how="right", on="ID")[
@@ -125,7 +124,7 @@ def parse_phrog(location: PhrogLocation, options: PhrogOptions) -> list[list[str
         for i, _ in enumerate(phrogs):
             # If strand changed or dist is too big then
             # push the current sentence and start a new one (clear list)
-            if strands[i] != prev_strand or dists[i] > options.max_dist:
+            if strands[i] != prev_strand or dists[i] > options.distance:
                 paragraph.append(sentence if prev_strand ==
                                  '+' else list(reversed(sentence)))
                 sentence = []
@@ -136,13 +135,14 @@ def parse_phrog(location: PhrogLocation, options: PhrogOptions) -> list[list[str
         paragraph.append(sentence if prev_strand ==
                          '+' else list(reversed(sentence)))
         print(f"Done {file_counter}/{len(phrog_files)}", end="\r")
+        file_counter += 1
 
     if options.collapse:
         for i in range(len(paragraph)):
             prev = object()
             # Remove consecutive duplicated unknown jokers
             paragraph[i] = [prev := x for x in paragraph[i] if prev != x]
-    if options.add_number:
+    if options.number:
         unknown_counter: int = 1
         for i in range(len(paragraph)):
             for j in range(len(paragraph[i])):
@@ -173,7 +173,7 @@ def main():
     except TypeError:
         eprint("Pickle or json serialization oofed.")
         raise
-
+    print()
     print("Done processing all files.")
 
 
