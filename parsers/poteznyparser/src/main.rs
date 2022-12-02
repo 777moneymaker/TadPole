@@ -106,6 +106,9 @@ fn main() -> Result<()> {
     let outfile = File::create(&output_path).expect("Unable to create file");
     let mut outfile = BufWriter::new(outfile);
     let mut sentence: Vec<String> = Vec::with_capacity(40);
+    
+    let file_num = phrog_files.len();
+    let mut file_count = 1;
 
     for (phrog_file, gff_file) in phrog_files.iter().zip(gff_files.iter()) {
         parse_phrog_file(&mut pond, phrog_file)?; // after this pond is loaded with prot_id: hmm_id
@@ -145,6 +148,9 @@ fn main() -> Result<()> {
             sentence.reverse();
         }
         writeln!(&mut outfile, "{}", sentence.join(" "))?;
+        print!("\rDone {}/{} files...", file_count, file_num);
+
+        file_count += 1;
     }
 
     println!("yay! created: {:?}", &output_path);
