@@ -17,15 +17,13 @@ parser = argparse.ArgumentParser(
 parser.add_argument("phrog_dir", type=str)
 parser.add_argument("gff_dir", type=str)  # positional argument
 parser.add_argument(
-    "-d", "--max-dist", dest="max_dist", type=int, default=np.inf, required=False
+    "-d", "--distance", dest="distance", type=int, default=np.inf, required=False
 )
 parser.add_argument(
     "-o", "--output", dest="output", help="prefix/prefix-path for output files", type=str, required=True
 )
-
-# Store true
 parser.add_argument(
-    "--add-number", dest="add_number", help="Add numbers to jokers?", action="store_true"
+    "--number", dest="number", help="Add numbers to jokers?", action="store_true"
 )
 parser.add_argument(
     "--collapse", dest="collapse", help="Should we collapse unknown proteins into one string with prefix?", action="store_true"
@@ -40,8 +38,8 @@ class PhrogLocation:
 @dataclass(frozen=True)
 class PhrogOptions:
     """Object containig metadata for phrog and gff parser"""
-    max_dist: int
-    add_number: bool
+    distance: int
+    number: bool
     collapse: bool
 
 def eprint(*args, **kwargs):
@@ -74,21 +72,15 @@ def parse_phrog(location: PhrogLocation, options: PhrogOptions) -> list[list[str
     if not location.gff_dir.is_dir():
         raise TypeError("Gff dir is not dir")
 
-    # Name for unknown
-    unknown_prot = "joker"
-    gff_files = list(location.gff_dir.iterdir())
-    phrog_files = list(location.phrog_dir.iterdir())
-
-    # Sort file names so the are always on the same indicies
-    gff_files.sort()
-    phrog_files.sort()
-    # Count files to print how many are done
-    file_counter = 1
+    unknown_prot = "joker" # Name for unknown
+    gff_files = sorted(location.gff_dir.iterdir())
+    phrog_files = sorted(location.phrog_dir.iterdir())
+    file_counter = 1 # Count files
 
     # Outer list containing sentences
     paragraph: list = []
     for gff_file, phrog_file in zip(gff_files, phrog_files):
-        # Remove ';' from right side of line
+        # Remove ';' from right side of lines
         with open(gff_file, "r") as fh:
             text = "".join(line.rstrip(";") for line in fh)
         # Create tmp dir to save fixed file and parse fixed gff from it
@@ -100,10 +92,11 @@ def parse_phrog(location: PhrogLocation, options: PhrogOptions) -> list[list[str
 
         # Read phrogs
         phrogs = pd.read_csv(phrog_file)
-        phrogs = phrogs.rename(columns={"prot_id": "ID"})
+        phrogs.rename(columns={"prot_id": "ID"}, inplace=True)
+        
         # Sql Join
         df_phrogs = pd.merge(phrogs, gff_data, how="right", on="ID")[
-            ["ID", "hmm_id", "seq_id", "start", "end", "strand"]
+            ["hmm_id", "start", "end", "strand"]
         ]
         # Replace NAs with jokers
         df_phrogs.fillna(unknown_prot, inplace=True)
@@ -167,7 +160,7 @@ def main():
     print("Started parsing...")
 
     loc = PhrogLocation(phrog_dir, gff_dir)
-    meta = PhrogOptions(args.max_dist, args.add_number, args.collapse)
+    meta = PhrogOptions(args.distance, args.number, args.collapse)
 
     res = parse_phrog(loc, meta)
 
@@ -181,7 +174,7 @@ def main():
         eprint("Pickle or json serialization oofed.")
         raise
 
-    print("\nDone.")
+    print("Done processing all files.")
 
 
 if __name__ == "__main__":
