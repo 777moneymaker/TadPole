@@ -1,9 +1,10 @@
 import argparse
 import json
 import sys
-from pathlib import Path
 import tempfile
 import pickle
+from pathlib import Path
+from dataclasses import dataclass
 
 import pandas as pd
 import numpy as np
@@ -30,51 +31,53 @@ parser.add_argument(
     "--collapse", dest="collapse", help="Should we collapse unknown proteins into one string with prefix?", action="store_true"
 )
 
+@dataclass(frozen=True)
+class PhrogLocation:
+    """Object containing gff and phrog directories paths"""
+    phrog_dir: Path
+    gff_dir: Path
+
+@dataclass(frozen=True)
+class PhrogOptions:
+    """Object containig metadata for phrog and gff parser"""
+    max_dist: int
+    add_number: bool
+    collapse: bool
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-
-def parse_phrog(
-    phrog_dir: Path,
-    gff_dir: Path,
-    max_dist: int,
-    add_number: bool = True,
-    collapse: bool = False,
-) -> list[list]:
-    """Parse phrog files with their respective gff metadata into list of phrogs.
+def parse_phrog(location: PhrogLocation, options: PhrogOptions) -> list[list[str]]:
+    """Parse phrog files with their respective gff options into list of phrogs.
 
     Args:
-        gff_dir (Path): Dir containing gff files
-        phrog_dir (Path): Dir containing phrog files
-        max_dist (int): Describes how big is the distance between two words
-        add_number (bool): Should the jokers be counted?
-        collapse (bool): Should consecutive jokers be merged into one?
+        location (PhrogOptions): Phrog location obj containing dir to read data from.
+        options (PhrogOptions): Phrog options obj containing parsing options.
     Returns:
         list of sentences (lists) containing phrogs
     Raises:
         AssertionError: If parsed files are in wrong format/length.
     """
     # Check if objs are valid
-    if not isinstance(gff_dir, Path):
+    if not isinstance(location.gff_dir, Path):
         raise TypeError("Gff dir is not a Path obj")
-    if not isinstance(phrog_dir, Path):
+    if not isinstance(location.phrog_dir, Path):
         raise TypeError("Phrog dir is not a Path obj")
-    if not isinstance(max_dist, (int, float, complex)):
+    if not isinstance(options.max_dist, (int, float, complex)):
         raise TypeError("max_dist is not an int")
-    if not isinstance(collapse, bool):
+    if not isinstance(options.collapse, bool):
         raise TypeError("collapse should be a bool obj")
-    if not isinstance(add_number, bool):
+    if not isinstance(options.add_number, bool):
         raise TypeError("add_number should be a bool obj")
-    if not phrog_dir.is_dir():
+    if not location.phrog_dir.is_dir():
         raise TypeError("Phrog dir is not dir")
-    if not gff_dir.is_dir():
+    if not location.gff_dir.is_dir():
         raise TypeError("Gff dir is not dir")
 
     # Name for unknown
     unknown_prot = "joker"
-    gff_files = list(gff_dir.iterdir())
-    phrog_files = list(phrog_dir.iterdir())
+    gff_files = list(location.gff_dir.iterdir())
+    phrog_files = list(location.phrog_dir.iterdir())
 
     # Sort file names so the are always on the same indicies
     gff_files.sort()
@@ -129,7 +132,7 @@ def parse_phrog(
         for i, _ in enumerate(phrogs):
             # If strand changed or dist is too big then
             # push the current sentence and start a new one (clear list)
-            if strands[i] != prev_strand or dists[i] > max_dist:
+            if strands[i] != prev_strand or dists[i] > options.max_dist:
                 paragraph.append(sentence if prev_strand ==
                                  '+' else list(reversed(sentence)))
                 sentence = []
@@ -141,12 +144,12 @@ def parse_phrog(
                          '+' else list(reversed(sentence)))
         print(f"Done {file_counter}/{len(phrog_files)}", end="\r")
 
-    if collapse:
+    if options.collapse:
         for i in range(len(paragraph)):
             prev = object()
             # Remove consecutive duplicated unknown jokers
             paragraph[i] = [prev := x for x in paragraph[i] if prev != x]
-    if add_number:
+    if options.add_number:
         unknown_counter: int = 1
         for i in range(len(paragraph)):
             for j in range(len(paragraph[i])):
@@ -162,13 +165,11 @@ def main():
     phrog_dir = Path(args.phrog_dir)
     gff_dir = Path(args.gff_dir)
     print("Started parsing...")
-    res = parse_phrog(
-        phrog_dir=phrog_dir,
-        gff_dir=gff_dir,
-        max_dist=args.max_dist,
-        add_number=args.add_number,
-        collapse=args.collapse,
-    )
+
+    loc = PhrogLocation(phrog_dir, gff_dir)
+    meta = PhrogOptions(args.max_dist, args.add_number, args.collapse)
+
+    res = parse_phrog(loc, meta)
 
     pickle_path = f"{args.output}.pickle"
     text_path = f"{args.output}.txt"
