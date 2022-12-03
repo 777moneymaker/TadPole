@@ -45,6 +45,7 @@ print(embedding)
 # gather data to dataframe
 dataset = pd.DataFrame({'word': vectors.index_to_key})
 # map functions to words
+# there must be a function to parse all functions of all phrogs and create map of it
 d_funcs = {
     "say": "verb",
     "dog": "animal",
