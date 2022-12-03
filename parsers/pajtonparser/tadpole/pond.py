@@ -120,7 +120,7 @@ class PondParser:
 
                     record = PondRecord(prot, phrogs, start, end, strand)
                     self.records.append(record)
-            print(f"\rParsed {i+1} files...")
+            print(f"Parsed {i+1} files...", end="\r")
         records: list[PondRecord] = iter(self.records)
         prev: PondRecord = next(records)
         sentence: Sentence = []
