@@ -108,49 +108,46 @@ class PondParser:
 
         for i, file in enumerate(self.location.gff_dir.iterdir()):
             with open(file) as fh:
-                for line in fh:
-                    if line.startswith("#") or line.strip() == "":
-                        continue
-                    data = line.split("\t")
-                    start, end, strand = int(data[3]), int(data[4]), Strand.into(data[6])
-                    prot = data[8].split(";", maxsplit=1)[0].lstrip("ID=")
+                predicate = lambda x: not (x.startswith("#") or x.strip() == "")
+                lines = filter(predicate, fh)
+                for line in lines:
+                    *_, start, end, _, strand, _, prot = line.split("\t")
+                    start, end = int(start), int(end)
+                    prot = prot.split(";", maxsplit=1)[0].lstrip("ID=")
                     phrogs = self.map[prot]
                     if not phrogs:
                         phrogs = ["joker"]
 
-                    record = PondRecord(prot, phrogs, start, end, strand)
+                    dist = 0 if i == 0 else start - self.records[i - 1].end
+                    record = PondRecord(prot, phrogs, start, end, strand, dist)
                     self.records.append(record)
             print(f"Parsed {i+1} files...", end="\r")
         records: list[PondRecord] = iter(self.records)
         prev: PondRecord = next(records)
         sentence: Sentence = []
         paragraph: list[Sentence] = []
-        
-        prev.dist = 0
+
         # Add first phrogs
         sentence.extend(prev.phrogs)
+        counter: int = 1
         for record in records:
-            record.dist = record.start - prev.end
             if record.strand != prev.strand or record.dist > self.options.distance:
+                if prev.strand == Strand.NEG:
+                    sentence.reverse()
+                if self.options.collapse:
+                    # Fastest way to remove duplicates while preserving order
+                    sentence = list(dict.fromkeys(sentence))
+                if self.options.number:
+                    for i, phrog in enumerate(sentence):
+                        if phrog == self.unknown:
+                            sentence[i] = f"{phrog}{counter}"
+                            counter += 1
                 paragraph.append(sentence if prev.strand == Strand.POS else list(reversed(sentence)))
                 sentence = []
             sentence.extend(record.phrogs)
             prev = record
-        else:
-            paragraph.append(sentence if prev.strand == Strand.POS else list(reversed(sentence)))
 
-        if self.options.collapse:
-            for i, _ in enumerate(paragraph):
-                prev = object()
-                # Remove consecutive duplicated unknown jokers
-                paragraph[i] = [prev := x for x in paragraph[i] if prev != x]
-        if self.options.number:
-            unknown_counter: int = 1
-            for i, _ in enumerate(paragraph):
-                for j, _ in enumerate(paragraph[i]):
-                    if paragraph[i][j] == self.unknown:
-                        paragraph[i][j] = f"{self.unknown}{unknown_counter}"
-                        unknown_counter += 1
+        paragraph.append(sentence if prev.strand == Strand.POS else list(reversed(sentence)))
             
         self.content = paragraph
         return paragraph
