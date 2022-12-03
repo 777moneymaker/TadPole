@@ -142,7 +142,7 @@ class PondParser:
                         if phrog == self.unknown:
                             sentence[i] = f"{phrog}{counter}"
                             counter += 1
-                paragraph.append(sentence if prev.strand == Strand.POS else list(reversed(sentence)))
+                paragraph.append(sentence)
                 sentence = []
             sentence.extend(record.phrogs)
             prev = record
