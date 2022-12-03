@@ -7,6 +7,7 @@ import plotly.express as px
 
 #  *** Word2vec ***
 # corpus
+# there will be binary object read with corpus as list of lists
 sentences = [["cat", "say", "meow"], ["dog", "say", "woof"], ['cow', 'say', 'moo'], ['pen', 'pencil', 'ruler']]
 # train model (simplest form possible)
 model = wv.Word2Vec(sentences, min_count=1)
@@ -21,6 +22,7 @@ print(vectors['cat'])
 # save embedded vectors to binary file
 vectors.save("train_test/test.wordvectors")
 print(vectors.most_similar("cat"))
+
 
 #  *** junk - skip ***
 # d = np.vectorize(vectors.index_to_key.get)(vectors.vectors)
