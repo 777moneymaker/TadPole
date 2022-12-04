@@ -83,6 +83,10 @@ class PondMap():
 
     def clear(self):
         self.d.clear()
+
+    def remove_duplicates(self):
+        for k, v in self.d.items():
+            self.d[k] = list(dict.fromkeys(v)) # removes duplicates while preserving order
     
 
 class PondParser:
@@ -100,7 +104,8 @@ class PondParser:
                 next(fh)
                 for line in fh:
                     prot, phrog = line.split(",")[:2]
-                    self.map[prot].append(phrog)    
+                    self.map[prot].append(phrog)
+        self.map.remove_duplicates() 
         
     def parse(self) -> list[list[str]]:
         self._fill_map()
@@ -132,22 +137,23 @@ class PondParser:
         counter: int = 1
         for record in records:
             if record.strand != prev.strand or record.dist > self.options.distance:
-                if prev.strand == Strand.NEG:
-                    sentence.reverse()
-                if self.options.collapse:
-                    # Fastest way to remove duplicates while preserving order
-                    sentence = list(dict.fromkeys(sentence))
-                if self.options.number:
-                    for i, phrog in enumerate(sentence):
-                        if phrog == self.unknown:
-                            sentence[i] = f"{phrog}{counter}"
-                            counter += 1
                 paragraph.append(sentence if prev.strand == Strand.POS else list(reversed(sentence)))
                 sentence = []
             sentence.extend(record.phrogs)
             prev = record
+        else:    
+            paragraph.append(sentence if prev.strand == Strand.POS else list(reversed(sentence)))
 
-        paragraph.append(sentence if prev.strand == Strand.POS else list(reversed(sentence)))
+        if self.options.collapse:
+            for i, _ in enumerate(paragraph):
+                paragraph[i] = list(dict.fromkeys(paragraph[i]))
+        
+        if self.options.number:
+            for sentence in paragraph:
+                for i, phrog in sentence:
+                    if phrog == self.unknown:
+                        sentence[i] = f"{phrog}{counter}"
+                        counter += 1
             
         self.content = paragraph
         return paragraph
