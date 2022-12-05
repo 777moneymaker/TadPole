@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from collections import defaultdict
 from enum import Enum
+from alive_progress import alive_bar
 
 class Strand(Enum):
     NEG = 0
@@ -99,34 +100,39 @@ class PondParser:
         self.content = None
 
     def _fill_map(self):
-        for file in self.location.phrog_dir.iterdir():
-            with open(file) as fh:
-                next(fh)
-                for line in fh:
-                    prot, phrog = line.split(",")[:2]
-                    self.map[prot].append(phrog)
+        files = list(self.location.phrog_dir.iterdir())
+        with alive_bar(len(files), title = "PHROGs    ") as bar:
+            for file in files:
+                with open(file) as fh:
+                    next(fh)
+                    for line in fh:
+                        prot, phrog = line.split(",")[:2]
+                        self.map[prot].append(phrog)
+                bar()
         self.map.remove_duplicates() 
         
     def parse(self) -> list[list[str]]:
         self._fill_map()
         Sentence = list[str]
+        
+        files = list(self.location.gff_dir.iterdir())
+        with alive_bar(len(files), title = "GFFs      ") as bar:
+            for i, file in enumerate(files):
+                with open(file) as fh:
+                    predicate = lambda x: not (x.startswith("#") or x.strip() == "")
+                    lines = filter(predicate, fh)
+                    for line in lines:
+                        *_, start, end, _, strand, _, prot = line.split("\t")
+                        start, end = int(start), int(end)
+                        prot = prot.split(";", maxsplit=1)[0].lstrip("ID=")
+                        phrogs = self.map[prot]
+                        if not phrogs:
+                            phrogs = ["joker"]
 
-        for i, file in enumerate(self.location.gff_dir.iterdir()):
-            with open(file) as fh:
-                predicate = lambda x: not (x.startswith("#") or x.strip() == "")
-                lines = filter(predicate, fh)
-                for line in lines:
-                    *_, start, end, _, strand, _, prot = line.split("\t")
-                    start, end = int(start), int(end)
-                    prot = prot.split(";", maxsplit=1)[0].lstrip("ID=")
-                    phrogs = self.map[prot]
-                    if not phrogs:
-                        phrogs = ["joker"]
-
-                    dist = 0 if i == 0 else start - self.records[i - 1].end
-                    record = PondRecord(prot, phrogs, start, end, strand, dist)
-                    self.records.append(record)
-            print(f"Parsed {i+1} files...", end="\r")
+                        dist = 0 if i == 0 else start - self.records[i - 1].end
+                        record = PondRecord(prot, phrogs, start, end, strand, dist)
+                        self.records.append(record)
+                bar()
         records: list[PondRecord] = iter(self.records)
         prev: PondRecord = next(records)
         sentence: Sentence = []
@@ -135,25 +141,32 @@ class PondParser:
         # Add first phrogs
         sentence.extend(prev.phrogs)
         counter: int = 1
-        for record in records:
-            if record.strand != prev.strand or record.dist > self.options.distance:
+        with alive_bar(len(self.records), title = "Sentences ") as bar:
+            for record in records:
+                if record.strand != prev.strand or record.dist > self.options.distance:
+                    paragraph.append(sentence if prev.strand == Strand.POS else list(reversed(sentence)))
+                    sentence = []
+                sentence.extend(record.phrogs)
+                prev = record
+                bar()
+            else:    
                 paragraph.append(sentence if prev.strand == Strand.POS else list(reversed(sentence)))
-                sentence = []
-            sentence.extend(record.phrogs)
-            prev = record
-        else:    
-            paragraph.append(sentence if prev.strand == Strand.POS else list(reversed(sentence)))
+                bar()
 
         if self.options.collapse:
-            for i, _ in enumerate(paragraph):
-                paragraph[i] = list(dict.fromkeys(paragraph[i]))
+            with alive_bar(len(paragraph), title = "Collapsing") as bar:
+                for i, _ in enumerate(paragraph):
+                    paragraph[i] = list(dict.fromkeys(paragraph[i]))
+                    bar()
         
         if self.options.number:
-            for sentence in paragraph:
-                for i, phrog in sentence:
-                    if phrog == self.unknown:
-                        sentence[i] = f"{phrog}{counter}"
-                        counter += 1
+            with alive_bar(len(paragraph), title = "Numering  ") as bar:
+                for sentence in paragraph:
+                    for i, phrog in enumerate(sentence):
+                        if phrog == self.unknown:
+                            sentence[i] = f"{phrog}{counter}"
+                            counter += 1
+                    bar()
             
         self.content = paragraph
         return paragraph
