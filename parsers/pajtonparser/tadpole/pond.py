@@ -131,6 +131,7 @@ class PondParser:
                         start, end = int(start), int(end)
                         prot = prot.split(";", maxsplit=1)[0].lstrip("ID=")
                         phrogs = self.map[prot]
+                        strand = Strand.into(strand)
                         if not phrogs:
                             phrogs = ["joker"]
 
@@ -162,7 +163,8 @@ class PondParser:
         if self.options.collapse:
             with alive_bar(len(paragraph), title = "Collapsing", spinner = PHROG_SPINNER) as bar:
                 for i, _ in enumerate(paragraph):
-                    paragraph[i] = list(dict.fromkeys(paragraph[i]))
+                    prev = object()
+                    paragraph[i] = [prev := x for x in paragraph[i] if prev != x]
                     bar()
         
         if self.options.number:
