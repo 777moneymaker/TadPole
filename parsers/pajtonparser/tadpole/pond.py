@@ -131,6 +131,7 @@ class PondParser:
                         start, end = int(start), int(end)
                         prot = prot.split(";", maxsplit=1)[0].lstrip("ID=")
                         phrogs = self.map[prot]
+                        strand = Strand.into(strand)
                         if not phrogs:
                             phrogs = ["joker"]
 
