@@ -1,0 +1,1 @@
+docker build -t tadpole:1.0 .
