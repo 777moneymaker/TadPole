@@ -107,7 +107,7 @@ class PondParser:
         with alive_bar(len(files), title = "PHROGs    ",  dual_line = True, spinner = PHROG_SPINNER) as bar:
             bar.text = "--> Looping on some PHROGs"
             for file in files:
-                with open(file) as fh:
+                with open(file, encoding="utf-8") as fh:
                     next(fh)
                     for line in fh:
                         prot, phrog = line.split(",")[:2]
@@ -123,7 +123,7 @@ class PondParser:
         with alive_bar(len(files), title = "GFFs      ", dual_line = True, spinner = PHROG_SPINNER) as bar:
             bar.text = "--> Parsing GFFs"
             for i, file in enumerate(files):
-                with open(file) as fh:
+                with open(file, encoding="utf-8") as fh:
                     predicate = lambda x: not (x.startswith("#") or x.strip() == "")
                     lines = filter(predicate, fh)
                     for line in lines:
