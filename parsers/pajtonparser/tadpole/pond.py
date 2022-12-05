@@ -150,7 +150,7 @@ class PondParser:
         
         if self.options.number:
             for sentence in paragraph:
-                for i, phrog in sentence:
+                for i, phrog in enumerate(sentence):
                     if phrog == self.unknown:
                         sentence[i] = f"{phrog}{counter}"
                         counter += 1
