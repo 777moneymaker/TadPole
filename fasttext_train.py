@@ -5,6 +5,7 @@ import umap
 import plotly.express as px
 import dill
 import pickle
+import re
 
 
 #  *** fasttext ***
@@ -15,11 +16,18 @@ import pickle
 with open('results/result.pickle', 'rb') as f:
     sentences = pickle.load(f)
 
-# # instantiate fasttext (default parameters from gensim docs)
+# silly joker name enhancing
+# print(sentences)
+# better_sentences = [[f"{inner_elem}{num1}{num2}" if inner_elem == 'joker' else inner_elem for num2, inner_elem in enumerate(elem)] for num1, elem in enumerate(sentences)]
+# print("--------------------")
+# print(better_sentences)
+
+# instantiate fasttext (default parameters from gensim docs)
 # model = FastText(vector_size=4, window=3, min_count=1)
 # # build vocabulary
 # model.build_vocab(corpus_iterable=sentences)
 # train model
+
 model = FastText(vector_size=4, window=3, min_count=1, sentences=sentences, epochs=10)
 # print(model.__dict__)
 vectors = model.wv
@@ -49,6 +57,15 @@ with open('Data/metadata_phrog.dill', 'rb') as in_strm:
 
 #add joker to func
 func['joker']  = 'joker_placeholder'
+
+# silly joker name enhancing part
+# pattern = re.compile(r"joker\d+")
+# jokers = [x for l in [list(filter(pattern.match, elem)) for elem in better_sentences] for x in l]
+# print(jokers)
+# joker_funcs = {joker: "joker_placeholder" for joker in jokers}
+# func.update(joker_funcs)
+# print(func)
+
 
 dataset["function"] = dataset['word'].map(func)
 
