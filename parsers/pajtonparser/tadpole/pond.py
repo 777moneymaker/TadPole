@@ -162,7 +162,8 @@ class PondParser:
         if self.options.collapse:
             with alive_bar(len(paragraph), title = "Collapsing", spinner = PHROG_SPINNER) as bar:
                 for i, _ in enumerate(paragraph):
-                    paragraph[i] = list(dict.fromkeys(paragraph[i]))
+                    prev = object()
+                    paragraph[i] = [prev := x for x in paragraph[i] if prev != x]
                     bar()
         
         if self.options.number:
