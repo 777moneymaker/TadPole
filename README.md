@@ -9,7 +9,7 @@
 - pajtonparser written in Python by ***777moneymaker*** using initial code from ***phenolophthaleinum*** and part of the design idea from ***ukmrs***
 
 ## Usage and example
-```bash
+```
 >>> python parsers/pajtonparser/pajtonparser.py --help
 
 usage: TadPole [-h] [-d DISTANCE] -o OUTPUT [--number] [--collapse] phrog_dir gff_dir
