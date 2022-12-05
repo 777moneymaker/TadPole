@@ -45,7 +45,7 @@ def main():
     pickle_path = f"{args.output}.pickle"
     text_path = f"{args.output}.txt"
     try:
-        with open(pickle_path, "wb") as fh1, open(text_path, "w") as fh2:
+        with open(pickle_path, "wb") as fh1, open(text_path, "w", encoding="utf-8") as fh2:
             pickle.dump(res, fh1)
             fh2.write(json.dumps(res))
     except TypeError:
