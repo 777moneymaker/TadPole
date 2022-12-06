@@ -122,12 +122,11 @@ class PondParser:
         files = list(self.location.gff_dir.iterdir())
         with alive_bar(len(files), title = "GFFs      ", dual_line = True, spinner = PHROG_SPINNER) as bar:
             bar.text = "--> Parsing GFFs"
-            for i, file in enumerate(files):
+            for file in files:
                 with open(file, encoding="utf-8") as fh:
                     predicate = lambda x: not (x.startswith("#") or x.strip() == "")
                     lines = filter(predicate, fh)
-                    j = 0
-                    for line in lines:
+                    for j, line in enumerate(lines):
                         *_, start, end, _, strand, _, prot = line.split("\t")
                         start, end = int(start), int(end)
                         prot = prot.split(";", maxsplit=1)[0].lstrip("ID=")
@@ -139,7 +138,6 @@ class PondParser:
                         dist = 0 if j == 0 else start - self.records[j - 1].end
                         record = PondRecord(prot, phrogs, start, end, strand, dist)
                         self.records.append(record)
-                        j = j + 1
                 bar()
         records: list[PondRecord] = iter(self.records)
         prev: PondRecord = next(records)
