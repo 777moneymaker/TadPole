@@ -5,6 +5,8 @@ import umap
 import plotly.express as px
 import dill
 import pickle
+import utils
+import plotly
 
 
 #  *** Word2vec ***
@@ -13,22 +15,23 @@ import pickle
 
 #read pickle
 # TODO: pickle change to dill and maybe add to utils.py    
-with open('results/result.pickle', 'rb') as f:
+with open('results/vir2000_collapsed.pickle', 'rb') as f:
     sentences = pickle.load(f)
-
+print("Load pickle")
 
 # train model (simplest form possible)
 model = wv.Word2Vec(sentences, min_count=1)
 # save model to binary file
 model.save("train_test/test.model")
-print(model.wv.index_to_key)
+print("Save model")
+#print(model.wv.index_to_key)
 # get embedded vectors from the model
 vectors = model.wv
-print(vectors.__dict__)
+#print(vectors.__dict__)
 
 # save embedded vectors to binary file
 vectors.save("train_test/test.wordvectors")
-
+print("Save vectors")
 
 #  *** junk - skip ***
 # d = np.vectorize(vectors.index_to_key.get)(vectors.vectors)
@@ -45,6 +48,7 @@ data_to_reduce = vectors.vectors
 # reduce dimensionality
 embedding = reducer.fit_transform(data_to_reduce)
 # list of embeddings with reduced dims to n=3
+print("UMAP Magick")
 print(embedding)
 
 #  *** Visualisation ***
@@ -67,5 +71,6 @@ print(dataset)
 
 # show plot
 fig = px.scatter_3d(dataset, x='x', y='y', z='z', color='function', hover_data=["word"])
+plotly.offline.plot(fig, filename='plots/vir2000.html')
 fig.show()
 
