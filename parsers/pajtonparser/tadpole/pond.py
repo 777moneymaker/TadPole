@@ -150,7 +150,7 @@ class PondParser:
                 sentence.extend(record.phrogs)
                 prev = record
                 bar()
-            else:    
+            else:
                 paragraph.append(sentence if prev.strand == Strand.POS else list(reversed(sentence)))
                 bar()
 
@@ -158,7 +158,7 @@ class PondParser:
             with alive_bar(len(paragraph), title = "Collapsing", spinner = PHROG_SPINNER) as bar:
                 for i, _ in enumerate(paragraph):
                     prev = object()
-                    paragraph[i] = [prev := x for x in paragraph[i] if not (prev == self.unknown and x == self.unknown)]
+                    paragraph[i] = [prev := x for x in paragraph[i] if not (prev == self.unknown == x)]
                     bar()
         
         if self.options.number:
