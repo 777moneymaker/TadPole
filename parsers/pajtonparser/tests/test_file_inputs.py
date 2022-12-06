@@ -69,3 +69,4 @@ class TestSamePhrogs:
         result = parser.parse()
 
         assert expected == result
+
