@@ -24,6 +24,9 @@ def parse_args() -> argparse.Namespace:
         type=int,
         help="amount of phrog gff pairs that a new subset should contain",
     )
+    argparser.add_argument(
+        "-s", "--seed", dest="seed", type=int, default=None, required=False
+    )
     return argparser.parse_args()
 
 
@@ -46,7 +49,6 @@ def main():
         phrogs
     ), f"can't request larger sample size than the actual phrog population = {len(phrogs)}!"
 
-    samples = random.sample(range(0, len(phrogs)), args.sample_size)
     subset_dir = Path(f"subset_of_{args.sample_size}")
 
     try:
@@ -64,6 +66,14 @@ def main():
 
     phrogs.sort()
     gffs.sort()
+
+    seed = random.randrange(sys.maxsize) if args.seed is None else args.seed
+    random.seed(seed)
+
+    with open(subset_dir / "seed.txt", "w") as f:
+        f.write(f"{seed}\n")
+
+    samples = random.sample(range(0, len(phrogs)), args.sample_size)
 
     for idx, sample in enumerate(samples, start=1):
         gff_to_copy = gffs[sample]
