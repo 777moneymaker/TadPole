@@ -88,11 +88,6 @@ class PondMap():
     def clear(self):
         self.d.clear()
 
-    def remove_duplicates(self):
-        for k, v in self.d.items():
-            self.d[k] = list(dict.fromkeys(v)) # removes duplicates while preserving order
-    
-
 class PondParser:
     def __init__(self, location: PondLocation, options: PondOptions, unknown: str = "joker"):
         self.location = location
@@ -113,7 +108,6 @@ class PondParser:
                         prot, phrog = line.split(",")[:2]
                         self.map[prot].append(phrog)
                 bar()
-        self.map.remove_duplicates() 
         
     def parse(self) -> list[list[str]]:
         self._fill_map()
@@ -156,7 +150,7 @@ class PondParser:
                 sentence.extend(record.phrogs)
                 prev = record
                 bar()
-            else:    
+            else:
                 paragraph.append(sentence if prev.strand == Strand.POS else list(reversed(sentence)))
                 bar()
 
@@ -164,7 +158,7 @@ class PondParser:
             with alive_bar(len(paragraph), title = "Collapsing", spinner = PHROG_SPINNER) as bar:
                 for i, _ in enumerate(paragraph):
                     prev = object()
-                    paragraph[i] = [prev := x for x in paragraph[i] if prev != x]
+                    paragraph[i] = [prev := x for x in paragraph[i] if not (prev == self.unknown == x)]
                     bar()
         
         if self.options.number:
