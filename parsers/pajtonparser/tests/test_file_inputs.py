@@ -35,17 +35,37 @@ def create_pond_location(phrog_dir, gff_dir) -> pond.PondLocation:
     return locations
 
 
-def test_same_phrogs_to_one_prot_id():
+class TestSamePhrogs:
+    """
+    test suite for ISSUE #9
+    https://github.com/777moneymaker/TadPole/issues/9
+    """
     phrog_dir = [TESTFILESDIR / "multipleocc/KR063268.csv"]
     gff_dir = [TESTFILESDIR / "multipleocc/KR063268.gff"]
-    # bypass miłosz's merciless checks
     locations = create_pond_location(phrog_dir, gff_dir)
 
-    options = pond.PondOptions(float("INF"), False, False)
-    expected = [[2503], [453, 929, -1, 1109, 13612, 306, 117271, 30486, 30486]]
-    phrogize_and_jokerize(expected)
+    def test_non_collapse(self):
+        options = pond.PondOptions(float("INF"), number=False, collapse=False)
+        expected = [
+            [2503],
+            [453, 929, -1, 1109, 13612, 306, 11271, 30486, 30486, -1, -1],
+        ]
+        phrogize_and_jokerize(expected)
 
-    parser = pond.PondParser(locations, options)
-    result = parser.parse()
+        parser = pond.PondParser(self.locations, options)
+        result = parser.parse()
 
-    assert expected == result
+        assert expected == result
+
+    def test_collapse(self):
+        options = pond.PondOptions(float("INF"), number=False, collapse=True)
+        expected = [
+            [2503],
+            [453, 929, -1, 1109, 13612, 306, 11271, 30486, 30486, -1],
+        ]
+        phrogize_and_jokerize(expected)
+
+        parser = pond.PondParser(self.locations, options)
+        result = parser.parse()
+
+        assert expected == result
