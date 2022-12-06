@@ -126,6 +126,7 @@ class PondParser:
                 with open(file, encoding="utf-8") as fh:
                     predicate = lambda x: not (x.startswith("#") or x.strip() == "")
                     lines = filter(predicate, fh)
+                    j = 0
                     for line in lines:
                         *_, start, end, _, strand, _, prot = line.split("\t")
                         start, end = int(start), int(end)
@@ -135,9 +136,10 @@ class PondParser:
                         if not phrogs:
                             phrogs = ["joker"]
 
-                        dist = 0 if i == 0 else start - self.records[i - 1].end
+                        dist = 0 if j == 0 else start - self.records[j - 1].end
                         record = PondRecord(prot, phrogs, start, end, strand, dist)
                         self.records.append(record)
+                        j = j + 1
                 bar()
         records: list[PondRecord] = iter(self.records)
         prev: PondRecord = next(records)
