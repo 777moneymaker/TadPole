@@ -3,8 +3,6 @@ import numpy as np
 import pandas as pd
 import umap
 import plotly.express as px
-import dill
-import pickle
 import utils
 import plotly
 from pathlib import Path
@@ -92,4 +90,3 @@ fig.show()
 toc = time.perf_counter()
 elapsed_time = toc - tic
 custom_logger.logger.info(f"Done in {elapsed_time:0.8f}")
-
