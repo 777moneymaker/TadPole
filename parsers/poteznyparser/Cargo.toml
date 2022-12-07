@@ -1,0 +1,23 @@
+[package]
+name = "poteznyparser"
+version = "0.1.0"
+edition = "2021"
+authors = ["ukmrs <murias.wstork@gmail.com>"]
+keywords = ["sila", "potega", "bioinformatics", "schabowy", "parser"]
+categories = ["command-line-utilities", "science"]
+description = "POTEZNY PARSER DO PARSOWANIA PHROGOW"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+path = "src/main.rs"
+name = "poteznyparser"
+
+
+
+[dependencies]
+anyhow = "1.0.66"
+clap = { version = "4.0.26", features = ["derive"] }
+nohash-hasher = "0.2.0"

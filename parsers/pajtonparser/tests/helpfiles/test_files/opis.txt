@@ -1,0 +1,15 @@
+1.six_with_unknown_phrog_same_location.gff
+
+sześć białek z tymi samymi koordynatami pozycji, z nieznanym phrogiem. 
+
+2.one_plus_strand
+
+cztery białka z różnymi phrogami, w tym jeden na nici minus
+
+3.only_minus_strand
+
+tylko białka na minusie
+
+4.only_plus_strand
+
+tylko białka na plusie
