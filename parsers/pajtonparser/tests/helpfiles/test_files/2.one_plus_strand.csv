@@ -1,0 +1,5 @@
+prot_id,hmm_id,prot_start,prot_end,evalue,score
+AB036666|2,phrog_2199,16,407,5.5e-42,149.4
+AB036666|3,phrog_239,9,519,2.1e-51,180.4
+AB036666|5,phrog_25990,1,367,1E-148,501.7
+AB036666|6,phrog_21102,1,409,3.4e-173,582.6
