@@ -7,8 +7,10 @@ import sys
 TESTDIR = Path(__file__).parent
 TESTFILESDIR = TESTDIR / "helpfiles"
 
+
 def eprint(args, **kwargs):
     print(args, **kwargs, file=sys.stderr)
+
 
 class ImposterDir:
     def __init__(self, files) -> None:
@@ -37,25 +39,27 @@ def create_pond_location(phrog_dir, gff_dir) -> pond.PondLocation:
     locations.gff_dir = ImposterDir(gff_dir)
     return locations
 
-def test_distance():
+
+def maybe_test_distance():
     phrog_dir = [TESTFILESDIR / "test_files/4.only_plus_strand.csv"]
     gff_dir = [TESTFILESDIR / "test_files/4.only_plus_strand.gff"]
     locations = create_pond_location(phrog_dir, gff_dir)
     options = pond.PondOptions(distance=50, number=False, collapse=False)
-    
+
     expected = [[8855, 1199, 1646, 8452, 1944, 1675, 1012, 702]]
     phrogize_and_jokerize(expected)
-    
+
     parser = pond.PondParser(locations, options)
     result = parser.parse()
-    
+
     print(expected)
     print(result)
-    
+
+
 def test_spliting_words_by_symbol():
     expected = [[2199], [239], [21102, 25990]]
     phrogize_and_jokerize(expected)
-    
+
     phrog_dir = [TESTFILESDIR / "test_files/2.one_plus_strand.csv"]
     gff_dir = [TESTFILESDIR / "test_files/2.one_plus_strand.gff"]
     locations = create_pond_location(phrog_dir, gff_dir)
@@ -63,13 +67,13 @@ def test_spliting_words_by_symbol():
 
     parser = pond.PondParser(locations, options)
     result = parser.parse()
-    
-    print(expected)
-    print(result)
-    
+
+    assert expected == result
+
+
 def test_all_same_jokers_6th_times_colapse():
-    expected = [['joker']]
-    
+    expected = [["joker"]]
+
     phrog_dir = [TESTFILESDIR / "test_files/1.with_unknown_phrog_same_location.csv"]
     gff_dir = [TESTFILESDIR / "test_files/1.with_unknown_phrog_same_location.gff"]
     locations = create_pond_location(phrog_dir, gff_dir)
@@ -77,30 +81,31 @@ def test_all_same_jokers_6th_times_colapse():
 
     parser = pond.PondParser(locations, options)
     result = parser.parse()
-    
+
     assert expected == result
-    # print(expected)
-    # print(result)
-    
+
+
 def test_only_minus_strand_to_check_reverse_func():
     expected = [[21102, 25990, 2199]]
     phrogize_and_jokerize(expected)
-    
+
     phrog_dir = [TESTFILESDIR / "test_files/3.only_minus_strand.csv"]
     gff_dir = [TESTFILESDIR / "test_files/3.only_minus_strand.gff"]
     locations = create_pond_location(phrog_dir, gff_dir)
     options = pond.PondOptions(distance=float("INF"), number=False, collapse=False)
-    
+
     parser = pond.PondParser(locations, options)
     result = parser.parse()
-    
+
     assert expected == result
+
 
 class TestSamePhrogs:
     """
     test suite for ISSUE #9
     https://github.com/777moneymaker/TadPole/issues/9
     """
+
     phrog_dir = [TESTFILESDIR / "multipleocc/KR063268.csv"]
     gff_dir = [TESTFILESDIR / "multipleocc/KR063268.gff"]
     locations = create_pond_location(phrog_dir, gff_dir)
@@ -130,4 +135,3 @@ class TestSamePhrogs:
         result = parser.parse()
 
         assert expected == result
-
