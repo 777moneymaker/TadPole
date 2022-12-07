@@ -1,0 +1,6 @@
+##gff-version  3
+# Sequence Data: seqnum=1;seqlen=32987;seqhdr="AB036666.1 Wolbachia phage WO DNA, prophage region in Wolbachia sp. wKue"
+# Model Data: version=Prodigal.v2.6.3;run_type=Metagenomic;model="32|Orientia_tsutsugamushi_Boryong|B|30.5|11|1";gc_cont=30.50;transl_table=11;uses_sd=1
+AB036666.1	Prodigal_v2.6.3	CDS	2135	3481	145.5	-	0	ID=AB036666|2;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.366;conf=100.00;score=144.82;cscore=139.39;sscore=5.43;rscore=5.50;uscore=-2.18;tscore=2.76;
+AB036666.1	Prodigal_v2.6.3	CDS	8167	9273	107.6	-	0	ID=AB036666|5;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.336;conf=100.00;score=107.60;cscore=104.79;sscore=2.81;rscore=-1.10;uscore=1.14;tscore=2.76;
+AB036666.1	Prodigal_v2.6.3	CDS	9239	10471	114.2	-	0	ID=AB036666|6;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.320;conf=100.00;score=113.54;cscore=112.01;sscore=1.54;rscore=-1.10;uscore=0.52;tscore=2.76;
