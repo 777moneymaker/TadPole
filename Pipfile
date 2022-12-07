@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 alive_progress = "*"
+dill = "*"
 
 [dev-packages]
 pytest = "*"
