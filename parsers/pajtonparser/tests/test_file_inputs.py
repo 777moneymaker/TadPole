@@ -2,10 +2,13 @@
 from tadpole import pond
 from pathlib import Path
 from typing import List
+import sys
 
 TESTDIR = Path(__file__).parent
 TESTFILESDIR = TESTDIR / "helpfiles"
 
+def eprint(args, **kwargs):
+    print(args, **kwargs, file=sys.stderr)
 
 class ImposterDir:
     def __init__(self, files) -> None:
@@ -34,6 +37,64 @@ def create_pond_location(phrog_dir, gff_dir) -> pond.PondLocation:
     locations.gff_dir = ImposterDir(gff_dir)
     return locations
 
+def test_distance():
+    phrog_dir = [TESTFILESDIR / "test_files/4.only_plus_strand.csv"]
+    gff_dir = [TESTFILESDIR / "test_files/4.only_plus_strand.gff"]
+    locations = create_pond_location(phrog_dir, gff_dir)
+    options = pond.PondOptions(distance=50, number=False, collapse=False)
+    
+    expected = [[8855, 1199, 1646, 8452, 1944, 1675, 1012, 702]]
+    phrogize_and_jokerize(expected)
+    
+    parser = pond.PondParser(locations, options)
+    result = parser.parse()
+    
+    print(expected)
+    print(result)
+    
+def test_spliting_words_by_symbol():
+    expected = [[2199], [239], [21102, 25990]]
+    phrogize_and_jokerize(expected)
+    
+    phrog_dir = [TESTFILESDIR / "test_files/2.one_plus_strand.csv"]
+    gff_dir = [TESTFILESDIR / "test_files/2.one_plus_strand.gff"]
+    locations = create_pond_location(phrog_dir, gff_dir)
+    options = pond.PondOptions(distance=float("INF"), number=False, collapse=False)
+
+    parser = pond.PondParser(locations, options)
+    result = parser.parse()
+    
+    print(expected)
+    print(result)
+    
+def test_all_same_jokers_6th_times_colapse():
+    expected = [['joker']]
+    
+    phrog_dir = [TESTFILESDIR / "test_files/1.with_unknown_phrog_same_location.csv"]
+    gff_dir = [TESTFILESDIR / "test_files/1.with_unknown_phrog_same_location.gff"]
+    locations = create_pond_location(phrog_dir, gff_dir)
+    options = pond.PondOptions(distance=float("INF"), number=False, collapse=True)
+
+    parser = pond.PondParser(locations, options)
+    result = parser.parse()
+    
+    assert expected == result
+    # print(expected)
+    # print(result)
+    
+def test_only_minus_strand_to_check_reverse_func():
+    expected = [[21102, 25990, 2199]]
+    phrogize_and_jokerize(expected)
+    
+    phrog_dir = [TESTFILESDIR / "test_files/3.only_minus_strand.csv"]
+    gff_dir = [TESTFILESDIR / "test_files/3.only_minus_strand.gff"]
+    locations = create_pond_location(phrog_dir, gff_dir)
+    options = pond.PondOptions(distance=float("INF"), number=False, collapse=False)
+    
+    parser = pond.PondParser(locations, options)
+    result = parser.parse()
+    
+    assert expected == result
 
 class TestSamePhrogs:
     """

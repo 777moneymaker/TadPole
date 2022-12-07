@@ -2,7 +2,7 @@
 
 sześć białek z tymi samymi koordynatami pozycji, z nieznanym phrogiem. 
 
-2.one_minus_strand
+2.one_plus_strand
 
 cztery białka z różnymi phrogami, w tym jeden na nici minus
 
