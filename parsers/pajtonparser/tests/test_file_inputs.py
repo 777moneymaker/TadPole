@@ -3,6 +3,7 @@ from tadpole import pond
 from pathlib import Path
 from typing import List
 import sys
+import pytest
 
 TESTDIR = Path(__file__).parent
 TESTFILESDIR = TESTDIR / "helpfiles"
@@ -39,8 +40,8 @@ def create_pond_location(phrog_dir, gff_dir) -> pond.PondLocation:
     locations.gff_dir = ImposterDir(gff_dir)
     return locations
 
-
-def maybe_test_distance():
+@pytest.mark.skip(reason="The content of the test should be verified on meeting")
+def test_distance():
     phrog_dir = [TESTFILESDIR / "test_files/4.only_plus_strand.csv"]
     gff_dir = [TESTFILESDIR / "test_files/4.only_plus_strand.gff"]
     locations = create_pond_location(phrog_dir, gff_dir)
@@ -52,8 +53,7 @@ def maybe_test_distance():
     parser = pond.PondParser(locations, options)
     result = parser.parse()
 
-    print(expected)
-    print(result)
+    assert expected == result
 
 
 def test_spliting_words_by_symbol():
