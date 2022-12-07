@@ -1,3 +1,4 @@
+import time
 import dill
 import pandas as pd
 from pathlib import Path
@@ -15,7 +16,7 @@ def metadata_dump():
     dill.dump(metadata_dict, open('Data/metadata_phrog.dill', 'wb'))
 
 
-def read_corpus(path: Path) -> list[list]:
+def read_corpus(path: Path) -> 'list[list]':
     """
     Reads and returns corpus from given corpus file
     """
@@ -44,3 +45,18 @@ def read_metadata(path: Path) -> pd.DataFrame:
     except (dill.UnpicklingError, FileNotFoundError):
         custom_logger.logger.critical("Incorrect or corrupted file!")
         return
+
+
+def time_this(function):
+    """
+    Decorator to return function execution time.
+    """
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        exec = function(*args, **kwargs)
+        end = time.perf_counter()
+        runtime = end - start
+        custom_logger.logger.info(f"Done in {runtime:0.8f}")
+        return exec
+
+    return wrapper
