@@ -1,6 +1,6 @@
 import argparse
 import json
-import pickle
+import dill
 import sys
 from pathlib import Path
 
@@ -42,11 +42,11 @@ def main():
 
     res = parser.parse()
 
-    pickle_path = f"{args.output}.pickle"
+    dill_path = f"{args.output}.dill"
     text_path = f"{args.output}.txt"
     try:
-        with open(pickle_path, "wb") as fh1, open(text_path, "w", encoding="utf-8") as fh2:
-            pickle.dump(res, fh1)
+        with open(dill_path, "wb") as fh1, open(text_path, "w", encoding="utf-8") as fh2:
+            dill.dump(res, fh1)
             fh2.write(json.dumps(res))
     except TypeError:
         eprint("Pickle or json serialization oofed.")
