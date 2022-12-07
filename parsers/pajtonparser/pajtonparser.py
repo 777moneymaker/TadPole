@@ -49,7 +49,7 @@ def main():
             dill.dump(res, fh1)
             fh2.write(json.dumps(res))
     except TypeError:
-        eprint("Pickle or json serialization oofed.")
+        eprint("Dill or json serialization oofed.")
         raise
     print()
     print("Done processing all files.")
