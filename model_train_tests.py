@@ -1,15 +1,13 @@
 import fasttext_train as ft
 
 
-ft.fasttext_pipeline(
+ft.visualisation_pipeline(
     corpus_path="results/vir2000_numbered.pickle",
-    numbered=True,
-    vector_size=100,
-    window=5,
-    min_count=1,
-    epochs=10,
-    workers=4,
-    max_n=4,
-    min_n=4,
-    visual_path="plots/vir2000.html"
+    vector_size=150,
+    window=3,
+    min_count=5,
+    epochs=200,
+    workers=8,
+    lr_start=0.2,
+    visual_path="plots/vir2000_lr02_e200_d150_w3_minc5_nonsorted.html"
 )

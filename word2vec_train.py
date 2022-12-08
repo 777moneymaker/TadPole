@@ -26,7 +26,17 @@ numbered = True
 
 # train model (simplest form possible)
 custom_logger.logger.info("Creating Word2vec model")
-model = wv.Word2Vec(sentences, min_count=1, workers=4)
+model = wv.Word2Vec(sentences, 
+    min_count=5, 
+    workers=8,
+    vector_size=25,
+    window=3,
+    sg=1,
+    hs=1,
+    alpha=0.4,
+    min_alpha=0.005,
+    epochs=200
+    )
 
 # save model to binary file
 # model.save("train_test/test.model")
@@ -60,7 +70,7 @@ embedding = reducer.fit_transform(data_to_reduce)
 #  *** Visualisation ***
 # get functions from metadata
 custom_logger.logger.info("Loading phrog metadata")
-func = utils.read_metadata(Path("Data/metadata_phrog.dill"))
+func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
 # gather data to dataframe
 custom_logger.logger.info("Gathering data for visualisation")
 dataset = pd.DataFrame({'word': vectors.index_to_key})
@@ -84,7 +94,7 @@ dataset[['x', 'y', 'z']] = pd.DataFrame(embedding, index=dataset.index)
 # show plot
 custom_logger.logger.info("Creating visualisation")
 fig = px.scatter_3d(dataset, x='x', y='y', z='z', color='function', hover_data=["word"])
-plotly.offline.plot(fig, filename='plots/vir2000.html')
+plotly.offline.plot(fig, filename='plots/vir2000_w2v_e200_d25_lr04-0005.html')
 fig.show()
 
 toc = time.perf_counter()
