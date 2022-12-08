@@ -3,11 +3,28 @@ from dataclasses import dataclass
 from pathlib import Path
 from collections import defaultdict
 from enum import Enum
-from alive_progress import alive_bar
+from alive_progress import alive_bar, alive_it
 from alive_progress.animations.spinners import bouncing_spinner_factory
-from Bio import SeqIO
+from Bio import SeqIO, SeqUtils
 from Bio.SeqUtils import ProtParam, IsoelectricPoint
+from threading import Thread
+
 PHROG_SPINNER = bouncing_spinner_factory(("🐸", "🐸"), 8, background = ".", hide = False, overlay =True)
+
+class PondThread(Thread):
+    def __init__(self, group=None, target=None, name=None,
+                 args=(), kwargs={}, Verbose=None):
+        Thread.__init__(self, group, target, name, args, kwargs)
+        self._return = None
+
+    def run(self):
+        if self._target is not None:
+            self._return = self._target(*self._args,
+                                                **self._kwargs)
+    def join(self, *args):
+        Thread.join(self, *args)
+        return self._return
+
 
 class Strand(Enum):
     NEG = 0
@@ -126,19 +143,16 @@ class PondParser:
                     for record in SeqIO.parse(fh, "fasta"):
                         id = str(record.id)
                         seq = str(record.seq).replace("*", "").replace("X", "")
-                        prot_param = ProtParam.ProteinAnalysis(seq)
+                        prot_param = ProtParam.ProteinAnalysis(seq) 
                         # prot_iso = IsoelectricPoint.IsoelectricPoint(seq)
                         props = {
-                            "molecular_weight": prot_param.molecular_weight,
+                            "molecular_weight": prot_param.molecular_weight(),
                             "aromaticity": prot_param.aromaticity(),
                             "instability_index": prot_param.instability_index(),
-                            "flexibility": prot_param.flexibility(),
                             "gravy": prot_param.gravy(),
-                            "isoelectric_point": prot_param.isoelectric_point(),
-                            "molar_extinction_coefficient": prot_param.molar_extinction_coefficient()
+                            "isoelectric_point": prot_param.isoelectric_point()
                         }
-                        prot_props[id] = props
-                
+                        prot_props[id] = props              
                 bar()
         return prot_props
 

@@ -69,7 +69,7 @@ def test():
     parser = pond.PondParser(loc, opt)
     res = parser.parse_proteins(Path(args.props))
     with open("prot_params.json", "w") as fh:
-        fh.write(json.dumpls(res))
+        fh.write(json.dumps(res))
 
 if __name__ == "__main__":
     # main()
