@@ -5,7 +5,8 @@ from collections import defaultdict
 from enum import Enum
 from alive_progress import alive_bar
 from alive_progress.animations.spinners import bouncing_spinner_factory
-
+from Bio import SeqIO
+from Bio.SeqUtils import ProtParam, IsoelectricPoint
 PHROG_SPINNER = bouncing_spinner_factory(("🐸", "🐸"), 8, background = ".", hide = False, overlay =True)
 
 class Strand(Enum):
@@ -38,7 +39,7 @@ class PondLocation:
             raise TypeError("Phrog dir is not dir")
         if not gff_dir.is_dir():
             raise TypeError("Gff dir is not dir")
-        
+
         self.phrog_dir = phrog_dir
         self.gff_dir = gff_dir
 
@@ -108,7 +109,40 @@ class PondParser:
                         prot, phrog = line.split(",")[:2]
                         self.map[prot].append(phrog)
                 bar()
+
+    @staticmethod
+    def parse_proteins(faa_dir: Path) -> dict[dict]:
+        if not isinstance(faa_dir, Path):
+            raise TypeError(".faa dir is not a Path obj")
+        if not faa_dir.is_dir():
+            raise TypeError(".faa dir is not dir")
         
+        files = list(faa_dir.iterdir())
+        prot_props = dict()
+        with alive_bar(len(files), title = "FAAs      ", dual_line = True, spinner = PHROG_SPINNER) as bar:
+            bar.text = "--> Parsing FAAs"
+            for file in files:
+                with open(file, encoding = "utf-8") as fh:
+                    for record in SeqIO.parse(fh, "fasta"):
+                        id = str(record.id)
+                        seq = str(record.seq).replace("*", "").replace("X", "")
+                        prot_param = ProtParam.ProteinAnalysis(seq)
+                        # prot_iso = IsoelectricPoint.IsoelectricPoint(seq)
+                        props = {
+                            "molecular_weight": prot_param.molecular_weight,
+                            "aromaticity": prot_param.aromaticity(),
+                            "instability_index": prot_param.instability_index(),
+                            "flexibility": prot_param.flexibility(),
+                            "gravy": prot_param.gravy(),
+                            "isoelectric_point": prot_param.isoelectric_point(),
+                            "molar_extinction_coefficient": prot_param.molar_extinction_coefficient()
+                        }
+                        prot_props[id] = props
+                
+                bar()
+        return prot_props
+
+
     def parse(self) -> list[list[str]]:
         self._fill_map()
         Sentence = list[str]
