@@ -1,5 +1,4 @@
 import time
-import dill
 import pandas as pd
 from pathlib import Path
 import pickle
@@ -13,7 +12,7 @@ def metadata_dump():
 
     df = pd.read_table('Data/metadata-phrog.tsv', header=0)
     metadata_dict = dict(zip(df['phrog_id'], df['category']))
-    dill.dump(metadata_dict, open('Data/metadata_phrog.dill', 'wb'))
+    pickle.dump(metadata_dict, open('Data/metadata_phrog.pickle', 'wb'))
 
 
 def read_corpus(path: Path) -> 'list[list]':
@@ -40,9 +39,9 @@ def read_metadata(path: Path) -> pd.DataFrame:
 
     try:
         with open(path.as_posix(), 'rb') as in_strm:
-            func = dill.load(in_strm)
+            func = pickle.load(in_strm)
             return func
-    except (dill.UnpicklingError, FileNotFoundError):
+    except (pickle.UnpicklingError, FileNotFoundError):
         custom_logger.logger.critical("Incorrect or corrupted file!")
         return
 
@@ -56,7 +55,7 @@ def time_this(function):
         exec = function(*args, **kwargs)
         end = time.perf_counter()
         runtime = end - start
-        custom_logger.logger.info(f"Done in {runtime:0.8f}")
+        custom_logger.logger.info(f"{function.__name__} >>> Done in {runtime:0.8f}")
         return exec
 
     return wrapper
