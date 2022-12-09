@@ -9,5 +9,6 @@ ft.visualisation_pipeline(
     epochs=200,
     workers=8,
     lr_start=0.2,
-    visual_path="plots/vir2000_lr02_e200_d150_w3_minc5_nonsorted.html"
+    visual_path="plots/vir2000_lr05_e200_d150_w3_minc5_nonsorted.html",
+    callbacks=[ft.LossLogger()]
 )

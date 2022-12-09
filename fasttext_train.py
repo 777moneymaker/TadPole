@@ -4,6 +4,7 @@ import time
 
 from gensim.models import FastText
 import gensim.models.fasttext
+from gensim.models.callbacks import CallbackAny2Vec
 import numpy as np
 import pandas as pd
 import umap
@@ -18,6 +19,23 @@ import custom_logger
 
 
 PHROG_SPINNER = bouncing_spinner_factory(("🐸", "🐸"), 8, background = ".", hide = False, overlay =True)
+
+
+class LossLogger(CallbackAny2Vec):
+    """
+    Callback to print loss after each epoch
+    """
+    def __init__(self):
+        self.epoch = 0
+    
+    def on_epoch_end(self, model):
+        loss = model.get_latest_training_loss()
+        if self.epoch == 0:
+            print(f'Loss after epoch {self.epoch}: {loss}')
+        else:
+            print(f'Loss after epoch {self.epoch}: {loss - self.loss_previous_step}')
+        self.epoch += 1
+        self.loss_previous_step = loss
 
 
 @utils.time_this
@@ -35,8 +53,8 @@ def visualisation_pipeline(
     min_n: int = 6,
     sg: int = 0, 
     hs: int = 0,
-    sorted_vocab: int = 1
-    ):
+    sorted_vocab: int = 1,
+    callbacks=[]):
     """
     Automated fasttext pipeline: model training, UMAP dimensionality reduction, 3D scatter visualisation.
     """
@@ -54,10 +72,12 @@ def visualisation_pipeline(
         min_n,
         sg,
         hs,
-        sorted_vocab)
+        sorted_vocab,
+        callbacks)
     # print(type(model.wv))
     print(model.wv.vector_size)
     print(model.epochs)
+    # print(model.lifecycle_events)
 
     #  *** UMAP ***
     embedding = umap_reduce(model.wv, n_dims=3)
@@ -131,7 +151,8 @@ def model_train(
     min_n: int = 6,
     sg: int = 0, 
     hs: int = 0,
-    sorted_vocab: int = 1
+    sorted_vocab: int = 1,
+    callbacks=[]
     ):
     """
     Train fasttext model.
@@ -157,6 +178,7 @@ def model_train(
             min_n=min_n,
             sg=sg,
             hs=hs,
-            sorted_vocab=sorted_vocab)
+            sorted_vocab=sorted_vocab,
+            callbacks=callbacks)
         bar()
     return model
