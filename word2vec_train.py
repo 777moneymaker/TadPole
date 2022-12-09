@@ -1,102 +1,146 @@
+from pathlib import Path
+import re
+import time
+
 from gensim.models import word2vec as wv
+from gensim.models.callbacks import CallbackAny2Vec
 import numpy as np
 import pandas as pd
 import umap
-import plotly.express as px
-import utils
 import plotly
-from pathlib import Path
+import plotly.express as px
+from alive_progress import alive_bar
+from alive_progress.animations.spinners import bouncing_spinner_factory
+
+import utils
 import custom_logger
-import time
-import re
 
 
-#TODO: make this whole file like a proper module
+PHROG_SPINNER = bouncing_spinner_factory(("🐸", "🐸"), 8, background = ".", hide = False, overlay =True)
 
-# start time
-tic = time.perf_counter()
 
-#  *** Word2vec ***
-# corpus
-#read pickle
-# sentences = utils.read_corpus(Path("results/vir2000_collapsed.pickle"))
-sentences = utils.read_corpus(Path("results/vir2000_numbered.pickle"))
-# are jokers numbered?; btw this is not ideal, but it will all be changing
-numbered = True
+def model_train(
+    corpus_path: str, 
+    min_count: int = 5, 
+    workers: int = 8,
+    vector_size: int = 25,
+    window: int = 3,
+    sg: int = 1,
+    hs: int = 1,
+    lr_start: float = 0.4,
+    lr_min: float = 0.005,
+    epochs: int = 200):
 
-# train model (simplest form possible)
-custom_logger.logger.info("Creating Word2vec model")
-model = wv.Word2Vec(sentences, 
-    min_count=5, 
-    workers=8,
-    vector_size=25,
-    window=3,
-    sg=1,
-    hs=1,
-    alpha=0.4,
-    min_alpha=0.005,
-    epochs=200
-    )
+    """
 
-# save model to binary file
-# model.save("train_test/test.model")
-# print("Save model")
+    Train w2v model.
 
-# get embedded vectors from the model
-vectors = model.wv
+    """
+    
+    with alive_bar(title = "Loading corpus",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+        sentences = utils.read_corpus(Path(corpus_path))
+        bar()
 
-# save embedded vectors to binary file
-# vectors.save("train_test/test.wordvectors")
-# print("Save vectors")
+    with alive_bar(title = "Creating model",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+        model = wv.Word2Vec(
+            vector_size=vector_size,
+            window=window,
+            min_count=min_count,
+            sentences=sentences,
+            epochs=epochs, 
+            workers=workers,
+            alpha=lr_start,
+            min_alpha=lr_min,
+            sg=sg,
+            hs=hs)
+        bar()
+        
+    return model
 
-#  *** junk - skip ***
-# d = np.vectorize(vectors.index_to_key.get)(vectors.vectors)
-# print(d)
-# dataset = pd.DataFrame(np.hstack((vectors.index_to_key, vectors.vectors.reshape(-1, 1))))
-# print(dataset)
-#  *******************
 
-#  *** UMAP ***
-# initialise UMAP
-custom_logger.logger.info("UMAP Magic")
-reducer = umap.UMAP(n_components=3)
-# data_to_reduce = dataset['vector'].to_list()
-data_to_reduce = vectors.vectors
-# reduce dimensionality
-embedding = reducer.fit_transform(data_to_reduce)
-# list of embeddings with reduced dims to n=3
-# print(embedding)
+def umap_reduce(
+    vectors_obj: wv.KeyedVectors, 
+    n_dims: int):
 
-#  *** Visualisation ***
-# get functions from metadata
-custom_logger.logger.info("Loading phrog metadata")
-func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
-# gather data to dataframe
-custom_logger.logger.info("Gathering data for visualisation")
-dataset = pd.DataFrame({'word': vectors.index_to_key})
-#add joker to func
-if not numbered:
-    func['joker']  = 'joker_placeholder'
-# silly joker name enhancing part
-if numbered:
-    pattern = re.compile(r"joker\d+")
-    jokers = [x for l in [list(filter(pattern.match, elem)) for elem in sentences] for x in l]
-    print(jokers)
-    joker_funcs = {joker: "joker_placeholder" for joker in jokers}
-    func.update(joker_funcs)
-# print(func)
-# map functions to words
-dataset["function"] = dataset['word'].map(func)
-# insert embedding data
-dataset[['x', 'y', 'z']] = pd.DataFrame(embedding, index=dataset.index)
-# print(dataset)
+    """
 
-# show plot
-custom_logger.logger.info("Creating visualisation")
-fig = px.scatter_3d(dataset, x='x', y='y', z='z', color='function', hover_data=["word"])
-plotly.offline.plot(fig, filename='plots/vir2000_w2v_e200_d25_lr04-0005.html')
-fig.show()
+    Uses UMAP to reduce the dimensionality of the embedded vectors.
 
-toc = time.perf_counter()
-elapsed_time = toc - tic
-custom_logger.logger.info(f"Done in {elapsed_time:0.8f}")
+    """
+
+
+    with alive_bar(title = "UMAP Magic",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+        # custom_logger.logger.info("UMAP Magic")
+        reducer = umap.UMAP(n_components=n_dims)
+        # data_to_reduce = dataset['vector'].to_list()
+        data_to_reduce = vectors_obj.vectors
+        # reduce dimensionality
+        embedding = reducer.fit_transform(data_to_reduce)
+        bar()
+    return embedding
+
+
+def model_visualise(vectors_obj: wv.KeyedVectors, 
+                    reduced_embed: np.ndarray, 
+                    visual_path: str):
+
+    """
+    
+    Generates model visualisation in plotly's 3D scatter.
+
+    """
+
+    with alive_bar(title = "Gathering phrog metadata and embedding data",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+        func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+        dataset = pd.DataFrame({'word': vectors_obj.index_to_key})
+        dataset["function"] = dataset['word'].map(func)
+        dataset[['x', 'y', 'z']] = pd.DataFrame(reduced_embed, index=dataset.index)
+        bar()
+    
+    with alive_bar(title = "Generating visualisation",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+        fig = px.scatter_3d(dataset, x='x', y='y', z='z', color='function', hover_data=["word"])
+        fig.write_html(Path(visual_path).as_posix())
+        bar()
+
+@utils.time_this
+def visualisation_pipeline(
+    corpus_path: str,
+    visual_path: str,
+    vector_size: int = 100,
+    window: int = 5,
+    min_count: int = 5,
+    epochs: int = 5,
+    workers: int = 3,
+    lr_start: float = 0.025,
+    lr_min: float = 0.0001,
+    sg: int = 0, 
+    hs: int = 0):
+
+    """
+    Automated fasttext pipeline: model training, UMAP dimensionality reduction, 3D scatter visualisation.
+    """
+    # *** w2v train + loading corpus ***
+    model = model_train(
+        corpus_path, 
+        vector_size, 
+        window, 
+        min_count, 
+        epochs, 
+        workers, 
+        lr_start,
+        lr_min,
+        sg,
+        hs)
+    # print(type(model.wv))
+    print(model.wv.vector_size)
+    print(model.epochs)
+    # print(model.lifecycle_events)
+
+    #  *** UMAP ***
+    embedding = umap_reduce(model.wv, n_dims=3)
+    # print(type(embedding))
+    # print(embedding)
+
+    #  *** Visualisation ***
+    dataset = model_visualise(model.wv, embedding, visual_path)
+    # print(dataset)
