@@ -29,7 +29,7 @@ def model_train(
     hs: int = 1,
     lr_start: float = 0.4,
     lr_min: float = 0.005,
-    epochs: int = 200):
+    epochs: int = 5):
 
     """
 
@@ -102,6 +102,7 @@ def model_visualise(vectors_obj: wv.KeyedVectors,
         fig.write_html(Path(visual_path).as_posix())
         bar()
 
+
 @utils.time_this
 def visualisation_pipeline(
     corpus_path: str,
@@ -121,16 +122,16 @@ def visualisation_pipeline(
     """
     # *** w2v train + loading corpus ***
     model = model_train(
-        corpus_path, 
-        vector_size, 
-        window, 
-        min_count, 
-        epochs, 
-        workers, 
-        lr_start,
-        lr_min,
-        sg,
-        hs)
+        corpus_path=corpus_path, 
+        vector_size=vector_size, 
+        window=window, 
+        min_count=min_count, 
+        epochs=epochs, 
+        workers=workers, 
+        lr_start=lr_start,
+        lr_min=lr_min,
+        sg=sg,
+        hs=hs)
     # print(type(model.wv))
     print(model.wv.vector_size)
     print(model.epochs)
