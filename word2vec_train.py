@@ -1,6 +1,7 @@
 from pathlib import Path
 import re
 import time
+import logging
 
 from gensim.models import word2vec as wv
 from gensim.models.callbacks import CallbackAny2Vec
@@ -19,6 +20,34 @@ import custom_logger
 PHROG_SPINNER = bouncing_spinner_factory(("🐸", "🐸"), 8, background = ".", hide = False, overlay =True)
 
 
+class TrainLogger(CallbackAny2Vec):
+    """
+    Callback to print training stats after each epoch
+    """
+
+    def __init__(self):
+        self.epoch = 0
+        self.loss_to_show = 0
+
+    # def on_train_begin(self, model):
+    #     model.compute_loss = True
+    
+    def on_epoch_end(self, model):
+        loss = model.get_latest_training_loss()
+        loss_current = loss - self.loss_to_show
+        self.loss_to_show = loss
+        # if self.epoch == 0:
+        lr = model.min_alpha_yet_reached
+        trained = model.train_count
+        # print(f'lr after epoch {self.epoch}: {lr}')
+        # print(f' after epoch {self.epoch}: {loss_current}')
+        # else:
+        #     print(f'Loss after epoch {self.epoch}: {loss - self.loss_previous_step}')
+        print(f"epoch: {self.epoch} lr: {lr}\t loss: {loss_current}\t count: {trained}")
+        # print(model._log_progress())
+        self.epoch += 1
+
+
 def model_train(
     corpus_path: str, 
     min_count: int = 5, 
@@ -29,13 +58,20 @@ def model_train(
     hs: int = 1,
     lr_start: float = 0.4,
     lr_min: float = 0.005,
-    epochs: int = 5):
+    epochs: int = 5,
+    negative: int = 5,
+    callbacks=[],
+    show_debug: bool = False):
 
     """
 
     Train w2v model.
 
     """
+
+    logging.basicConfig(level=logging.ERROR)
+    if show_debug:
+        logging.basicConfig(level=logging.DEBUG)
     
     with alive_bar(title = "Loading corpus",  dual_line = True, spinner = PHROG_SPINNER) as bar:
         sentences = utils.read_corpus(Path(corpus_path))
@@ -46,13 +82,26 @@ def model_train(
             vector_size=vector_size,
             window=window,
             min_count=min_count,
-            sentences=sentences,
+            # sentences=sentences,
             epochs=epochs, 
             workers=workers,
             alpha=lr_start,
             min_alpha=lr_min,
             sg=sg,
-            hs=hs)
+            hs=hs,
+            ns_exponent=0.01,
+            negative=negative)
+        model.build_vocab(sentences,
+             progress_per=1000)
+        # print(model.corpus_count)
+        # print(model.epochs)
+        model.train(corpus_iterable=sentences, 
+            total_examples=model.corpus_count, 
+            epochs=model.epochs,
+            # start_alpha=lr_start,
+            # end_alpha=lr_min,
+            compute_loss=True,
+            callbacks=callbacks)
         bar()
         
     return model
@@ -99,6 +148,7 @@ def model_visualise(vectors_obj: wv.KeyedVectors,
     
     with alive_bar(title = "Generating visualisation",  dual_line = True, spinner = PHROG_SPINNER) as bar:
         fig = px.scatter_3d(dataset, x='x', y='y', z='z', color='function', hover_data=["word"])
+        fig.update_traces(marker_size = 4)
         fig.write_html(Path(visual_path).as_posix())
         bar()
 
@@ -115,7 +165,10 @@ def visualisation_pipeline(
     lr_start: float = 0.025,
     lr_min: float = 0.0001,
     sg: int = 0, 
-    hs: int = 0):
+    hs: int = 0,
+    callbacks=[],
+    negative: int = 5, 
+    show_debug: bool = False):
 
     """
     Automated fasttext pipeline: model training, UMAP dimensionality reduction, 3D scatter visualisation.
@@ -131,7 +184,10 @@ def visualisation_pipeline(
         lr_start=lr_start,
         lr_min=lr_min,
         sg=sg,
-        hs=hs)
+        hs=hs,
+        negative=negative,
+        callbacks=callbacks,
+        show_debug=show_debug)
     # print(type(model.wv))
     print(model.wv.vector_size)
     print(model.epochs)
