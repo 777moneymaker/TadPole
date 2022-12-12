@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 alive_progress = "*"
-dill = "*"
+biopython = "*"
 
 [dev-packages]
 pytest = "*"
