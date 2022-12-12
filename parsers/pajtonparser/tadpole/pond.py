@@ -3,10 +3,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from collections import defaultdict
 from enum import Enum
-from alive_progress import alive_bar, alive_it
+from alive_progress import alive_bar
 from alive_progress.animations.spinners import bouncing_spinner_factory
 from Bio import SeqIO, SeqUtils
-from Bio.SeqUtils import ProtParam, IsoelectricPoint
+from Bio.SeqUtils import ProtParam
 from threading import Thread
 
 PHROG_SPINNER = bouncing_spinner_factory(("🐸", "🐸"), 8, background = ".", hide = False, overlay =True)
@@ -83,8 +83,8 @@ class PondOptions:
 
 @dataclass
 class PondConfig:
-    params: dict[dict[str, float]]
-    config: dict[bool]
+    params: dict[dict[str, float]] # 'Protein_ID': { 'chemical_property': 'value' }
+    config: dict[bool] # 'chemical_property': True/False
 
 @dataclass
 class PondRecord:

@@ -58,8 +58,8 @@ def main():
             props = json.load(fh)
             config = json.load(fhc)
         valid_cfg = {'molecular_weight', 'instability_index', 'isoelectric_point', 'gravy', 'aromaticity'}
-        if any(key not in valid_cfg for key in config):
-            raise ValueError("Config contains invalid entries")
+        if any(key not in valid_cfg for key in config) or len(config) != len(valid_cfg):
+            raise ValueError("Config contains invalid entries or not all entries")
         if any(not isinstance(value, bool) for value in config.values()):
             raise ValueError("Config values should be bool's only")
         config = pond.PondConfig(props, config) 
