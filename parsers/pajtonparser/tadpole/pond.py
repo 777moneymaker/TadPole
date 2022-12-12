@@ -82,6 +82,11 @@ class PondOptions:
         self.collapse = collapse
 
 @dataclass
+class PondConfig:
+    params: dict[dict[str, float]]
+    config: dict[bool]
+
+@dataclass
 class PondRecord:
     id: str
     phrogs: list[str]
@@ -157,7 +162,7 @@ class PondParser:
         return prot_props
 
 
-    def parse(self) -> list[list[str]]:
+    def parse(self, pond_config: PondConfig = None) -> list[list[str]]:
         self._fill_map()
         Sentence = list[str]
         
@@ -176,7 +181,12 @@ class PondParser:
                         strand = Strand.into(strand)
                         if not phrogs:
                             phrogs = ["joker"]
-
+                            if pond_config is not None: 
+                                params = pond_config.params.get(prot)
+                                if params:
+                                    phrogs = [
+                                        "joker_" + "|".join(f"{key}:{val :.2f}" for key, val in params.items() if pond_config.config[key])
+                                    ]
                         dist = 0 if j == 0 else start - self.records[j - 1].end
                         record = PondRecord(prot, phrogs, start, end, strand, dist)
                         self.records.append(record)
@@ -220,4 +230,3 @@ class PondParser:
             
         self.content = paragraph
         return paragraph
-        

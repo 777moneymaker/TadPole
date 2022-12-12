@@ -1,0 +1,7 @@
+{
+    "molecular_weight": true, 
+    "instability_index": true,
+    "isoelectric_point": true, 
+    "gravy": true, 
+    "aromaticity": true
+}
