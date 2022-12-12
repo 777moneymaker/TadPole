@@ -5,8 +5,26 @@ from collections import defaultdict
 from enum import Enum
 from alive_progress import alive_bar
 from alive_progress.animations.spinners import bouncing_spinner_factory
+from Bio import SeqIO, SeqUtils
+from Bio.SeqUtils import ProtParam
+from threading import Thread
 
 PHROG_SPINNER = bouncing_spinner_factory(("🐸", "🐸"), 8, background = ".", hide = False, overlay =True)
+
+class PondThread(Thread):
+    def __init__(self, group=None, target=None, name=None,
+                 args=(), kwargs={}, Verbose=None):
+        Thread.__init__(self, group, target, name, args, kwargs)
+        self._return = None
+
+    def run(self):
+        if self._target is not None:
+            self._return = self._target(*self._args,
+                                                **self._kwargs)
+    def join(self, *args):
+        Thread.join(self, *args)
+        return self._return
+
 
 class Strand(Enum):
     NEG = 0
@@ -38,7 +56,7 @@ class PondLocation:
             raise TypeError("Phrog dir is not dir")
         if not gff_dir.is_dir():
             raise TypeError("Gff dir is not dir")
-        
+
         self.phrog_dir = phrog_dir
         self.gff_dir = gff_dir
 
@@ -62,6 +80,11 @@ class PondOptions:
         self.distance = distance
         self.number = number
         self.collapse = collapse
+
+@dataclass
+class PondConfig:
+    params: dict[dict[str, float]] # 'Protein_ID': { 'chemical_property': 'value' }
+    config: dict[bool] # 'chemical_property': True/False
 
 @dataclass
 class PondRecord:
@@ -108,8 +131,38 @@ class PondParser:
                         prot, phrog = line.split(",")[:2]
                         self.map[prot].append(phrog)
                 bar()
+
+    @staticmethod
+    def parse_proteins(faa_dir: Path) -> dict[dict]:
+        if not isinstance(faa_dir, Path):
+            raise TypeError(".faa dir is not a Path obj")
+        if not faa_dir.is_dir():
+            raise TypeError(".faa dir is not dir")
         
-    def parse(self) -> list[list[str]]:
+        files = list(faa_dir.iterdir())
+        prot_props = dict()
+        with alive_bar(len(files), title = "FAAs      ", dual_line = True, spinner = PHROG_SPINNER) as bar:
+            bar.text = "--> Parsing FAAs"
+            for file in files:
+                with open(file, encoding = "utf-8") as fh:
+                    for record in SeqIO.parse(fh, "fasta"):
+                        id = str(record.id)
+                        seq = str(record.seq).replace("*", "").replace("X", "")
+                        prot_param = ProtParam.ProteinAnalysis(seq) 
+                        # prot_iso = IsoelectricPoint.IsoelectricPoint(seq)
+                        props = {
+                            "molecular_weight": prot_param.molecular_weight(),
+                            "aromaticity": prot_param.aromaticity(),
+                            "instability_index": prot_param.instability_index(),
+                            "gravy": prot_param.gravy(),
+                            "isoelectric_point": prot_param.isoelectric_point()
+                        }
+                        prot_props[id] = props              
+                bar()
+        return prot_props
+
+
+    def parse(self, pond_config: PondConfig = None) -> list[list[str]]:
         self._fill_map()
         Sentence = list[str]
         
@@ -128,7 +181,12 @@ class PondParser:
                         strand = Strand.into(strand)
                         if not phrogs:
                             phrogs = ["joker"]
-
+                            if pond_config is not None: 
+                                params = pond_config.params.get(prot)
+                                if params:
+                                    phrogs = [
+                                        "joker_" + "|".join(f"{key}:{val :.2f}" for key, val in params.items() if pond_config.config[key])
+                                    ]
                         dist = 0 if j == 0 else start - self.records[j - 1].end
                         record = PondRecord(prot, phrogs, start, end, strand, dist)
                         self.records.append(record)
@@ -172,4 +230,3 @@ class PondParser:
             
         self.content = paragraph
         return paragraph
-        

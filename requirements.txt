@@ -2,3 +2,4 @@ pytest==7.2.0
 pandas==1.1.4
 numpy==1.19.5
 alive-progress==2.4.1
+biopython==1.80
