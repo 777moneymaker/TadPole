@@ -9,6 +9,8 @@ from Bio import SeqIO, SeqUtils
 from Bio.SeqUtils import ProtParam
 from threading import Thread
 
+from .logger import POND_LOGGER
+
 PHROG_SPINNER = bouncing_spinner_factory(("🐸", "🐸"), 8, background = ".", hide = False, overlay =True)
 
 class PondThread(Thread):
@@ -33,9 +35,11 @@ class Strand(Enum):
     @classmethod
     def into(cls, val: str):
         if not isinstance(val, str):
+            POND_LOGGER.error(f"Wrong strand type '{type(val)}' provided")
             raise TypeError(f"Into strand should have a 'str' type but {type(val)} provided.")
         
         if val not in ("+", "-"):
+            POND_LOGGER.error(f"Wrong strand character '{val}' provided")
             raise ValueError(f"Valid values for Strand.into() are ['+', '-'] but '{val}' provided.")
 
         return cls.POS if val == "+" else cls.NEG
@@ -48,13 +52,18 @@ class PondLocation:
     gff_dir: Path
 
     def __init__(self, phrog_dir: Path, gff_dir: Path):
-        if not isinstance(gff_dir, Path):
-            raise TypeError("Gff dir is not a Path obj")
         if not isinstance(phrog_dir, Path):
+            POND_LOGGER.error(f"phrog dir provided as type '{type(phrog_dir)}' but Path required")
             raise TypeError("Phrog dir is not a Path obj")
+        if not isinstance(gff_dir, Path):
+            POND_LOGGER.error(f"gff dir provided as type '{type(gff_dir)}' but Path required")
+            raise TypeError("Gff dir is not a Path obj")
+
         if not phrog_dir.is_dir():
+            POND_LOGGER.error(f"Phrog dir is not dir")
             raise TypeError("Phrog dir is not dir")
         if not gff_dir.is_dir():
+            POND_LOGGER.error(f"GFF dir is not a dir")
             raise TypeError("Gff dir is not dir")
 
         self.phrog_dir = phrog_dir
@@ -69,12 +78,16 @@ class PondOptions:
 
     def __init__(self, distance: int, number: bool, collapse: bool):
         if not isinstance(distance, (int, float, complex)):
+            POND_LOGGER.error(f"distance provided as type '{type(distance)}' but int required")
             raise TypeError("distance is not an int")
         if distance < 0:
+            POND_LOGGER.error(f"distance < 0 provided")
             raise ValueError("Distance < 0 is not valid")
         if not isinstance(collapse, bool):
+            POND_LOGGER.error(f"collapse provided as type '{type(collapse)}' but bool required")
             raise TypeError("collapse should be a bool obj")
         if not isinstance(number, bool):
+            POND_LOGGER.error(f"number provided as type '{type(number)}' but bool required")
             raise TypeError("number should be a bool obj")
         
         self.distance = distance
@@ -105,6 +118,7 @@ class PondMap():
 
     def __setitem__(self, key, value):
         if not isinstance(value, str):
+            POND_LOGGER.error(f"In PondMap type '{type(value)}' wrongly supplied")
             raise TypeError("PondMap values should be str's only.")
         self.d[key].append(value)
 
@@ -122,7 +136,7 @@ class PondParser:
 
     def _fill_map(self):
         files = list(self.location.phrog_dir.iterdir())
-        with alive_bar(len(files), title = "PHROGs    ",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+        with alive_bar(len(files), title = "PHROGs      ",  dual_line = True, spinner = PHROG_SPINNER) as bar:
             bar.text = "--> Looping on some PHROGs"
             for file in files:
                 with open(file, encoding="utf-8") as fh:
@@ -131,17 +145,21 @@ class PondParser:
                         prot, phrog = line.split(",")[:2]
                         self.map[prot].append(phrog)
                 bar()
+            POND_LOGGER.info("Processed all available phrog files")
+
 
     @staticmethod
     def parse_proteins(faa_dir: Path) -> dict[dict]:
         if not isinstance(faa_dir, Path):
+            POND_LOGGER.error("Faa dir supplied not as Path obj")
             raise TypeError(".faa dir is not a Path obj")
         if not faa_dir.is_dir():
+            POND_LOGGER.error("Faa dir supplied not as dir")
             raise TypeError(".faa dir is not dir")
         
         files = list(faa_dir.iterdir())
         prot_props = dict()
-        with alive_bar(len(files), title = "FAAs      ", dual_line = True, spinner = PHROG_SPINNER) as bar:
+        with alive_bar(len(files), title = "FAAs        ", dual_line = True, spinner = PHROG_SPINNER) as bar:
             bar.text = "--> Parsing FAAs"
             for file in files:
                 with open(file, encoding = "utf-8") as fh:
@@ -159,6 +177,7 @@ class PondParser:
                         }
                         prot_props[id] = props              
                 bar()
+            POND_LOGGER.info("Processed all available faa files.")
         return prot_props
 
 
@@ -167,7 +186,7 @@ class PondParser:
         Sentence = list[str]
         
         files = list(self.location.gff_dir.iterdir())
-        with alive_bar(len(files), title = "GFFs      ", dual_line = True, spinner = PHROG_SPINNER) as bar:
+        with alive_bar(len(files), title = "GFFs        ", dual_line = True, spinner = PHROG_SPINNER) as bar:
             bar.text = "--> Parsing GFFs"
             for file in files:
                 with open(file, encoding="utf-8") as fh:
@@ -191,6 +210,7 @@ class PondParser:
                         record = PondRecord(prot, phrogs, start, end, strand, dist)
                         self.records.append(record)
                 bar()
+            POND_LOGGER.info("Processed all availabe gff files")
         records: list[PondRecord] = iter(self.records)
         prev: PondRecord = next(records)
         sentence: Sentence = []
@@ -199,7 +219,7 @@ class PondParser:
         # Add first phrogs
         sentence.extend(prev.phrogs)
         counter: int = 1
-        with alive_bar(len(self.records), title = "Sentences ", dual_line = True, spinner = PHROG_SPINNER) as bar:
+        with alive_bar(len(self.records), title = "Sentences   ", dual_line = True, spinner = PHROG_SPINNER) as bar:
             bar.text = "--> Ordering some sentences"
             for record in records:
                 if record.strand != prev.strand or record.dist > self.options.distance:
@@ -213,20 +233,22 @@ class PondParser:
                 bar()
 
         if self.options.collapse:
-            with alive_bar(len(paragraph), title = "Collapsing", spinner = PHROG_SPINNER) as bar:
+            with alive_bar(len(paragraph), title = "Collapsing  ", spinner = PHROG_SPINNER) as bar:
                 for i, _ in enumerate(paragraph):
                     prev = object()
                     paragraph[i] = [prev := x for x in paragraph[i] if not (prev == self.unknown == x)]
                     bar()
+                POND_LOGGER.info(f"Collapsed successfully all consecutive duplicates from {len(paragraph)} words")
         
         if self.options.number:
-            with alive_bar(len(paragraph), title = "Numering  ", spinner = PHROG_SPINNER) as bar:
+            with alive_bar(len(paragraph), title = "Numering    ", spinner = PHROG_SPINNER) as bar:
                 for sentence in paragraph:
                     for i, phrog in enumerate(sentence):
                         if phrog == self.unknown:
                             sentence[i] = f"{phrog}{counter}"
                             counter += 1
                     bar()
+                POND_LOGGER.info(f"Added numbers successfully for jokers from {len(paragraph)} words")
             
         self.content = paragraph
         return paragraph

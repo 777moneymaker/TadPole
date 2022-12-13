@@ -4,11 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-alive_progress = "*"
-biopython = "*"
+alive_progress = "2.4.1"
+biopython = "1.80"
+jsonschema = "4.17.3"
 
 [dev-packages]
-pytest = "*"
+pytest = "7.2.0"
 
 [requires]
 python_version = "3.9"
