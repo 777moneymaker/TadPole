@@ -1,0 +1,11 @@
+##gff-version  3
+# Sequence Data: seqnum=1;seqlen=6407;seqhdr="AB334720.1 Enterobacteria phage f1 DNA, complete genome, isolate: NBRC 20010"
+# Model Data: version=Prodigal.v2.6.3;run_type=Metagenomic;model="6|Anaplasma_phagocytophilum_HZ|B|41.6|11|1";gc_cont=41.60;transl_table=11;uses_sd=1
+AB334720.1	Prodigal_v2.6.3	CDS	1	831	55.3	+	0	ID=AB334720|1;partial=10;start_type=Edge;rbs_motif=None;rbs_spacer=None;gc_cont=0.383;conf=100.00;score=55.31;cscore=52.10;sscore=3.22;rscore=0.00;uscore=0.00;tscore=3.22;
+AB334720.1	Prodigal_v2.6.3	CDS	843	1106	19.6	+	0	ID=AB334720|2;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.458;conf=99.17;score=20.80;cscore=14.93;sscore=5.87;rscore=3.28;uscore=-1.35;tscore=2.78;
+AB334720.1	Prodigal_v2.6.3	CDS	1301	1522	12.4	+	0	ID=AB334720|3;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.509;conf=93.69;score=11.74;cscore=7.17;sscore=4.57;rscore=2.88;uscore=-0.09;tscore=2.43;
+AB334720.1	Prodigal_v2.6.3	CDS	1579	2853	148.9	+	0	ID=AB334720|4;partial=00;start_type=GTG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.459;conf=100.00;score=149.56;cscore=137.96;sscore=11.59;rscore=7.65;uscore=3.62;tscore=-0.34;
+AB334720.1	Prodigal_v2.6.3	CDS	2856	3194	28.7	+	0	ID=AB334720|5;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.369;conf=99.90;score=29.98;cscore=18.58;sscore=11.40;rscore=7.65;uscore=-0.28;tscore=2.78;
+AB334720.1	Prodigal_v2.6.3	CDS	3196	4242	95.1	+	0	ID=AB334720|6;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.361;conf=100.00;score=96.39;cscore=88.25;sscore=8.14;rscore=3.28;uscore=0.81;tscore=2.78;
+AB334720.1	Prodigal_v2.6.3	CDS	4220	5500	139.7	+	0	ID=AB334720|7;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.382;conf=100.00;score=139.67;cscore=132.65;sscore=7.02;rscore=3.28;uscore=0.96;tscore=2.78;
+AB334720.1	Prodigal_v2.6.3	CDS	6006	6407	27.6	+	0	ID=AB334720|8;partial=01;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.381;conf=99.79;score=26.90;cscore=25.00;sscore=1.90;rscore=-2.53;uscore=2.31;tscore=2.78;

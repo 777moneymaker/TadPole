@@ -13,6 +13,7 @@ Data/
 bin/
 
 # Distribution / packaging
+bin/
 .Python
 build/
 develop-eggs/
@@ -115,6 +116,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+venvp310
 
 # Spyder project settings
 .spyderproject

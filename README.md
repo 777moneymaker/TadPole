@@ -3,7 +3,7 @@
 - ***ukmrs*** (https://github.com/ukmrs)
 - ***777moneymaker***
 - ***phenolophthaleinum*** (https://github.com/phenolophthaleinum)
-
+- ***LeonessaDeArgentum*** (https://github.com/LeonessaDeArgentum)
 ## Two parsers versions:
 - poteznyparser written in Rust by ***ukmrs***
 - pajtonparser written in Python by ***777moneymaker*** using initial code from ***phenolophthaleinum*** and part of the design idea from ***ukmrs***
