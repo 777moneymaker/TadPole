@@ -95,7 +95,7 @@ class PondOptions:
             POND_LOGGER.error(f"number provided as type '{type(number)}' but bool required")
             raise TypeError("number should be a bool obj")
         if not isinstance(consecutive, bool):
-            POND_LOGGER.error(f"consecutive provided as type '{type(number)}' but bool required")
+            POND_LOGGER.error(f"consecutive provided as type '{type(consecutive)}' but bool required")
             raise TypeError("consecutive should be a bool obj")
         
         
