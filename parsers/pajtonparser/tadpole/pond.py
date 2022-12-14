@@ -76,7 +76,10 @@ class PondOptions:
     number: bool
     collapse: bool
 
-    def __init__(self, distance: int, number: bool, collapse: bool):
+    def __init__(self, distance: int, number=False, collapse=False, consecutive=False):
+        if number + collapse + consecutive > 1:
+            raise ValueError("number/collapse/consecutive options are exclusive")
+
         if not isinstance(distance, (int, float, complex)):
             POND_LOGGER.error(f"distance provided as type '{type(distance)}' but int required")
             raise TypeError("distance is not an int")

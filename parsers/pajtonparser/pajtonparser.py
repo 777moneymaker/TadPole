@@ -35,6 +35,10 @@ group.add_argument(
     "--collapse", dest="collapse", help="Should we collapse unknown proteins into one string with prefix?", action="store_true"
 )
 
+group.add_argument(
+    "--consecutive", dest="collapse", help="Should we collapse unknown proteins into one string with prefix?", action="store_true"
+)
+
 cfg_group = argparser.add_argument_group()
 cfg_group.add_argument(
     "-p", "--props", dest = "props", help = "props location", type = str, required=False, default=None,

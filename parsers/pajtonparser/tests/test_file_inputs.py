@@ -27,10 +27,12 @@ class ImposterDir:
 def phrogize_and_jokerize(nested_list: List[List[int]]):
     for sub in nested_list:
         for idx, val in enumerate(sub):
-            if val == -1:
+            if val > 0:
+                sub[idx] = f"phrog_{val}"
+            elif val == 0:
                 sub[idx] = "joker"
             else:
-                sub[idx] = f"phrog_{val}"
+                sub[idx] = f"joker{val * -1}"
 
 
 def create_pond_location(phrog_dir, gff_dir) -> pond.PondLocation:
@@ -39,6 +41,7 @@ def create_pond_location(phrog_dir, gff_dir) -> pond.PondLocation:
     locations.phrog_dir = ImposterDir(phrog_dir)
     locations.gff_dir = ImposterDir(gff_dir)
     return locations
+
 
 @pytest.mark.skip(reason="The content of the test should be verified on meeting")
 def test_distance():
@@ -114,7 +117,7 @@ class TestSamePhrogs:
         options = pond.PondOptions(float("INF"), number=False, collapse=False)
         expected = [
             [2503],
-            [453, 929, -1, 1109, 13612, 306, 11271, 30486, 30486, -1, -1],
+            [453, 929, 0, 1109, 13612, 306, 11271, 30486, 30486, 0, 0],
         ]
         phrogize_and_jokerize(expected)
 
@@ -127,7 +130,7 @@ class TestSamePhrogs:
         options = pond.PondOptions(float("INF"), number=False, collapse=True)
         expected = [
             [2503],
-            [453, 929, -1, 1109, 13612, 306, 11271, 30486, 30486, -1],
+            [453, 929, 0, 1109, 13612, 306, 11271, 30486, 30486, 0],
         ]
         phrogize_and_jokerize(expected)
 
@@ -135,3 +138,86 @@ class TestSamePhrogs:
         result = parser.parse()
 
         assert expected == result
+
+
+class TestMultipleUnknown:
+    """tests behavior with multiple unknown consecutive proteins
+    the test files contain three unknown streaks:
+    1 unknown
+    3 consecutive unknowns
+    2 consecutive unknowns"""
+
+    phrog_dir = [TESTFILESDIR / "multiple_unknown/KR063268.csv"]
+    gff_dir = [TESTFILESDIR / "multiple_unknown/KR063268.gff"]
+    locations = create_pond_location(phrog_dir, gff_dir)
+
+    def test_collapse(self):
+        options = pond.PondOptions(float("INF"), number=False, collapse=True)
+        expected = [
+            [2503],
+            [453, 929, 0, 1109, 13612, 306, 11271, 30486, 30486, 0, 69, 0, 420],
+        ]
+        phrogize_and_jokerize(expected)
+
+        parser = pond.PondParser(self.locations, options)
+        result = parser.parse()
+
+        assert expected == result
+
+    def test_number(self):
+        options = pond.PondOptions(float("INF"), number=True, collapse=False)
+        expected = [
+            [2503],
+            [
+                453,
+                929,
+                -1,
+                1109,
+                13612,
+                306,
+                11271,
+                30486,
+                30486,
+                -2,
+                -3,
+                -4,
+                69,
+                -5,
+                -6,
+                420,
+            ],
+        ]
+        phrogize_and_jokerize(expected)
+
+        parser = pond.PondParser(self.locations, options)
+        result = parser.parse()
+
+        assert expected == result
+
+    def test_consecutive(self):
+        options = pond.PondOptions(
+            float("INF"), number=False, collapse=False, consecutive=True
+        )
+
+        expected = [
+            [2503],
+            [453, 929, -1, 1109, 13612, 306, 11271, 30486, 30486, -3, 69, -2, 420],
+        ]
+        phrogize_and_jokerize(expected)
+
+        parser = pond.PondParser(self.locations, options)
+        result = parser.parse()
+
+        assert expected == result
+
+
+class TestArgExclusivity:
+    def test_number_and_consecutive(self):
+        with pytest.raises(ValueError):
+            pond.PondOptions(
+                float("INF"), number=True, collapse=False, consecutive=True
+            )
+
+    def test_all(self):
+        with pytest.raises(ValueError):
+            pond.PondOptions(float("INF"), number=True, collapse=True, consecutive=True)

@@ -1,0 +1,18 @@
+##gff-version  3
+# Sequence Data: seqnum=1;seqlen=5087;seqhdr="KR063268.1 Vibrio phage pre-CTX, complete genome"
+# Model Data: version=Prodigal.v2.6.3;run_type=Metagenomic;model="48|Xylella_fastidiosa_Temecula1|B|51.8|11|1";gc_cont=51.80;transl_table=11;uses_sd=1
+KR063268.1	Prodigal_v2.6.3	CDS	109	303	1.9	-	0	ID=KR063268|1;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.374;conf=57.27;score=1.27;cscore=-1.96;sscore=3.24;rscore=1.54;uscore=-0.81;tscore=3.66;
+KR063268.1	Prodigal_v2.6.3	CDS	418	1518	86.9	+	0	ID=KR063268|2;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.451;conf=100.00;score=86.89;cscore=83.70;sscore=3.20;rscore=-2.96;uscore=1.38;tscore=4.77;
+KR063268.1	Prodigal_v2.6.3	CDS	1499	1876	23.4	+	0	ID=KR063268|3;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.452;conf=99.54;score=23.38;cscore=20.69;sscore=2.70;rscore=-2.96;uscore=0.88;tscore=4.77;
+KR063268.1	Prodigal_v2.6.3	CDS	1876	2019	-4.6	+	0	ID=KR063268|4;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.472;conf=65.81;score=2.85;cscore=3.22;sscore=-0.38;rscore=-5.24;uscore=-0.93;tscore=2.69;
+KR063268.1	Prodigal_v2.6.3	CDS	2012	2260	35.2	+	0	ID=KR063268|5;partial=00;start_type=ATG;rbs_motif=AGGAG;rbs_spacer=5-10bp;gc_cont=0.462;conf=99.98;score=36.43;cscore=16.63;sscore=19.80;rscore=12.87;uscore=0.99;tscore=4.70;
+KR063268.1	Prodigal_v2.6.3	CDS	2271	3554	54.6	+	0	ID=KR063268|6;partial=00;start_type=GTG;rbs_motif=None;rbs_spacer=None;gc_cont=0.480;conf=100.00;score=55.78;cscore=61.70;sscore=-5.93;rscore=-2.96;uscore=1.06;tscore=-5.19;
+KR063268.1	Prodigal_v2.6.3	CDS	3563	3844	26.4	+	0	ID=KR063268|7;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=11-12bp;gc_cont=0.454;conf=99.82;score=27.57;cscore=16.53;sscore=11.05;rscore=1.65;uscore=3.44;tscore=4.77;
+KR063268.1	Prodigal_v2.6.3	CDS	3841	5040	79.3	+	0	ID=KR063268|8;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.497;conf=100.00;score=80.55;cscore=71.60;sscore=8.96;rscore=2.00;uscore=0.89;tscore=4.77;
+KR063268.1	Prodigal_v2.6.3	CDS	5050	6020	79.3	+	0	ID=KR063268|9;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.497;conf=100.00;score=80.55;cscore=71.60;sscore=8.96;rscore=2.00;uscore=0.89;tscore=4.77;
+KR063268.1	Prodigal_v2.6.3	CDS	6021	7021	79.3	+	0	ID=KR063268|10;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.497;conf=100.00;score=80.55;cscore=71.60;sscore=8.96;rscore=2.00;uscore=0.89;tscore=4.77;
+KR063268.1	Prodigal_v2.6.3	CDS	7023	8033	79.3	+	0	ID=KR063268|11;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.497;conf=100.00;score=80.55;cscore=71.60;sscore=8.96;rscore=2.00;uscore=0.89;tscore=4.77;
+KR063268.1	Prodigal_v2.6.3	CDS	8044	9033	79.3	+	0	ID=KR063268|12;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.497;conf=100.00;score=80.55;cscore=71.60;sscore=8.96;rscore=2.00;uscore=0.89;tscore=4.77;
+KR063268.1	Prodigal_v2.6.3	CDS	9053	9233	79.3	+	0	ID=KR063268|13;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.497;conf=100.00;score=80.55;cscore=71.60;sscore=8.96;rscore=2.00;uscore=0.89;tscore=4.77;
+KR063268.1	Prodigal_v2.6.3	CDS	9523	9633	79.3	+	0	ID=KR063268|14;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.497;conf=100.00;score=80.55;cscore=71.60;sscore=8.96;rscore=2.00;uscore=0.89;tscore=4.77;
+KR063268.1	Prodigal_v2.6.3	CDS	9783	9999	79.3	+	0	ID=KR063268|15;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.497;conf=100.00;score=80.55;cscore=71.60;sscore=8.96;rscore=2.00;uscore=0.89;tscore=4.77;
