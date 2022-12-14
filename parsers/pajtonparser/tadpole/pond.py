@@ -190,6 +190,31 @@ class PondParser:
             POND_LOGGER.info("Processed all available faa files.")
         return prot_props
 
+    def collapse_consecutive(self, lst: list[str]) -> list[str]:
+        """This method was generated using OpenAI API.
+
+        Prompt used:
+        '''
+        Lets say we have list [a, b, c, d, joker, joker, joker, g, joker, joker, a, d, joker].
+        Create a python code that will collapse all consecutive jokers and add a number indicating how many jokers were collapsed. Return a list.
+
+        Like this: [a, b, c, d, joker3, g, joker2, a, d, joker1]
+        '''
+        """
+        new_lst = []
+        joker_count = 0
+        for phrog in lst:
+            if phrog == self.unknown:
+                joker_count += 1
+            else:
+                if joker_count > 0:
+                    new_lst.append(f'{self.unknown}{joker_count}')
+                    joker_count = 0
+                new_lst.append(phrog)
+        if joker_count > 0:
+            new_lst.append(f'{self.unknown}{joker_count}')
+        return new_lst
+
 
     def parse(self, pond_config: PondConfig = None) -> list[list[str]]:
         self._fill_map()
@@ -263,39 +288,41 @@ class PondParser:
         if self.options.consecutive:
             with alive_bar(len(paragraph), title="consecutive ", spinner=PHROG_SPINNER) as bar:
                 for i, _ in enumerate(paragraph):
-                    previous = paragraph[i][0]
-                    unkown_counter = int(previous == self.unknown)
+                    # previous = paragraph[i][0]
+                    # unkown_counter = int(previous == self.unknown)
 
-                    if len(paragraph[i]) == 1 and unkown_counter:
-                        paragraph[i] = ["joker1"]
-                        bar()
-                        continue
+                    # if len(paragraph[i]) == 1 and unkown_counter:
+                    #     paragraph[i] = ["joker1"]
+                    #     bar()
+                    #     continue
 
-                    new_sentence = []
-                    if not unkown_counter:
-                        new_sentence.append(previous)
+                    # new_sentence = []
+                    # if not unkown_counter:
+                    #     new_sentence.append(previous)
 
-                    for phrog in paragraph[i][1:]:
-                        if phrog == self.unknown:
-                            unkown_counter += 1
-                            previous = self.unknown
-                            continue
+                    # for phrog in paragraph[i][1:]:
+                    #     if phrog == self.unknown:
+                    #         unkown_counter += 1
+                    #         previous = self.unknown
+                    #         continue
 
-                        # breaks the streak of unknown proteins
-                        if previous == self.unknown:
-                            new_sentence.append(f"joker{unkown_counter}")
-                            unkown_counter = 0
+                    #     # breaks the streak of unknown proteins
+                    #     if previous == self.unknown:
+                    #         new_sentence.append(f"joker{unkown_counter}")
+                    #         unkown_counter = 0
 
-                        new_sentence.append(phrog)
-                        previous = phrog
+                    #     new_sentence.append(phrog)
+                    #     previous = phrog
 
-                    # adds unknown proteins at the end of the sentence
-                    if unkown_counter != 0:
-                        new_sentence.append(f"joker{unkown_counter}")
+                    # # adds unknown proteins at the end of the sentence
+                    # if unkown_counter != 0:
+                    #     new_sentence.append(f"joker{unkown_counter}")
 
-                    paragraph[i] = new_sentence
+                    # paragraph[i] = new_sentence
+                    # bar()
+                
+                    paragraph[i] = self.collapse_consecutive(paragraph[i])
                     bar()
-
 
                 POND_LOGGER.info(f"Added consecutive numbering successfully for jokers from {len(paragraph)} words")
 
