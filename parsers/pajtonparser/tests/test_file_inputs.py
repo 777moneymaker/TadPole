@@ -148,17 +148,38 @@ class TestMultipleUnknown:
     3 consecutive unknowns
     2 consecutive unknowns
     Third Sentence:
-    1 unknown"""
+    1 unknown only
+    Fourth Sentence:
+    2 unknowns only"""
 
     phrog_dir = [TESTFILESDIR / "multiple_unknown/KR063268.csv"]
     gff_dir = [TESTFILESDIR / "multiple_unknown/KR063268.gff"]
     locations = create_pond_location(phrog_dir, gff_dir)
+
+    def test_vanilla(self):
+        options = pond.PondOptions(
+            float("INF"), number=False, collapse=False, consecutive=False
+        )
+
+        expected = [
+            [2503],
+            [453, 929, 0, 1109, 13612, 306, 11271, 30486, 30486, 0, 0, 0, 69, 0, 0, 420],
+            [0],
+            [0, 0],
+        ]
+        phrogize_and_jokerize(expected)
+
+        parser = pond.PondParser(self.locations, options)
+        result = parser.parse()
+
+        assert expected == result
 
     def test_collapse(self):
         options = pond.PondOptions(float("INF"), number=False, collapse=True)
         expected = [
             [2503],
             [453, 929, 0, 1109, 13612, 306, 11271, 30486, 30486, 0, 69, 0, 420],
+            [0],
             [0],
         ]
         phrogize_and_jokerize(expected)
@@ -191,6 +212,7 @@ class TestMultipleUnknown:
                 420,
             ],
             [-7],
+            [-8, -9],
         ]
         phrogize_and_jokerize(expected)
 
@@ -208,12 +230,17 @@ class TestMultipleUnknown:
             [2503],
             [453, 929, -1, 1109, 13612, 306, 11271, 30486, 30486, -3, 69, -2, 420],
             [-1],
+            [-2],
         ]
         phrogize_and_jokerize(expected)
 
         parser = pond.PondParser(self.locations, options)
         result = parser.parse()
 
+        eprint(expected)
+        eprint('--')
+        eprint(result)
+        eprint('--')
         assert expected == result
 
 
