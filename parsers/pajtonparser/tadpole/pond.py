@@ -261,13 +261,14 @@ class PondParser:
                 POND_LOGGER.info(f"Added numbers successfully for jokers from {len(paragraph)} words")
 
         if self.options.consecutive:
-            with alive_bar(len(paragraph), title = "Numering consecutive    ", spinner = PHROG_SPINNER) as bar:
+            with alive_bar(len(paragraph), title="consecutive ", spinner=PHROG_SPINNER) as bar:
                 for i, _ in enumerate(paragraph):
                     previous = paragraph[i][0]
                     unkown_counter = int(previous == self.unknown)
 
                     if len(paragraph[i]) == 1 and unkown_counter:
                         paragraph[i] = ["joker1"]
+                        bar()
                         continue
 
                     new_sentence = []
@@ -293,8 +294,8 @@ class PondParser:
                         new_sentence.append(f"joker{unkown_counter}")
 
                     paragraph[i] = new_sentence
-
                     bar()
+
 
                 POND_LOGGER.info(f"Added consecutive numbering successfully for jokers from {len(paragraph)} words")
 
