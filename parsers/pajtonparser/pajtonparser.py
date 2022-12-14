@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import argparse
 import json
 import pickle
@@ -35,6 +36,10 @@ group.add_argument(
     "--collapse", dest="collapse", help="Should we collapse unknown proteins into one string with prefix?", action="store_true"
 )
 
+group.add_argument(
+    "--consecutive", dest="consecutive", help="collapse and number consecutive unkown proteins", action="store_true"
+)
+
 cfg_group = argparser.add_argument_group()
 cfg_group.add_argument(
     "-p", "--props", dest = "props", help = "props location", type = str, required=False, default=None,
@@ -53,8 +58,9 @@ def main():
         raise ValueError("Props and config must always occur together")
 
     loc = pond.PondLocation(Path(args.phrog_dir), Path(args.gff_dir))
-    opt = pond.PondOptions(args.distance, args.number, args.collapse)
+    opt = pond.PondOptions(args.distance, args.number, args.collapse, args.consecutive)
     
+    pond_config = None
     if args.config:
         with open(args.props) as fh, open(args.config) as fhc, alive_bar(title = "Props & cfg ") as bar:
                 config = json.load(fhc)

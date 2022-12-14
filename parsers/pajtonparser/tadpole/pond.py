@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from collections import defaultdict
@@ -75,8 +76,12 @@ class PondOptions:
     distance: int
     number: bool
     collapse: bool
+    consecutive: bool
 
-    def __init__(self, distance: int, number: bool, collapse: bool):
+    def __init__(self, distance: int, number=False, collapse=False, consecutive=False):
+        if number + collapse + consecutive > 1:
+            raise ValueError("number/collapse/consecutive options are exclusive")
+
         if not isinstance(distance, (int, float, complex)):
             POND_LOGGER.error(f"distance provided as type '{type(distance)}' but int required")
             raise TypeError("distance is not an int")
@@ -89,10 +94,15 @@ class PondOptions:
         if not isinstance(number, bool):
             POND_LOGGER.error(f"number provided as type '{type(number)}' but bool required")
             raise TypeError("number should be a bool obj")
+        if not isinstance(consecutive, bool):
+            POND_LOGGER.error(f"consecutive provided as type '{type(number)}' but bool required")
+            raise TypeError("consecutive should be a bool obj")
+        
         
         self.distance = distance
         self.number = number
         self.collapse = collapse
+        self.consecutive = consecutive
 
 @dataclass
 class PondConfig:
@@ -212,31 +222,31 @@ class PondParser:
                 bar()
             POND_LOGGER.info("Processed all availabe gff files")
         records: list[PondRecord] = iter(self.records)
-        prev: PondRecord = next(records)
+        previous: PondRecord = next(records)
         sentence: Sentence = []
         paragraph: list[Sentence] = []
 
         # Add first phrogs
-        sentence.extend(prev.phrogs)
+        sentence.extend(previous.phrogs)
         counter: int = 1
         with alive_bar(len(self.records), title = "Sentences   ", dual_line = True, spinner = PHROG_SPINNER) as bar:
             bar.text = "--> Ordering some sentences"
             for record in records:
-                if record.strand != prev.strand or record.dist > self.options.distance:
-                    paragraph.append(sentence if prev.strand == Strand.POS else list(reversed(sentence)))
+                if record.strand != previous.strand or record.dist > self.options.distance:
+                    paragraph.append(sentence if previous.strand == Strand.POS else list(reversed(sentence)))
                     sentence = []
                 sentence.extend(record.phrogs)
-                prev = record
+                previous = record
                 bar()
             else:
-                paragraph.append(sentence if prev.strand == Strand.POS else list(reversed(sentence)))
+                paragraph.append(sentence if previous.strand == Strand.POS else list(reversed(sentence)))
                 bar()
 
         if self.options.collapse:
             with alive_bar(len(paragraph), title = "Collapsing  ", spinner = PHROG_SPINNER) as bar:
                 for i, _ in enumerate(paragraph):
-                    prev = object()
-                    paragraph[i] = [prev := x for x in paragraph[i] if not (prev == self.unknown == x)]
+                    previous = object()
+                    paragraph[i] = [previous := x for x in paragraph[i] if not (previous == self.unknown == x)]
                     bar()
                 POND_LOGGER.info(f"Collapsed successfully all consecutive duplicates from {len(paragraph)} words")
         
@@ -249,6 +259,46 @@ class PondParser:
                             counter += 1
                     bar()
                 POND_LOGGER.info(f"Added numbers successfully for jokers from {len(paragraph)} words")
-            
+
+        if self.options.consecutive:
+            with alive_bar(len(paragraph), title="consecutive ", spinner=PHROG_SPINNER) as bar:
+                for i, _ in enumerate(paragraph):
+                    previous = paragraph[i][0]
+                    unkown_counter = int(previous == self.unknown)
+
+                    if len(paragraph[i]) == 1 and unkown_counter:
+                        paragraph[i] = ["joker1"]
+                        bar()
+                        continue
+
+                    new_sentence = []
+                    if not unkown_counter:
+                        new_sentence.append(previous)
+
+                    for phrog in paragraph[i][1:]:
+                        if phrog == self.unknown:
+                            unkown_counter += 1
+                            previous = self.unknown
+                            continue
+
+                        # breaks the streak of unknown proteins
+                        if previous == self.unknown:
+                            new_sentence.append(f"joker{unkown_counter}")
+                            unkown_counter = 0
+
+                        new_sentence.append(phrog)
+                        previous = phrog
+
+                    # adds unknown proteins at the end of the sentence
+                    if unkown_counter != 0:
+                        new_sentence.append(f"joker{unkown_counter}")
+
+                    paragraph[i] = new_sentence
+                    bar()
+
+
+                POND_LOGGER.info(f"Added consecutive numbering successfully for jokers from {len(paragraph)} words")
+
+
         self.content = paragraph
         return paragraph
