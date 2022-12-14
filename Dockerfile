@@ -1,6 +1,8 @@
 FROM python:3.9.15
 WORKDIR /tadpole
-COPY parsers/pajtonparser/. /tadpole/
+COPY parsers/. /tadpole/parsers/.
+COPY requirements.txt /tadpole/requirements.txt
 
-RUN python -m pip install alive-progress numpy
+
+RUN python -m pip install -r /tadpole/requirements.txt
 CMD [ "python", "pajtonparser.py" ]
