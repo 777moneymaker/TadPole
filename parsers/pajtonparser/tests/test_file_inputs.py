@@ -36,7 +36,7 @@ def phrogize_and_jokerize(nested_list: List[List[int]]):
 
 
 def create_pond_location(phrog_dir, gff_dir) -> pond.PondLocation:
-    # bypasses miłosz's merciless checks by inputing real directories first
+    # bypasses Miłosz's merciless checks by inputing real directories first
     locations = pond.PondLocation(TESTDIR, TESTDIR)
     locations.phrog_dir = ImposterDir(phrog_dir)
     locations.gff_dir = ImposterDir(gff_dir)
