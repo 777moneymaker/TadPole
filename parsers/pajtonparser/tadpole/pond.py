@@ -252,6 +252,6 @@ class PondParser:
                             counter += 1
                     bar()
                 POND_LOGGER.info(f"Added numbers successfully for jokers from {len(paragraph)} words")
-            
+
         self.content = paragraph
         return paragraph

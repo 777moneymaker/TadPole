@@ -142,10 +142,13 @@ class TestSamePhrogs:
 
 class TestMultipleUnknown:
     """tests behavior with multiple unknown consecutive proteins
-    the test files contain three unknown streaks:
+    the test files contain four unknown streaks:
+    Second sentence:
     1 unknown
     3 consecutive unknowns
-    2 consecutive unknowns"""
+    2 consecutive unknowns
+    Third Sentence:
+    1 unknown"""
 
     phrog_dir = [TESTFILESDIR / "multiple_unknown/KR063268.csv"]
     gff_dir = [TESTFILESDIR / "multiple_unknown/KR063268.gff"]
@@ -156,6 +159,7 @@ class TestMultipleUnknown:
         expected = [
             [2503],
             [453, 929, 0, 1109, 13612, 306, 11271, 30486, 30486, 0, 69, 0, 420],
+            [0],
         ]
         phrogize_and_jokerize(expected)
 
@@ -186,6 +190,7 @@ class TestMultipleUnknown:
                 -6,
                 420,
             ],
+            [-7],
         ]
         phrogize_and_jokerize(expected)
 
@@ -202,6 +207,7 @@ class TestMultipleUnknown:
         expected = [
             [2503],
             [453, 929, -1, 1109, 13612, 306, 11271, 30486, 30486, -3, 69, -2, 420],
+            [-1],
         ]
         phrogize_and_jokerize(expected)
 
