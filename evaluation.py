@@ -29,12 +29,27 @@ def mean_tuples(lst: list[str, float]):
 
 def power_tuples(lst: list[str, float], power):
     for cat_prob_list in lst:
-        cat_prob_list[1] = cat_prob_list[1]**power
+        cat_prob_list[1] = cat_prob_list[1] ** power
 
     return lst
 
 
-@utils.time_this
+def validation(func_dict_df, phrog_categories):
+    answer_tally = {}
+    for phrog, scoring_functions in phrog_categories.items():
+        true_category = func_dict_df.loc[func_dict_df['phrog_id'] == phrog, 'category'].values[
+            0]  # get the proper category of the phrog
+        for scoring_function, assigned_category in scoring_functions.items():
+            if scoring_function not in answer_tally.keys():
+                answer_tally[scoring_function] = 0
+            if assigned_category[0] == true_category:
+                answer_tally[scoring_function] = answer_tally[scoring_function] + 1
+    for scoring_function, n_true_answers in answer_tally.items():
+        answer_tally[scoring_function] = round((n_true_answers / len(phrog_categories)) * 100, 2)
+    return answer_tally
+
+
+# @utils.time_this
 def prediction(
         func_dict: dict,
         model: Union[FastText, Word2Vec],
@@ -63,8 +78,7 @@ def prediction(
     # }
     phrog_categories: dict[str, dict[str, str]] = {}
 
-    for phrog in known_func_phrog_list[
-                 :10]:  # placeholder, model wasn't trained for all phrogs yet, tested to work on phrogs1-10
+    for phrog in known_func_phrog_list[:10]:  # placeholder, model wasn't trained for all phrogs yet, tested to work on phrogs1-10
         vectors = model.wv
         result = vectors.most_similar(phrog,
                                       topn=40_000)  # Use _ for clarity # <-- TODO: looking for ideas how to optimize this
@@ -78,7 +92,8 @@ def prediction(
         # separated to accomodate a very rare edge case
         merged = merged.loc[merged['category'] != 'unknown function']
         if merged.empty:
-            custom_logger.logger.error("All closest phrogs had unknown function - all were dropped, no data left to score.")
+            custom_logger.logger.error("All closest phrogs had unknown function - "
+                                       "all were dropped, no data left to score.")
         merged = merged.head(top_known_phrogs)
         if len(merged) < top_known_phrogs:
             custom_logger.logger.warning("Not enough close phrogs with known function - "
@@ -94,7 +109,7 @@ def prediction(
         # sum: max value after summing prob for each category
         # mean: max value after taking a mean prob for each category
         # power: max value after summing probs to the power of n
-        mx = tuple(max(list_for_scoring, key=key_func))#other functions return tuples, so...
+        mx = tuple(max(list_for_scoring, key=key_func))  # other functions return tuples, so...
         summed = max(sum_tuples(list_for_scoring), key=key_func)
         mean = max(mean_tuples(list_for_scoring), key=key_func)
         power_2 = max(sum_tuples(power_tuples(list_for_scoring, 2)), key=key_func)
@@ -112,15 +127,20 @@ def prediction(
         # End scoring
         # print(phrog_categories)
 
-    # TODO: validation
-
+    # validation
+    scores = validation(func_dict_df, phrog_categories)
+    max_value = max(scores.values())  # maximum value
+    max_scoring_func = [k for k, v in scores.items() if v == max_value]
+    print("{}%".format(max_value))
+    with open("evaluation_log.txt", "a") as f: #very rudimentary logging as of now
+        f.write("{}".format(type(model).__name__) + str(scores) + "\n")
 
 #
 ######## --------------------------------- ########
 # Temporary code for running as a separate script #  VVV
 
 # read phrog:function dictionary
-func = utils.read_metadata(Path("Data/metadata_phrog.dill"))
+func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
 # read trained model
 mod = Word2Vec.load('train_test/test.model')
 # mod = FastText.load()
