@@ -60,6 +60,7 @@ def model_train(
     lr_min: float = 0.005,
     epochs: int = 5,
     negative: int = 5,
+    ns_exp: float = 0.75,
     callbacks=[],
     show_debug: bool = False):
 
@@ -89,7 +90,7 @@ def model_train(
             min_alpha=lr_min,
             sg=sg,
             hs=hs,
-            ns_exponent=0.01,
+            ns_exponent=ns_exp,
             negative=negative)
         model.build_vocab(sentences,
              progress_per=1000)
@@ -167,7 +168,8 @@ def visualisation_pipeline(
     sg: int = 0, 
     hs: int = 0,
     callbacks=[],
-    negative: int = 5, 
+    negative: int = 5,
+    ns_exp: float = 0.75,
     show_debug: bool = False):
 
     """
@@ -186,6 +188,7 @@ def visualisation_pipeline(
         sg=sg,
         hs=hs,
         negative=negative,
+        ns_exp=ns_exp,
         callbacks=callbacks,
         show_debug=show_debug)
     # print(type(model.wv))

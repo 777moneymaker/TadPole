@@ -67,6 +67,8 @@ def visualisation_pipeline(
     sg: int = 0, 
     hs: int = 0,
     sorted_vocab: int = 1,
+    negative: int = 5,
+    ns_exp: float = 0.75,
     callbacks=[],
     show_debug: bool = False):
     """
@@ -87,6 +89,8 @@ def visualisation_pipeline(
         sg,
         hs,
         sorted_vocab,
+        negative,
+        ns_exp,
         callbacks,
         show_debug)
     # print(type(model.wv))
@@ -175,6 +179,8 @@ def model_train(
     sg: int = 0, 
     hs: int = 0,
     sorted_vocab: int = 1,
+    negative: int = 5,
+    ns_exp: float = 0.75,
     callbacks=[],
     show_debug: bool = False
     ):
@@ -208,18 +214,23 @@ def model_train(
             min_n=min_n,
             sg=sg,
             hs=hs,
+            negative=negative,
+            ns_exponent=ns_exp,
             sorted_vocab=sorted_vocab)
         # model = FastText()
         model.build_vocab(sentences)
         # print(model.corpus_count)
         # print(model.epochs)
-        model.train(corpus_iterable=sentences, 
-            total_examples=model.corpus_count, 
-            epochs=model.epochs,
-            # start_alpha=lr_start,
-            # end_alpha=lr_min,
-            compute_loss=True,
-            # report_delay=0.5,
-            callbacks=callbacks)
+        try:
+            model.train(corpus_iterable=sentences, 
+                total_examples=model.corpus_count, 
+                epochs=model.epochs,
+                # start_alpha=lr_start,
+                # end_alpha=lr_min,
+                compute_loss=True,
+                # report_delay=0.5,
+                callbacks=callbacks)
+        except:
+            print("I shat myself")
         bar()
     return model
