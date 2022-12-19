@@ -31,8 +31,9 @@ class TrainLogger(CallbackAny2Vec):
         self.epoch = 0
         self.loss_to_show = 0
 
-    # def on_train_begin(self, model):
-    #     model.compute_loss = True
+    def on_train_begin(self, model):
+        model.compute_loss = True
+        print(model.running_training_loss)
     
     def on_epoch_end(self, model):
         loss = model.get_latest_training_loss()
@@ -188,10 +189,11 @@ def model_train(
     Train fasttext model.
     """
 
-    logging.basicConfig(level=logging.ERROR)
-    if show_debug:
-        logging.basicConfig(level=logging.DEBUG)
+    # logging.basicConfig(level=logging.ERROR)
+    # if show_debug:
+    #     logging.basicConfig(level=logging.DEBUG)
     ## dont know why it exits on high learning rate for negative sampling and why there is completely no answer 
+    logging.basicConfig(level=logging.DEBUG)
 
     # load corpus
     with alive_bar(title = "Loading corpus",  dual_line = True, spinner = PHROG_SPINNER) as bar:
@@ -218,9 +220,14 @@ def model_train(
             ns_exponent=ns_exp,
             sorted_vocab=sorted_vocab)
         # model = FastText()
-        model.build_vocab(sentences)
+        print(model.__dict__)
+        try:
+            model.build_vocab(sentences)
+        except:
+            print("I shat myself")
         # print(model.corpus_count)
         # print(model.epochs)
+        print(model.__dict__)
         try:
             model.train(corpus_iterable=sentences, 
                 total_examples=model.corpus_count, 
