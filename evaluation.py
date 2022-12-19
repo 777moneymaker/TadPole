@@ -137,13 +137,13 @@ def prediction(
 
 #
 ######## --------------------------------- ########
-# Temporary code for running as a separate script #  VVV
+# # Temporary code for running as a separate script #  VVV
 
-# read phrog:function dictionary
-func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
-# read trained model
-mod = Word2Vec.load('train_test/test.model')
-# mod = FastText.load()
+# # read phrog:function dictionary
+# func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+# # read trained model
+# mod = Word2Vec.load('train_test/test.model')
+# # mod = FastText.load()
 
-# run
-prediction(func, mod, top_known_phrogs=50)
+# # run
+# prediction(func, mod, top_known_phrogs=50)
