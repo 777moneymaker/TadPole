@@ -5,6 +5,20 @@ import pickle
 import custom_logger
 
 
+colour_map = {
+    'moron, auxiliary metabolic gene and host takeover': '#636EFA',
+    'tail': '#EF553B',
+    'DNA, RNA and nucleotide metabolism': '#00CC96',
+    'other': '#AB63FA',
+    'unknown function': '#FFA15A',
+    'head and packaging': '#19D3F3',
+    'integration and excision': '#FF6692',
+    'connector': '#B6E880', 
+    'transcription regulation': '#FF97FF', 
+    'lysis': '#FECB52'
+}
+
+
 def metadata_dump():
     """
     Dump metadata as dictionary ("phrog_id": "funcion") to a dill file

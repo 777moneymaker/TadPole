@@ -145,7 +145,7 @@ def model_visualise(vectors_obj: gensim.models.fasttext.FastTextKeyedVectors, re
         dataset[['x', 'y', 'z']] = pd.DataFrame(reduced_embed, index=dataset.index)
         bar()
     with alive_bar(title = "Generating visualisation",  dual_line = True, spinner = PHROG_SPINNER) as bar:
-        fig = px.scatter_3d(dataset, x='x', y='y', z='z', color='function', hover_data=["word"])
+        fig = px.scatter_3d(dataset, x='x', y='y', z='z', color='function', hover_data=["word"], color_discrete_map=utils.colour_map)
         fig.update_traces(marker_size = 4)
         fig.write_html(Path(visual_path).as_posix())
         bar()
