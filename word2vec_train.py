@@ -15,6 +15,7 @@ from alive_progress.animations.spinners import bouncing_spinner_factory
 
 import utils
 import custom_logger
+import evaluation as evl
 
 
 PHROG_SPINNER = bouncing_spinner_factory(("🐸", "🐸"), 8, background = ".", hide = False, overlay =True)
@@ -46,6 +47,22 @@ class TrainLogger(CallbackAny2Vec):
         print(f"epoch: {self.epoch} lr: {lr}\t loss: {loss_current}\t count: {trained}")
         # print(model._log_progress())
         self.epoch += 1
+
+
+def _generate_name(
+    prefix: str, 
+    ns_exp: float, 
+    lr_start: float, 
+    lr_min: float, 
+    vector_size: int, 
+    window: int, 
+    epochs: int, 
+    hs: int, 
+    negative: int) -> str:
+    ns_exp_str = str(ns_exp).replace(".", "")
+    lr_start_str = str(lr_start).replace(".", "")
+    lr_min_str = str(lr_min).replace(".", "")
+    return f"{prefix}_ns{ns_exp_str}_lr{lr_start_str}_lrmin{lr_min_str}_d{vector_size}_w{window}_e{epochs}_hs{hs}_neg{negative}"
 
 
 def model_train(
@@ -173,7 +190,7 @@ def visualisation_pipeline(
     show_debug: bool = False):
 
     """
-    Automated fasttext pipeline: model training, UMAP dimensionality reduction, 3D scatter visualisation.
+    Automated word2vec visualisation pipeline: model training, UMAP dimensionality reduction, 3D scatter visualisation.
     """
     # *** w2v train + loading corpus ***
     model = model_train(
@@ -204,3 +221,73 @@ def visualisation_pipeline(
     #  *** Visualisation ***
     dataset = model_visualise(model.wv, embedding, visual_path)
     # print(dataset)
+
+
+@utils.time_this
+def evaluation_pipeline(
+    corpus_path: str,
+    output_prefix: str,
+    vector_size: int = 100,
+    window: int = 5,
+    min_count: int = 5,
+    epochs: int = 5,
+    workers: int = 3,
+    lr_start: float = 0.025,
+    lr_min: float = 0.0001,
+    sg: int = 0, 
+    hs: int = 0,
+    callbacks=[],
+    negative: int = 5,
+    ns_exp: float = 0.75,
+    show_debug: bool = False,
+    n_top_phrogs: int = 1,
+    visualise_model: bool = False):
+
+    """
+    Automated word2vec evaluation pipeline: model training, automated model save and model scoring.
+    """
+    # *** w2v train + loading corpus ***
+    model = model_train(
+        corpus_path=corpus_path, 
+        vector_size=vector_size, 
+        window=window, 
+        min_count=min_count, 
+        epochs=epochs, 
+        workers=workers, 
+        lr_start=lr_start,
+        lr_min=lr_min,
+        sg=sg,
+        hs=hs,
+        negative=negative,
+        ns_exp=ns_exp,
+        callbacks=callbacks,
+        show_debug=show_debug)
+    # print(type(model.wv))
+    print(model.wv.vector_size)
+    print(model.epochs)
+    # print(model.lifecycle_events)
+
+    # *** generate output files paths + save model ***
+    model_name = _generate_name(
+        prefix=output_prefix,
+        ns_exp=ns_exp, 
+        lr_start=lr_start, 
+        lr_min=lr_min, 
+        vector_size=vector_size, 
+        window=window, 
+        epochs=epochs, 
+        hs=hs, 
+        negative=negative)
+    model_path = f"train_test/{model_name}.model"
+    model.save(model_path)
+
+    # *** model evaluation ***
+    funcs = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+    prediction = evl.prediction(func_dict=funcs, model=model, top_known_phrogs=n_top_phrogs)
+
+    # *** visualise ***
+    if visualise_model:
+        visual_path = f"plots/{model_name}.html"
+        embedding = umap_reduce(model.wv, n_dims=3)
+        dataset = model_visualise(model.wv, embedding, visual_path)
+

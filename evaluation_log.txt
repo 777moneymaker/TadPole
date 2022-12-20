@@ -1,0 +1,7 @@
+Word2Vec{'max': 40.0, 'sum': 50.0, 'mean': 10.0, 'power 2': 50.0, 'power 4': 40.0, 'power 8': 40.0}
+Word2Vec{'max': 50.0, 'sum': 50.0, 'mean': 20.0, 'power 2': 50.0, 'power 4': 50.0, 'power 8': 50.0}
+Word2Vec{'max': 70.0, 'sum': 70.0, 'mean': 30.0, 'power 2': 70.0, 'power 4': 70.0, 'power 8': 70.0}
+Word2Vec{'max': 70.0, 'sum': 70.0, 'mean': 70.0, 'power 2': 70.0, 'power 4': 70.0, 'power 8': 70.0}
+Word2Vec{'max': 80.0, 'sum': 80.0, 'mean': 80.0, 'power 2': 80.0, 'power 4': 80.0, 'power 8': 80.0}
+Word2Vec{'max': 80.0, 'sum': 80.0, 'mean': 80.0, 'power 2': 80.0, 'power 4': 80.0, 'power 8': 80.0}
+Word2Vec{'max': 70.0, 'sum': 70.0, 'mean': 70.0, 'power 2': 70.0, 'power 4': 70.0, 'power 8': 70.0}
