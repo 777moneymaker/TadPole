@@ -9,6 +9,7 @@ from alive_progress.animations.spinners import bouncing_spinner_factory
 from Bio import SeqIO, SeqUtils
 from Bio.SeqUtils import ProtParam
 from threading import Thread
+from statistics import quantiles
 
 from .logger import POND_LOGGER
 
@@ -17,8 +18,9 @@ PHROG_SPINNER = bouncing_spinner_factory(("🐸", "🐸"), 8, background = ".", 
 class PondThread(Thread):
     def __init__(self, group=None, target=None, name=None,
                  args=(), kwargs={}, Verbose=None):
-        Thread.__init__(self, group, target, name, args, kwargs)
-        self._return = None
+        # Thread.__init__(self, group, target, name, args, kwargs)
+        # self._return = None
+        raise NotImplementedError
 
     def run(self):
         if self._target is not None:
@@ -30,8 +32,8 @@ class PondThread(Thread):
 
 
 class Strand(Enum):
-    NEG = 0
-    POS = 1
+    NEG = "-"
+    POS = "+"
 
     @classmethod
     def into(cls, val: str):
@@ -44,6 +46,14 @@ class Strand(Enum):
             raise ValueError(f"Valid values for Strand.into() are ['+', '-'] but '{val}' provided.")
 
         return cls.POS if val == "+" else cls.NEG
+
+
+class Sequential(Enum):
+    NONE = "none"
+    ENUMERATE = "enumerate",
+    COLLAPSE = "collapse",
+    CONSECUTIVE = "consecutive",
+    ENCODE = "encode"
 
 
 @dataclass
@@ -71,42 +81,8 @@ class PondLocation:
         self.gff_dir = gff_dir
 
 @dataclass
-class PondOptions:
-    """Object containig metadata for phrog and gff parser"""
-    distance: int
-    number: bool
-    collapse: bool
-    consecutive: bool
-
-    def __init__(self, distance: int, number=False, collapse=False, consecutive=False):
-        if number + collapse + consecutive > 1:
-            raise ValueError("number/collapse/consecutive options are exclusive")
-
-        if not isinstance(distance, (int, float, complex)):
-            POND_LOGGER.error(f"distance provided as type '{type(distance)}' but int required")
-            raise TypeError("distance is not an int")
-        if distance < 0:
-            POND_LOGGER.error(f"distance < 0 provided")
-            raise ValueError("Distance < 0 is not valid")
-        if not isinstance(collapse, bool):
-            POND_LOGGER.error(f"collapse provided as type '{type(collapse)}' but bool required")
-            raise TypeError("collapse should be a bool obj")
-        if not isinstance(number, bool):
-            POND_LOGGER.error(f"number provided as type '{type(number)}' but bool required")
-            raise TypeError("number should be a bool obj")
-        if not isinstance(consecutive, bool):
-            POND_LOGGER.error(f"consecutive provided as type '{type(consecutive)}' but bool required")
-            raise TypeError("consecutive should be a bool obj")
-        
-        
-        self.distance = distance
-        self.number = number
-        self.collapse = collapse
-        self.consecutive = consecutive
-
-@dataclass
-class PondConfig:
-    params: dict[dict[str, float]] # 'Protein_ID': { 'chemical_property': 'value' }
+class PondParams:
+    props: dict[dict[str, float]] # 'Protein_ID': { 'chemical_property': 'value' }
     config: dict[bool] # 'chemical_property': True/False
 
 @dataclass
@@ -136,9 +112,9 @@ class PondMap():
         self.d.clear()
 
 class PondParser:
-    def __init__(self, location: PondLocation, options: PondOptions, unknown: str = "joker"):
+    def __init__(self, location: PondLocation, params: PondParams, unknown: str = "joker"):
         self.location = location
-        self.options = options
+        self.params = params
         self.map = PondMap()
         self.records = []
         self.unknown = unknown
@@ -146,7 +122,7 @@ class PondParser:
 
     def _fill_map(self):
         files = list(self.location.phrog_dir.iterdir())
-        with alive_bar(len(files), title = "PHROGs      ",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+        with alive_bar(len(files), title = "PHROGs...",  dual_line = True, spinner = PHROG_SPINNER) as bar:
             bar.text = "--> Looping on some PHROGs"
             for file in files:
                 with open(file, encoding="utf-8") as fh:
@@ -157,6 +133,37 @@ class PondParser:
                 bar()
             POND_LOGGER.info("Processed all available phrog files")
 
+    @staticmethod
+    def non_overlapping_intervals(num_intervals, interval_length=10):
+        intervals = []
+        start = 33
+        for i in range(num_intervals):
+            end = start + interval_length - 1
+            intervals.append((start, end))
+            start = end + 1 
+        return intervals
+
+    @staticmethod
+    def remap_range(from_range, to_range, value):
+        from_min, from_max = from_range
+        to_min, to_max = to_range
+        # Calculate the proportional position of the value in the input range
+        position = (value - from_min) / (from_max - from_min)
+        # Calculate the value in the output range by linearly scaling the
+        # position to the range of the output range
+        mapped_value = position * (to_max - to_min) + to_min
+        return chr(round(mapped_value))
+
+    @staticmethod
+    def range_from_list(numbers):
+        """Computes the range of values from a list excluding extreme outliers"""
+        q1, _, q3 = quantiles(numbers)
+        iqr = q3 - q1
+        upperbound = q3 + (iqr * 3)
+        filtered_numbers = [
+            number for number in numbers if number <= upperbound
+        ]
+        return min(filtered_numbers), max(filtered_numbers)
 
     @staticmethod
     def parse_proteins(faa_dir: Path) -> dict[dict]:
@@ -169,7 +176,7 @@ class PondParser:
         
         files = list(faa_dir.iterdir())
         prot_props = dict()
-        with alive_bar(len(files), title = "FAAs        ", dual_line = True, spinner = PHROG_SPINNER) as bar:
+        with alive_bar(len(files), title = "FAAs...", dual_line = True, spinner = PHROG_SPINNER) as bar:
             bar.text = "--> Parsing FAAs"
             for file in files:
                 with open(file, encoding = "utf-8") as fh:
@@ -216,12 +223,55 @@ class PondParser:
         return new_lst
 
 
-    def parse(self, pond_config: PondConfig = None) -> list[list[str]]:
+    def parse(self) -> list[list[str]]:
         self._fill_map()
         Sentence = list[str]
-        
+        if self.params.props: # If props is none, then default config is used without params
+            POND_LOGGER.debug("Started producing ranges for protein params")
+            # Compute range of possible values for all protein props
+            # Not all props are true (we don't need to compute all of them)
+
+            # First get the lists of all values for each of the protein props
+            props_values = {
+                "molecular_weight": [], 
+                "aromaticity": [], 
+                "instability_index": [], 
+                "gravy": [], 
+                "isoelectric_point": []
+            }
+            with alive_bar(len(props_values) * 3, title = "Props...", dual_line = True, spinner = PHROG_SPINNER) as bar:
+                for prop in props_values.keys():
+                    if not self.params.config[prop]: # If user set property to false
+                        continue
+                    bar.text = f"--> Finding possible values for property: {prop}"
+                    for inner_dict in self.params.props.values(): # Produces inner dict for each protein in a form of {prop: value}
+                        props_values[prop].append(inner_dict[prop]) # add the value
+                    bar()
+                # Remove unused props
+                props_values = {key: value for key, value in props_values.items() if value} # Leave only if value (if not [])
+                # Now produce ranges
+                bar.text = "--> Computing ranges"
+                for prop, values in props_values.items():
+                    # Not the props_values is a dict in a form of
+                    # {"prop": (lowest_possible_value, biggest_possible_value)}
+                    
+                    props_values[prop] = PondParser.range_from_list(values)
+                    print(f"Computed range for property '{prop}': '{props_values[prop]}'")
+                    bar()
+                props_ranges = props_values # For clarity, changed name
+
+                # A'la PHRED+33? This is range that we map all proteins props to
+                # Produces 
+                resulting_ranges = {}
+                bar.text = f"--> Calculating resulting non-overlapping ranges'"
+                for prop, new_range in zip(props_ranges.keys(), PondParser.non_overlapping_intervals(num_intervals=len(props_ranges))):
+                    print(f"Computed new range for property '{prop}': '{new_range}'")
+                    resulting_ranges[prop] = new_range
+                    bar()
+                POND_LOGGER.debug("Successfully produced all ranges")
+
         files = list(self.location.gff_dir.iterdir())
-        with alive_bar(len(files), title = "GFFs        ", dual_line = True, spinner = PHROG_SPINNER) as bar:
+        with alive_bar(len(files), title = "GFFs...", dual_line = True, spinner = PHROG_SPINNER) as bar:
             bar.text = "--> Parsing GFFs"
             for file in files:
                 with open(file, encoding="utf-8") as fh:
@@ -234,13 +284,24 @@ class PondParser:
                         phrogs = self.map[prot]
                         strand = Strand.into(strand)
                         if not phrogs:
-                            phrogs = ["joker"]
-                            if pond_config is not None: 
-                                params = pond_config.params.get(prot)
-                                if params:
-                                    phrogs = [
-                                        "joker_" + "|".join(f"{key}:{val :.2f}" for key, val in params.items() if pond_config.config[key])
-                                    ]
+                            phrogs = [self.unknown]
+                            encoded_chars = []
+                            if self.params.props and self.params.config["sequential"] == "encode": # This is where the fun begins
+                                bar.text = "--> Encoding proteins"
+                                # Get props for this protein
+                                props = self.params.props.get(prot) # Like {molecular_weight: 6043}... etc.
+                                # if protein not found
+                                if not props:
+                                    POND_LOGGER.error(f"Protein '{prot}' not found")
+                                    continue # Skip this protein in our word, add to logs
+                                for prop, prop_value in props.items():
+                                    if not self.params.config[prop]: # If property is false
+                                        continue
+                                    from_range = props_ranges[prop]
+                                    encoded_char = PondParser.remap_range(from_range, resulting_ranges[prop], prop_value)
+                                    encoded_chars.extend(encoded_char)
+                                phrogs = [self.unknown + "".join(encoded_chars)]
+
                         dist = 0 if j == 0 else start - self.records[j - 1].end
                         record = PondRecord(prot, phrogs, start, end, strand, dist)
                         self.records.append(record)
@@ -254,10 +315,10 @@ class PondParser:
         # Add first phrogs
         sentence.extend(previous.phrogs)
         counter: int = 1
-        with alive_bar(len(self.records), title = "Sentences   ", dual_line = True, spinner = PHROG_SPINNER) as bar:
+        with alive_bar(len(self.records), title = "Sentences...", dual_line = True, spinner = PHROG_SPINNER) as bar:
             bar.text = "--> Ordering some sentences"
             for record in records:
-                if record.strand != previous.strand or record.dist > self.options.distance:
+                if record.strand != previous.strand or record.dist > self.params.config["distance"]:
                     paragraph.append(sentence if previous.strand == Strand.POS else list(reversed(sentence)))
                     sentence = []
                 sentence.extend(record.phrogs)
@@ -267,60 +328,27 @@ class PondParser:
                 paragraph.append(sentence if previous.strand == Strand.POS else list(reversed(sentence)))
                 bar()
 
-        if self.options.collapse:
-            with alive_bar(len(paragraph), title = "Collapsing  ", spinner = PHROG_SPINNER) as bar:
+        if self.params.config["sequential"] == "collapse":
+            with alive_bar(len(paragraph), title = "Collapsing...", spinner = PHROG_SPINNER) as bar:
                 for i, _ in enumerate(paragraph):
                     previous = object()
                     paragraph[i] = [previous := x for x in paragraph[i] if not (previous == self.unknown == x)]
                     bar()
                 POND_LOGGER.info(f"Collapsed successfully all consecutive duplicates from {len(paragraph)} words")
         
-        if self.options.number:
-            with alive_bar(len(paragraph), title = "Numering    ", spinner = PHROG_SPINNER) as bar:
+        if self.params.config["sequential"] == "enumerate":
+            with alive_bar(len(paragraph), title = "Enumerating...", spinner = PHROG_SPINNER) as bar:
                 for sentence in paragraph:
                     for i, phrog in enumerate(sentence):
                         if phrog == self.unknown:
                             sentence[i] = f"{phrog}{counter}"
                             counter += 1
                     bar()
-                POND_LOGGER.info(f"Added numbers successfully for jokers from {len(paragraph)} words")
+                POND_LOGGER.info(f"Added enumerated successfully for jokers from {len(paragraph)} words")
 
-        if self.options.consecutive:
-            with alive_bar(len(paragraph), title="consecutive ", spinner=PHROG_SPINNER) as bar:
+        if self.params.config["sequential"] == "consecutive":
+            with alive_bar(len(paragraph), title="Consecutive...", spinner=PHROG_SPINNER) as bar:
                 for i, _ in enumerate(paragraph):
-                    # previous = paragraph[i][0]
-                    # unkown_counter = int(previous == self.unknown)
-
-                    # if len(paragraph[i]) == 1 and unkown_counter:
-                    #     paragraph[i] = ["joker1"]
-                    #     bar()
-                    #     continue
-
-                    # new_sentence = []
-                    # if not unkown_counter:
-                    #     new_sentence.append(previous)
-
-                    # for phrog in paragraph[i][1:]:
-                    #     if phrog == self.unknown:
-                    #         unkown_counter += 1
-                    #         previous = self.unknown
-                    #         continue
-
-                    #     # breaks the streak of unknown proteins
-                    #     if previous == self.unknown:
-                    #         new_sentence.append(f"joker{unkown_counter}")
-                    #         unkown_counter = 0
-
-                    #     new_sentence.append(phrog)
-                    #     previous = phrog
-
-                    # # adds unknown proteins at the end of the sentence
-                    # if unkown_counter != 0:
-                    #     new_sentence.append(f"joker{unkown_counter}")
-
-                    # paragraph[i] = new_sentence
-                    # bar()
-                
                     paragraph[i] = self.collapse_consecutive(paragraph[i])
                     bar()
 

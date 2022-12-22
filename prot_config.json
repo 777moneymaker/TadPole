@@ -3,5 +3,6 @@
     "instability_index": true,
     "isoelectric_point": true, 
     "gravy": true, 
-    "aromaticity": true
+    "aromaticity": true,
+    "sequenntial": "encode"
 }
