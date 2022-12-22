@@ -79,10 +79,8 @@ def visualisation_pipeline(
     Automated fasttext pipeline: model training, UMAP dimensionality reduction, 3D scatter visualisation.
     """
 
-    train_success = 0
-
     # *** fasttext train + loading corpus ***
-    train_success, model = model_train(
+    model = model_train(
         corpus_path, 
         vector_size, 
         window, 
@@ -146,8 +144,6 @@ def visualisation_pipeline_exec(
     """
     Automated fasttext pipeline: model training, UMAP dimensionality reduction, 3D scatter visualisation.
     """
-
-    train_success = 0
 
     # *** fasttext train + loading corpus ***
     model_train_exec(
@@ -341,4 +337,4 @@ def model_train(
         model.lifecycle_events
         model.save("train_test/ft_test.model")
         bar()
-    return callbacks[0].success, model
+    return model

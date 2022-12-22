@@ -29,6 +29,7 @@ class TrainLogger(CallbackAny2Vec):
     def __init__(self):
         self.epoch = 0
         self.loss_to_show = 0
+        self.success = 0
 
     # def on_train_begin(self, model):
     #     model.compute_loss = True
@@ -47,6 +48,10 @@ class TrainLogger(CallbackAny2Vec):
         print(f"epoch: {self.epoch} lr: {lr}\t loss: {loss_current}\t count: {trained}")
         # print(model._log_progress())
         self.epoch += 1
+    
+    def on_train_end(self, model):
+        self.success = 1
+        print("Actually finished all")
 
 
 def _generate_name(
@@ -120,6 +125,8 @@ def model_train(
             # end_alpha=lr_min,
             compute_loss=True,
             callbacks=callbacks)
+        print(model.__dict__)
+        # print(callbacks[0].success)
         bar()
         
     return model
@@ -192,6 +199,7 @@ def visualisation_pipeline(
     """
     Automated word2vec visualisation pipeline: model training, UMAP dimensionality reduction, 3D scatter visualisation.
     """
+
     # *** w2v train + loading corpus ***
     model = model_train(
         corpus_path=corpus_path, 
@@ -212,6 +220,8 @@ def visualisation_pipeline(
     print(model.wv.vector_size)
     print(model.epochs)
     # print(model.lifecycle_events)
+    # train_success = model.callbacks[0].success
+    print(train_success)
 
     #  *** UMAP ***
     embedding = umap_reduce(model.wv, n_dims=3)
