@@ -2,6 +2,7 @@ from pathlib import Path
 import re
 import time
 import logging
+import os
 
 from gensim.models import FastText
 import gensim.models.fasttext
@@ -49,6 +50,8 @@ class TrainLogger(CallbackAny2Vec):
         print(f"epoch: {self.epoch} lr: {lr}\t loss: {loss_current}\t count: {trained}")
         # print(model._log_progress())
         self.epoch += 1
+    def on_train_end(self, model):
+        print("Actually finished all")
 
 
 
@@ -75,8 +78,11 @@ def visualisation_pipeline(
     """
     Automated fasttext pipeline: model training, UMAP dimensionality reduction, 3D scatter visualisation.
     """
+
+    train_success = 0
+
     # *** fasttext train + loading corpus ***
-    model = model_train(
+    train_success, model = model_train(
         corpus_path, 
         vector_size, 
         window, 
@@ -105,6 +111,75 @@ def visualisation_pipeline(
     # model.wo
     # print(model.__dict__)
     # model._log_progress
+    # train_success = model.callbacks[0].success
+    print(train_success)
+
+    #  *** UMAP ***
+    embedding = umap_reduce(model.wv, n_dims=3)
+    # print(type(embedding))
+    # print(embedding)
+
+    #  *** Visualisation ***
+    dataset = model_visualise(model.wv, embedding, visual_path)
+    # print(dataset)
+
+
+@utils.time_this
+def visualisation_pipeline_exec(
+    corpus_path: str,
+    visual_path: str,
+    vector_size: int = 100,
+    window: int = 5,
+    min_count: int = 5,
+    epochs: int = 5,
+    workers: int = 3,
+    lr_start: float = 0.025,
+    lr_min: float = 0.0001,
+    max_n: int = 3,
+    min_n: int = 6,
+    sg: int = 0, 
+    hs: int = 0,
+    sorted_vocab: int = 1,
+    negative: int = 5,
+    ns_exp: float = 0.75,
+    show_debug: bool = False):
+    """
+    Automated fasttext pipeline: model training, UMAP dimensionality reduction, 3D scatter visualisation.
+    """
+
+    train_success = 0
+
+    # *** fasttext train + loading corpus ***
+    model_train_exec(
+        corpus_path, 
+        vector_size, 
+        window, 
+        min_count, 
+        epochs, 
+        workers, 
+        lr_start,
+        lr_min,
+        max_n,
+        min_n,
+        sg,
+        hs,
+        sorted_vocab,
+        negative,
+        ns_exp,
+        show_debug)
+    # print(type(model.wv))
+    # print(model.wv.vector_size)
+    # print(model.epochs)
+    # # print(model.lifecycle_events)
+    # print(model.compute_loss)
+    # print(model.min_alpha)
+    # print(model.min_alpha_yet_reached)
+    # print(model.alpha)
+    # model.wo
+    # print(model.__dict__)
+    # model._log_progress
+    # train_success = model.callbacks[0].success
+    print(train_success)
 
     #  *** UMAP ***
     embedding = umap_reduce(model.wv, n_dims=3)
@@ -164,6 +239,29 @@ def umap_reduce(vectors_obj: gensim.models.fasttext.FastTextKeyedVectors, n_dims
         embedding = reducer.fit_transform(data_to_reduce)
         bar()
     return embedding
+
+
+def model_train_exec(
+    corpus_path: str, 
+    vector_size: int = 100,
+    window: int = 5,
+    min_count: int = 5,
+    epochs: int = 5,
+    workers: int = 3,
+    lr_start: float = 0.025,
+    lr_min: float = 0.0001,
+    max_n: int = 3,
+    min_n: int = 6,
+    sg: int = 0, 
+    hs: int = 0,
+    sorted_vocab: int = 1,
+    negative: int = 5,
+    ns_exp: float = 0.75,
+    show_debug: bool = False
+    ):
+    os.system(f"python fasttext_exec.py -c {corpus_path} -v {vector_size} -w {window} -m {min_count} -e {epochs} -t {workers} --lr {lr_start} --lr_min {lr_min} --max_n {max_n} --min_n {min_n} --sg {sg} --hs {hs} --sorted_vocab {sorted_vocab} --neg {negative} --ns_exp {ns_exp} --debug {show_debug}")
+
+
 
 
 def model_train(
@@ -230,14 +328,17 @@ def model_train(
         print(model.__dict__)
         try:
             model.train(corpus_iterable=sentences, 
-                total_examples=model.corpus_count, 
+                total_examples=model.corpus_count,
+                total_words=model.corpus_total_words, 
                 epochs=model.epochs,
                 # start_alpha=lr_start,
                 # end_alpha=lr_min,
                 compute_loss=True,
                 # report_delay=0.5,
                 callbacks=callbacks)
-        except:
+        except TypeError: 
             print("I shat myself")
+        model.lifecycle_events
+        model.save("train_test/ft_test.model")
         bar()
-    return model
+    return callbacks[0].success, model
