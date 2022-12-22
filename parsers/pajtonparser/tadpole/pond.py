@@ -136,7 +136,7 @@ class PondParser:
     @staticmethod
     def non_overlapping_intervals(num_intervals, interval_length=10):
         intervals = []
-        start = 33
+        start = 34
         for i in range(num_intervals):
             end = start + interval_length - 1
             intervals.append((start, end))
@@ -144,9 +144,11 @@ class PondParser:
         return intervals
 
     @staticmethod
-    def remap_range(from_range, to_range, value):
+    def remap_value(from_range, to_range, value):
         from_min, from_max = from_range
         to_min, to_max = to_range
+        if value > to_max:
+            return "!" # Intervals are created so they begin with 34 ascii, not 33, so we can use '!' for outliers
         # Calculate the proportional position of the value in the input range
         position = (value - from_min) / (from_max - from_min)
         # Calculate the value in the output range by linearly scaling the
@@ -298,7 +300,7 @@ class PondParser:
                                     if not self.params.config[prop]: # If property is false
                                         continue
                                     from_range = props_ranges[prop]
-                                    encoded_char = PondParser.remap_range(from_range, resulting_ranges[prop], prop_value)
+                                    encoded_char = PondParser.remap_value(from_range, resulting_ranges[prop], prop_value)
                                     encoded_chars.extend(encoded_char)
                                 phrogs = [self.unknown + "".join(encoded_chars)]
 
