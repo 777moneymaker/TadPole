@@ -4,5 +4,5 @@
     "isoelectric_point": true, 
     "gravy": true, 
     "aromaticity": true,
-    "sequenntial": "encode"
+    "sequential": "encode"
 }
