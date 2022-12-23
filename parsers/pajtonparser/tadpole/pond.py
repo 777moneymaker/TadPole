@@ -324,6 +324,7 @@ class PondParser:
                                 # if protein not found
                                 if not props: # Skip this protein in our word, add to logs
                                     POND_LOGGER.error(f"Protein '{prot}' not found")
+                                    phrogs = ["!!!!!#####"]
                                 else:   
                                     for prop, prop_value in props.items():
                                         if not self.params.config[prop]: # If property is false
