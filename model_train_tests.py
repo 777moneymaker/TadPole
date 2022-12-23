@@ -74,8 +74,8 @@ from pathlib import Path
 # eval.prediction(func, model, top_known_phrogs=1)
 
 w2v.evaluation_pipeline(
-    corpus_path="results/virall_encode.pickle",
-    output_prefix="virall_encode_function_test",
+    corpus_path="results/virall_encode_range40.pickle",
+    output_prefix="virall_encode_function_test_range40",
     vector_size=25,
     window=2,
     min_count=5,

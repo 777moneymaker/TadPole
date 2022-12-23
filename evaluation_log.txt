@@ -6,3 +6,4 @@ Word2Vec{'max': 80.0, 'sum': 80.0, 'mean': 80.0, 'power 2': 80.0, 'power 4': 80.
 Word2Vec{'max': 80.0, 'sum': 80.0, 'mean': 80.0, 'power 2': 80.0, 'power 4': 80.0, 'power 8': 80.0}
 Word2Vec{'max': 70.0, 'sum': 70.0, 'mean': 70.0, 'power 2': 70.0, 'power 4': 70.0, 'power 8': 70.0}
 Word2Vec{'max': 54.69, 'sum': 54.69, 'mean': 54.69, 'power 2': 54.69, 'power 4': 54.69, 'power 8': 54.69}
+Word2Vec{'max': 55.6, 'sum': 55.6, 'mean': 55.6, 'power 2': 55.6, 'power 4': 55.6, 'power 8': 55.6}
