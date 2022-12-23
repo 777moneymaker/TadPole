@@ -119,8 +119,63 @@ class PondParser:
         self.records = []
         self.unknown = unknown
         self.content = None
+        self.props_ranges = dict()
+        self.resulting_ranges = dict()
+
+    def _compute_props_ranges(self):
+        if not self.params.props:
+            return
+        
+        POND_LOGGER.debug("Started producing ranges for protein params")
+        # Compute range of possible values for all protein props
+        # Not all props are true (we don't need to compute all of them)
+
+        # First get the lists of all values for each of the protein props
+        props_values = {
+            "molecular_weight": [], 
+            "aromaticity": [], 
+            "instability_index": [], 
+            "gravy": [], 
+            "isoelectric_point": []
+        }
+        with alive_bar(len(props_values) * 3, title = "Props...", dual_line = True, spinner = PHROG_SPINNER) as bar:
+            for prop in props_values.keys():
+                if not self.params.config[prop]: # If user set property to false
+                    continue
+                bar.text = f"--> Finding possible values for property: {prop}"
+                for inner_dict in self.params.props.values(): # Produces inner dict for each protein in a form of {prop: value}
+                    props_values[prop].append(inner_dict[prop]) # add the value
+                bar()
+            # Remove unused props
+            props_values = {key: value for key, value in props_values.items() if value} # Leave only if value (if not [])
+            # Now produce ranges
+            bar.text = "--> Computing ranges"
+            for prop, values in props_values.items():
+                # Not the props_values is a dict in a form of
+                # {"prop": (lowest_possible_value, biggest_possible_value)}
+                
+                props_values[prop] = PondParser.range_from_list(values)
+                print(f"Computed range for property '{prop}': '{props_values[prop]}'")
+                bar()
+            self.props_ranges = props_values
+
+            # A'la PHRED+33? This is range that we map all proteins props to
+            # Produces 
+            resulting_ranges = {}
+            bar.text = f"--> Calculating resulting non-overlapping ranges'"
+            for prop, new_range in zip(self.props_ranges.keys(), PondParser.non_overlapping_intervals(num_intervals=len(self.props_ranges))):
+                print(f"Computed new range for property '{prop}': '{new_range}'")
+                resulting_ranges[prop] = new_range
+                bar()
+            self.resulting_ranges = resulting_ranges
+            
+            POND_LOGGER.debug("Successfully produced all ranges")
+
 
     def _fill_map(self):
+        if self.params.props:
+            self._compute_props_ranges()
+
         files = list(self.location.phrog_dir.iterdir())
         with alive_bar(len(files), title = "PHROGs...",  dual_line = True, spinner = PHROG_SPINNER) as bar:
             bar.text = "--> Looping on some PHROGs"
@@ -129,6 +184,23 @@ class PondParser:
                     next(fh)
                     for line in fh:
                         prot, phrog = line.split(",")[:2]
+                        if self.params.config["sequential"] == "encode" and self.params.props:
+                            bar.text = "--> Encoding proteins"
+                            encoded_chars = []                        
+                            # Get props for this protein
+                            props = self.params.props.get(prot) # Like {molecular_weight: 6043}... etc.
+                            # if protein not found
+                            # Skip this protein in our word, add to logs
+                            if not props:
+                                POND_LOGGER.error(f"Protein '{prot}' not found")
+                            else : 
+                                for prop, prop_value in props.items():
+                                    if not self.params.config[prop]: # If property is false
+                                        continue
+                                    from_range = self.props_ranges[prop]
+                                    encoded_char = PondParser.remap_value(from_range, self.resulting_ranges[prop], prop_value)
+                                    encoded_chars.extend(encoded_char)
+                                phrog = "".join(encoded_chars) + "{0:05d}".format(int(phrog.replace("phrog_", ""))) # Leave only phrog number
                         self.map[prot].append(phrog)
                 bar()
             POND_LOGGER.info("Processed all available phrog files")
@@ -228,49 +300,6 @@ class PondParser:
     def parse(self) -> list[list[str]]:
         self._fill_map()
         Sentence = list[str]
-        if self.params.props: # If props is none, then default config is used without params
-            POND_LOGGER.debug("Started producing ranges for protein params")
-            # Compute range of possible values for all protein props
-            # Not all props are true (we don't need to compute all of them)
-
-            # First get the lists of all values for each of the protein props
-            props_values = {
-                "molecular_weight": [], 
-                "aromaticity": [], 
-                "instability_index": [], 
-                "gravy": [], 
-                "isoelectric_point": []
-            }
-            with alive_bar(len(props_values) * 3, title = "Props...", dual_line = True, spinner = PHROG_SPINNER) as bar:
-                for prop in props_values.keys():
-                    if not self.params.config[prop]: # If user set property to false
-                        continue
-                    bar.text = f"--> Finding possible values for property: {prop}"
-                    for inner_dict in self.params.props.values(): # Produces inner dict for each protein in a form of {prop: value}
-                        props_values[prop].append(inner_dict[prop]) # add the value
-                    bar()
-                # Remove unused props
-                props_values = {key: value for key, value in props_values.items() if value} # Leave only if value (if not [])
-                # Now produce ranges
-                bar.text = "--> Computing ranges"
-                for prop, values in props_values.items():
-                    # Not the props_values is a dict in a form of
-                    # {"prop": (lowest_possible_value, biggest_possible_value)}
-                    
-                    props_values[prop] = PondParser.range_from_list(values)
-                    print(f"Computed range for property '{prop}': '{props_values[prop]}'")
-                    bar()
-                props_ranges = props_values # For clarity, changed name
-
-                # A'la PHRED+33? This is range that we map all proteins props to
-                # Produces 
-                resulting_ranges = {}
-                bar.text = f"--> Calculating resulting non-overlapping ranges'"
-                for prop, new_range in zip(props_ranges.keys(), PondParser.non_overlapping_intervals(num_intervals=len(props_ranges))):
-                    print(f"Computed new range for property '{prop}': '{new_range}'")
-                    resulting_ranges[prop] = new_range
-                    bar()
-                POND_LOGGER.debug("Successfully produced all ranges")
 
         files = list(self.location.gff_dir.iterdir())
         with alive_bar(len(files), title = "GFFs...", dual_line = True, spinner = PHROG_SPINNER) as bar:
@@ -287,22 +316,22 @@ class PondParser:
                         strand = Strand.into(strand)
                         if not phrogs:
                             phrogs = [self.unknown]
-                            encoded_chars = []
                             if self.params.props and self.params.config["sequential"] == "encode": # This is where the fun begins
-                                bar.text = "--> Encoding proteins"
+                                bar.text = "--> Encoding jokers"
+                                encoded_chars = []
                                 # Get props for this protein
                                 props = self.params.props.get(prot) # Like {molecular_weight: 6043}... etc.
                                 # if protein not found
-                                if not props:
+                                if not props: # Skip this protein in our word, add to logs
                                     POND_LOGGER.error(f"Protein '{prot}' not found")
-                                    continue # Skip this protein in our word, add to logs
-                                for prop, prop_value in props.items():
-                                    if not self.params.config[prop]: # If property is false
-                                        continue
-                                    from_range = props_ranges[prop]
-                                    encoded_char = PondParser.remap_value(from_range, resulting_ranges[prop], prop_value)
-                                    encoded_chars.extend(encoded_char)
-                                phrogs = [self.unknown + "".join(encoded_chars)]
+                                else:   
+                                    for prop, prop_value in props.items():
+                                        if not self.params.config[prop]: # If property is false
+                                            continue
+                                        from_range = self.props_ranges[prop]
+                                        encoded_char = PondParser.remap_value(from_range, self.resulting_ranges[prop], prop_value)
+                                        encoded_chars.extend(encoded_char)
+                                    phrogs = ["".join(encoded_chars) + "#####"] # 5 times '#' to equalize to phrogs
 
                         dist = 0 if j == 0 else start - self.records[j - 1].end
                         record = PondRecord(prot, phrogs, start, end, strand, dist)
