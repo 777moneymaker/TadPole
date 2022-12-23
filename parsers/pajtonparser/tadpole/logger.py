@@ -11,3 +11,4 @@ logging.basicConfig(
 
 MAIN_LOGGER = logging.getLogger('MAIN-PONDLOG')
 POND_LOGGER = logging.getLogger('POND-PONDLOG')
+MODEL_LOGGER = logging.getLogger('MODEL-PONDLOG')

@@ -221,7 +221,7 @@ def visualisation_pipeline(
     print(model.epochs)
     # print(model.lifecycle_events)
     # train_success = model.callbacks[0].success
-    print(train_success)
+    # print(train_success)
 
     #  *** UMAP ***
     embedding = umap_reduce(model.wv, n_dims=3)
