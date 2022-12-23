@@ -73,3 +73,16 @@ def time_this(function):
         return exec
 
     return wrapper
+
+
+def create_phrog_lookup(path: Path):
+    try:
+        with open(path.as_posix(), 'rb') as in_strm:
+            corpus = pickle.load(in_strm)
+            print(corpus[0][0][-5:])
+            # lookup = [x for l in [elem for elem in corpus if not elem.endswith('#####')] for x in l]
+            lookup = {x: f"phrog_{str(int(x[-5:]))}" for elem in corpus for x in elem if not x.endswith("#####")}
+            print(lookup)
+    except (pickle.UnpicklingError, FileNotFoundError):
+        custom_logger.logger.critical("Incorrect or corrupted file!")
+        return
