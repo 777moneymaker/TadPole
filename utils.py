@@ -103,3 +103,22 @@ def read_lookup_metadata(path: Path) -> dict:
     except (pickle.UnpicklingError, FileNotFoundError):
         custom_logger.logger.critical("Incorrect or corrupted file!")
         return
+
+
+def exchange_lookup(path: Path):
+    org_lookup = read_lookup_metadata(path)
+    new_lookup = dict((v, k) for k, v in org_lookup.items())
+    # print(new_lookup)
+    with open("Data/metadata_lookup_phrog_exchanged.pickle", 'wb') as fh:
+            pickle.dump(new_lookup, fh)
+
+
+def make_encoded_metadata(metadata_path: Path, lookup_path: Path):
+    org_metadata = read_metadata(metadata_path)
+    # print(org_metadata['phrog_1115'])
+    lookup = read_lookup_metadata(lookup_path)
+    # print(lookup['phrog_1115'])
+    new_metadata = dict((lookup[k] if k in lookup else k, v) for k, v in org_metadata.items())
+    # print(new_metadata['phrog_1115'])
+    with open("Data/metadata_phrog_encoded.pickle", 'wb') as fh:
+            pickle.dump(new_metadata, fh)
