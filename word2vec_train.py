@@ -291,9 +291,22 @@ def evaluation_pipeline(
     model_path = f"train_test/{model_name}.model"
     model.save(model_path)
 
-    # *** model evaluation ***
-    funcs = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
-    prediction = evl.prediction(func_dict=funcs, model=model, top_known_phrogs=n_top_phrogs)
+    # *** lookup phrogs ***
+    lookup = utils.read_lookup_metadata(Path("Data/metadata_lookup_phrog.pickle"))
+    print(model.wv.index_to_key)
+    # for k,v in model.wv.index_to_key.items():
+    #     if v in lookup:
+    #         model.wv.index_to_key[k] = lookup[v]
+    for index, word in enumerate(model.wv.index_to_key):
+        if word in lookup:
+            model.wv.index_to_key[index] = lookup[word]
+    
+    print(model.wv.index_to_key)
+    print(model.wv.most_similar("phrog_1512"))
+
+    # # *** model evaluation ***
+    # funcs = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+    # prediction = evl.prediction(func_dict=funcs, model=model, top_known_phrogs=n_top_phrogs)
 
     # *** visualise ***
     if visualise_model:

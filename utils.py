@@ -82,7 +82,24 @@ def create_phrog_lookup(path: Path):
             print(corpus[0][0][-5:])
             # lookup = [x for l in [elem for elem in corpus if not elem.endswith('#####')] for x in l]
             lookup = {x: f"phrog_{str(int(x[-5:]))}" for elem in corpus for x in elem if not x.endswith("#####")}
-            print(lookup)
+            # print(lookup)
+        with open("Data/metadata_lookup_phrog.pickle", 'wb') as fh:
+            pickle.dump(lookup, fh)
+    except (pickle.UnpicklingError, FileNotFoundError):
+        custom_logger.logger.critical("Incorrect or corrupted file!")
+        return
+
+
+def read_lookup_metadata(path: Path) -> dict:
+    """
+    Reads and returns metadata pickle from given metadata pickle file
+    """
+    custom_logger.logger.info("Loading dill with phrog metadata")
+
+    try:
+        with open(path.as_posix(), 'rb') as in_strm:
+            func = pickle.load(in_strm)
+            return func
     except (pickle.UnpicklingError, FileNotFoundError):
         custom_logger.logger.critical("Incorrect or corrupted file!")
         return
