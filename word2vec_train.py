@@ -156,7 +156,8 @@ def umap_reduce(
 
 def model_visualise(vectors_obj: wv.KeyedVectors, 
                     reduced_embed: np.ndarray, 
-                    visual_path: str):
+                    visual_path: str,
+                    encoded: bool):
 
     """
     
@@ -165,8 +166,12 @@ def model_visualise(vectors_obj: wv.KeyedVectors,
     """
 
     with alive_bar(title = "Gathering phrog metadata and embedding data",  dual_line = True, spinner = PHROG_SPINNER) as bar:
-        func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+        # func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
         dataset = pd.DataFrame({'word': vectors_obj.index_to_key})
+        if not encoded:
+            func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+        else:
+            func = utils.read_metadata(Path("Data/metadata_phrog_encoded.pickle"))
         dataset["function"] = dataset['word'].map(func)
         dataset[['x', 'y', 'z']] = pd.DataFrame(reduced_embed, index=dataset.index)
         bar()
@@ -251,7 +256,8 @@ def evaluation_pipeline(
     ns_exp: float = 0.75,
     show_debug: bool = False,
     n_top_phrogs: int = 1,
-    visualise_model: bool = False):
+    visualise_model: bool = False,
+    encoded: bool = True):
 
     """
     Automated word2vec evaluation pipeline: model training, automated model save and model scoring.
@@ -292,25 +298,29 @@ def evaluation_pipeline(
     model.save(model_path)
 
     # *** lookup phrogs ***
-    lookup = utils.read_lookup_metadata(Path("Data/metadata_lookup_phrog.pickle"))
-    print(model.wv.index_to_key)
-    # for k,v in model.wv.index_to_key.items():
-    #     if v in lookup:
-    #         model.wv.index_to_key[k] = lookup[v]
-    for index, word in enumerate(model.wv.index_to_key):
-        if word in lookup:
-            model.wv.index_to_key[index] = lookup[word]
+    # lookup = utils.read_lookup_metadata(Path("Data/metadata_lookup_phrog.pickle"))
+    # print(model.wv.index_to_key)
+    # # for k,v in model.wv.index_to_key.items():
+    # #     if v in lookup:
+    # #         model.wv.index_to_key[k] = lookup[v]
+    # for index, word in enumerate(model.wv.index_to_key):
+    #     if word in lookup:
+    #         model.wv.index_to_key[index] = lookup[word]
     
-    print(model.wv.index_to_key)
-    print(model.wv.most_similar("phrog_1512"))
+    # print(model.wv.index_to_key)
+    # print(model.wv.most_similar("phrog_1512"))
 
-    # # *** model evaluation ***
-    # funcs = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
-    # prediction = evl.prediction(func_dict=funcs, model=model, top_known_phrogs=n_top_phrogs)
+    # *** model evaluation ***
+    # this should be refactored before optimisation
+    if not encoded:
+        funcs = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+    else:
+        funcs = utils.read_metadata(Path("Data/metadata_phrog_encoded.pickle"))
+    prediction = evl.prediction(func_dict=funcs, model=model, top_known_phrogs=n_top_phrogs)
 
     # *** visualise ***
     if visualise_model:
         visual_path = f"plots/{model_name}.html"
         embedding = umap_reduce(model.wv, n_dims=3)
-        dataset = model_visualise(model.wv, embedding, visual_path)
+        dataset = model_visualise(model.wv, embedding, visual_path, encoded)
 

@@ -18,6 +18,7 @@ from alive_progress.animations.spinners import bouncing_spinner_factory
 
 import utils
 import custom_logger
+import evaluation as evl
 
 
 PHROG_SPINNER = bouncing_spinner_factory(("🐸", "🐸"), 8, background = ".", hide = False, overlay =True)
@@ -53,6 +54,23 @@ class TrainLogger(CallbackAny2Vec):
     def on_train_end(self, model):
         print("Actually finished all")
 
+
+def _generate_name(
+    prefix: str, 
+    ns_exp: float, 
+    lr_start: float, 
+    lr_min: float, 
+    vector_size: int, 
+    window: int, 
+    epochs: int, 
+    hs: int, 
+    negative: int,
+    max_n: int,
+    min_n: int) -> str:
+    ns_exp_str = str(ns_exp).replace(".", "")
+    lr_start_str = str(lr_start).replace(".", "")
+    lr_min_str = str(lr_min).replace(".", "")
+    return f"{prefix}_ns{ns_exp_str}_lr{lr_start_str}_lrmin{lr_min_str}_d{vector_size}_w{window}_e{epochs}_hs{hs}_neg{negative}_maxn{max_n}_minn{min_n}"
 
 
 @utils.time_this
@@ -110,7 +128,7 @@ def visualisation_pipeline(
     # print(model.__dict__)
     # model._log_progress
     # train_success = model.callbacks[0].success
-    print(train_success)
+    # print(train_success)
 
     #  *** UMAP ***
     embedding = umap_reduce(model.wv, n_dims=3)
@@ -123,9 +141,9 @@ def visualisation_pipeline(
 
 
 @utils.time_this
-def visualisation_pipeline_exec(
+def evaluation_pipeline_exec(
     corpus_path: str,
-    visual_path: str,
+    output_prefix: str,
     vector_size: int = 100,
     window: int = 5,
     min_count: int = 5,
@@ -140,14 +158,31 @@ def visualisation_pipeline_exec(
     sorted_vocab: int = 1,
     negative: int = 5,
     ns_exp: float = 0.75,
-    show_debug: bool = False):
+    show_debug: bool = False,
+    n_top_phrogs: int = 1,
+    visualise_model: bool = False,
+    encoded: bool = True):
     """
     Automated fasttext pipeline: model training, UMAP dimensionality reduction, 3D scatter visualisation.
     """
 
+
+    model_name = _generate_name(
+        prefix=output_prefix,
+        ns_exp=ns_exp, 
+        lr_start=lr_start, 
+        lr_min=lr_min, 
+        vector_size=vector_size, 
+        window=window, 
+        epochs=epochs, 
+        hs=hs, 
+        negative=negative,
+        max_n=max_n,
+        min_n=min_n)
     # *** fasttext train + loading corpus ***
     model_train_exec(
         corpus_path, 
+        model_name,
         vector_size, 
         window, 
         min_count, 
@@ -175,25 +210,37 @@ def visualisation_pipeline_exec(
     # print(model.__dict__)
     # model._log_progress
     # train_success = model.callbacks[0].success
-    print(train_success)
+    # print(train_success)
+    try:
+        model_path = f"train_test/{model_name}.model"
+        model = FastText.load(model_path)
+    except FileNotFoundError:
+        print(2137)
+        return 2137
 
-    #  *** UMAP ***
-    embedding = umap_reduce(model.wv, n_dims=3)
-    # print(type(embedding))
-    # print(embedding)
+    # *** model evaluation ***
+    # this should be refactored before optimisation
+    if not encoded:
+        funcs = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+    else:
+        funcs = utils.read_metadata(Path("Data/metadata_phrog_encoded.pickle"))
+    prediction = evl.prediction(func_dict=funcs, model=model, top_known_phrogs=n_top_phrogs)
 
     #  *** Visualisation ***
-    dataset = model_visualise(model.wv, embedding, visual_path)
+    if visualise_model:
+        visual_path = f"plots/{model_name}.html"
+        embedding = umap_reduce(model.wv, n_dims=3)
+        dataset = model_visualise(model.wv, embedding, visual_path, encoded)
     # print(dataset)
 
 
-def model_visualise(vectors_obj: gensim.models.fasttext.FastTextKeyedVectors, reduced_embed: np.ndarray, visual_path: str):
+def model_visualise(vectors_obj: gensim.models.fasttext.FastTextKeyedVectors, reduced_embed: np.ndarray, visual_path: str, encoded: bool):
     """
     Generates model visualisation in plotly's 3D scatter. 
     """
     with alive_bar(title = "Gathering phrog metadata and embedding data",  dual_line = True, spinner = PHROG_SPINNER) as bar:
         # custom_logger.logger.info("Loading phrog metadata")
-        func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+        # func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
         # gather data to dataframe
         # custom_logger.logger.info("Gathering data for visualisation")
         dataset = pd.DataFrame({'word': vectors_obj.index_to_key})
@@ -208,6 +255,11 @@ def model_visualise(vectors_obj: gensim.models.fasttext.FastTextKeyedVectors, re
         #     # print(jokers)
         #     joker_funcs = {joker: "joker_placeholder" for joker in jokers}
         #     func.update(joker_funcs)
+
+        if not encoded:
+            func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+        else:
+            func = utils.read_metadata(Path("Data/metadata_phrog_encoded.pickle"))
 
         # map functions to words
         dataset["function"] = dataset['word'].map(func)
@@ -238,7 +290,8 @@ def umap_reduce(vectors_obj: gensim.models.fasttext.FastTextKeyedVectors, n_dims
 
 
 def model_train_exec(
-    corpus_path: str, 
+    corpus_path: str,
+    model_name: str,
     vector_size: int = 100,
     window: int = 5,
     min_count: int = 5,
@@ -255,7 +308,7 @@ def model_train_exec(
     ns_exp: float = 0.75,
     show_debug: bool = False
     ):
-    os.system(f"python fasttext_exec.py -c {corpus_path} -v {vector_size} -w {window} -m {min_count} -e {epochs} -t {workers} --lr {lr_start} --lr_min {lr_min} --max_n {max_n} --min_n {min_n} --sg {sg} --hs {hs} --sorted_vocab {sorted_vocab} --neg {negative} --ns_exp {ns_exp} --debug {show_debug}")
+    os.system(f"python fasttext_exec.py -c {corpus_path} -v {vector_size} -w {window} -m {min_count} -e {epochs} -t {workers} --lr {lr_start} --lr_min {lr_min} --max_n {max_n} --min_n {min_n} --sg {sg} --hs {hs} --sorted_vocab {sorted_vocab} --neg {negative} --ns_exp {ns_exp} --debug {show_debug} --model_name {model_name}")
 
 
 
