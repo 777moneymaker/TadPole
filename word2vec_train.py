@@ -63,11 +63,12 @@ def _generate_name(
     window: int, 
     epochs: int, 
     hs: int, 
-    negative: int) -> str:
+    negative: int,
+    min_count: int) -> str:
     ns_exp_str = str(ns_exp).replace(".", "")
     lr_start_str = str(lr_start).replace(".", "")
     lr_min_str = str(lr_min).replace(".", "")
-    return f"{prefix}_ns{ns_exp_str}_lr{lr_start_str}_lrmin{lr_min_str}_d{vector_size}_w{window}_e{epochs}_hs{hs}_neg{negative}"
+    return f"{prefix}_ns{ns_exp_str}_lr{lr_start_str}_lrmin{lr_min_str}_d{vector_size}_w{window}_e{epochs}_hs{hs}_neg{negative}_mincount{min_count}"
 
 
 def model_train(
@@ -171,9 +172,11 @@ def model_visualise(vectors_obj: wv.KeyedVectors,
         if not encoded:
             func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
         else:
-            func = utils.read_metadata(Path("Data/metadata_phrog_encoded.pickle"))
+            # func = utils.read_metadata(Path("Data/metadata_phrog_encoded.pickle"))
+            func = utils.read_metadata(Path("Data/metadata_phrog_coded.pickle"))
         dataset["function"] = dataset['word'].map(func)
         dataset[['x', 'y', 'z']] = pd.DataFrame(reduced_embed, index=dataset.index)
+        dataset.to_string('plots/visual_df_diag_coded.txt')
         bar()
     
     with alive_bar(title = "Generating visualisation",  dual_line = True, spinner = PHROG_SPINNER) as bar:
@@ -293,7 +296,8 @@ def evaluation_pipeline(
         window=window, 
         epochs=epochs, 
         hs=hs, 
-        negative=negative)
+        negative=negative,
+        min_count=min_count)
     model_path = f"train_test/{model_name}.model"
     model.save(model_path)
 
@@ -315,7 +319,8 @@ def evaluation_pipeline(
     if not encoded:
         funcs = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
     else:
-        funcs = utils.read_metadata(Path("Data/metadata_phrog_encoded.pickle"))
+        # funcs = utils.read_metadata(Path("Data/metadata_phrog_encoded.pickle"))
+        funcs = utils.read_metadata(Path("Data/metadata_phrog_coded.pickle"))
     prediction = evl.prediction(func_dict=funcs, model=model, top_known_phrogs=n_top_phrogs)
 
     # *** visualise ***

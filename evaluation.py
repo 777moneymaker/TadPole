@@ -52,6 +52,7 @@ def validation(func_dict_df, phrog_categories):
 
 def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
     local_phrog_categories: dict[str, dict[str, str]] = {}
+    print(len(phrog_batch))
     for phrog in phrog_batch:
         try: 
             result = vectors.most_similar(phrog, topn = 40_000)

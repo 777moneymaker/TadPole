@@ -223,7 +223,8 @@ def evaluation_pipeline_exec(
     if not encoded:
         funcs = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
     else:
-        funcs = utils.read_metadata(Path("Data/metadata_phrog_encoded.pickle"))
+        # funcs = utils.read_metadata(Path("Data/metadata_phrog_encoded.pickle"))
+        funcs = utils.read_metadata(Path("Data/metadata_phrog_coded.pickle"))
     prediction = evl.prediction(func_dict=funcs, model=model, top_known_phrogs=n_top_phrogs)
 
     #  *** Visualisation ***
@@ -259,7 +260,8 @@ def model_visualise(vectors_obj: gensim.models.fasttext.FastTextKeyedVectors, re
         if not encoded:
             func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
         else:
-            func = utils.read_metadata(Path("Data/metadata_phrog_encoded.pickle"))
+            # func = utils.read_metadata(Path("Data/metadata_phrog_encoded.pickle"))
+            func = utils.read_metadata(Path("Data/metadata_phrog_coded.pickle"))
 
         # map functions to words
         dataset["function"] = dataset['word'].map(func)

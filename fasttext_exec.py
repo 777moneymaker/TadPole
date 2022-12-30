@@ -30,7 +30,7 @@ parser.add_argument("--model_name", type=str)
 args = parser.parse_args()
 
 ft.PHROG_SPINNER
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 with alive_bar(title = "Loading corpus",  dual_line = True, spinner = ft.PHROG_SPINNER) as bar:
     sentences = utils.read_corpus(Path(args.c))
     bar()
