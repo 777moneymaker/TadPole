@@ -1,3 +1,7 @@
+class ProteinNotFoundError(Exception):
+	pass
+
+
 CONFIG_SCHEMA = {
 	"$schema": "http://json-schema.org/draft-07/schema#", 
 	"$id": "https://example.com/object1670961194.json", 

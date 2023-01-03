@@ -12,6 +12,7 @@ from threading import Thread
 from statistics import quantiles
 
 from .logger import POND_LOGGER
+from .utils import ProteinNotFoundError
 
 PHROG_SPINNER = bouncing_spinner_factory(("🐸", "🐸"), 8, background = ".", hide = False, overlay =True)
 
@@ -192,7 +193,8 @@ class PondParser:
                             # if protein not found
                             # Skip this protein in our word, add to logs
                             if not props:
-                                POND_LOGGER.error(f"Protein '{prot}' not found")
+                                POND_LOGGER.critical(f"Protein '{prot}' not found")
+                                raise ProteinNotFoundError(f"Protein '{prot} was not found in prot params *.json file'")
                             else : 
                                 for prop, prop_value in props.items():
                                     if not self.params.config[prop]: # If property is false
@@ -311,7 +313,7 @@ class PondParser:
                     for j, line in enumerate(lines):
                         *_, start, end, _, strand, _, prot = line.split("\t")
                         start, end = int(start), int(end)
-                        prot = prot.split(";", maxsplit=1)[0].lstrip("ID=")
+                        prot = prot.split(";", maxsplit=1)[0].removeprefix("ID=")
                         phrogs = self.map[prot]
                         strand = Strand.into(strand)
                         if not phrogs:
@@ -323,8 +325,8 @@ class PondParser:
                                 props = self.params.props.get(prot) # Like {molecular_weight: 6043}... etc.
                                 # if protein not found
                                 if not props: # Skip this protein in our word, add to logs
-                                    POND_LOGGER.error(f"Protein '{prot}' not found")
-                                    phrogs = ["!!!!!#####"]
+                                    POND_LOGGER.critical(f"Protein '{prot}' not found")
+                                    raise ProteinNotFoundError(f"Protein '{prot} was not found in prot params *.json file'")
                                 else:   
                                     for prop, prop_value in props.items():
                                         if not self.params.config[prop]: # If property is false
