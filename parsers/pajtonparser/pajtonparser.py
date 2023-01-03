@@ -3,6 +3,7 @@ import argparse
 import json
 import pickle
 from pathlib import Path
+from datetime import datetime
 
 from alive_progress import alive_bar
 from jsonschema import validate, ValidationError
@@ -31,6 +32,8 @@ cfg_group.add_argument(
 )
 
 def main():
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    MAIN_LOGGER.info(f"Started program at {now}:")
     args = argparser.parse_args()
 
     pond_location = pond.PondLocation(Path(args.phrog_dir), Path(args.gff_dir))
