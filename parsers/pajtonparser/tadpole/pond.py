@@ -311,7 +311,7 @@ class PondParser:
                     for j, line in enumerate(lines):
                         *_, start, end, _, strand, _, prot = line.split("\t")
                         start, end = int(start), int(end)
-                        prot = prot.split(";", maxsplit=1)[0].lstrip("ID=")
+                        prot = prot.split(";", maxsplit=1)[0].removeprefix("ID=")
                         phrogs = self.map[prot]
                         strand = Strand.into(strand)
                         if not phrogs:
