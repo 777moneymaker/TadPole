@@ -16,3 +16,4 @@ Word2Vec{'max': 55.22, 'sum': 55.22, 'mean': 55.22, 'power 2': 55.22, 'power 4':
 Word2Vec{'max': 36.55, 'sum': 36.55, 'mean': 36.55, 'power 2': 36.55, 'power 4': 36.55, 'power 8': 36.55}
 Word2Vec{'max': 64.25, 'sum': 64.25, 'mean': 64.25, 'power 2': 64.25, 'power 4': 64.25, 'power 8': 64.25}
 FastText{'max': 64.43, 'sum': 64.43, 'mean': 64.43, 'power 2': 64.43, 'power 4': 64.43, 'power 8': 64.43}
+Word2Vec{'max': 55.06, 'sum': 55.06, 'mean': 55.06, 'power 2': 55.06, 'power 4': 55.06, 'power 8': 55.06}

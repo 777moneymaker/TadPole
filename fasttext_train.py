@@ -221,10 +221,12 @@ def evaluation_pipeline_exec(
     # *** model evaluation ***
     # this should be refactored before optimisation
     if not encoded:
-        funcs = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+        # funcs = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+        funcs = utils.read_metadata(Path("Data/metadata_filtered.pickle"))
     else:
         # funcs = utils.read_metadata(Path("Data/metadata_phrog_encoded.pickle"))
-        funcs = utils.read_metadata(Path("Data/metadata_phrog_coded.pickle"))
+        # funcs = utils.read_metadata(Path("Data/metadata_phrog_coded.pickle"))
+        funcs = utils.read_metadata(Path("Data/metadata_filtered.pickle"))
     prediction = evl.prediction(func_dict=funcs, model=model, top_known_phrogs=n_top_phrogs)
 
     #  *** Visualisation ***

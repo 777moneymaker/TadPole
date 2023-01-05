@@ -135,3 +135,22 @@ def make_encoded_metadata(metadata_path: Path, lookup_path: Path):
     # print(new_metadata['phrog_1115'])
     with open("Data/metadata_phrog_encoded.pickle", 'wb') as fh:
             pickle.dump(new_metadata, fh)
+
+
+def filter_metadata(corpus_path: Path, metadata_path: Path, out_path: Path, coded: bool):
+    corpus = read_corpus(corpus_path)
+    org_metadata = read_metadata(metadata_path)
+    if coded:
+        corpus_phrogs = set((f"phrog_{str(int(x[-5:]))}" for elem in corpus for x in elem if not x.endswith("#####")))
+    else:
+        corpus_phrogs = set((x for elem in corpus for x in elem if x.startswith('phrog')))
+    print(len(corpus_phrogs))
+    all_phrogs = set(org_metadata.keys())
+    print(len(all_phrogs))
+    lost_phrogs = all_phrogs - corpus_phrogs
+    print(len(lost_phrogs))
+    filtered_metadata = {phrog: org_metadata[phrog] for phrog in corpus_phrogs}
+    # filtered_metadata = {f"phrog_{str(int(x[-5:]))}": org_metadata[f"phrog_{str(int(x[-5:]))}"] for elem in corpus for x in elem if not x.endswith("#####")}
+    with open(out_path.as_posix(), 'wb') as fh:
+            pickle.dump(filtered_metadata, fh)
+    return lost_phrogs

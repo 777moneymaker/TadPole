@@ -176,7 +176,7 @@ def model_visualise(vectors_obj: wv.KeyedVectors,
             func = utils.read_metadata(Path("Data/metadata_phrog_coded.pickle"))
         dataset["function"] = dataset['word'].map(func)
         dataset[['x', 'y', 'z']] = pd.DataFrame(reduced_embed, index=dataset.index)
-        dataset.to_string('plots/visual_df_diag_coded.txt')
+        # dataset.to_string('plots/visual_df_diag_coded.txt')
         bar()
     
     with alive_bar(title = "Generating visualisation",  dual_line = True, spinner = PHROG_SPINNER) as bar:
@@ -317,7 +317,8 @@ def evaluation_pipeline(
     # *** model evaluation ***
     # this should be refactored before optimisation
     if not encoded:
-        funcs = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+        # funcs = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+        funcs = utils.read_metadata(Path("Data/metadata_filtered_noncoded.pickle"))
     else:
         # funcs = utils.read_metadata(Path("Data/metadata_phrog_encoded.pickle"))
         funcs = utils.read_metadata(Path("Data/metadata_phrog_coded.pickle"))
