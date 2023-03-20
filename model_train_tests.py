@@ -90,37 +90,38 @@ from pathlib import Path
 #     visualise_model=True,
 #     encoded=True
 # )
+
 w2v.evaluation_pipeline(
-    corpus_path="results/virall_numbered_noprops.pickle",
-    output_prefix="virall_noncoded_filter_test",
-    vector_size=25,
+    corpus_path="results/virall_encode_better.pickle",
+    output_prefix="virall_coded_17-03",
+    vector_size=150,
     window=2,
     min_count=5,
-    epochs=150,
-    workers=12,
+    epochs=500,
+    workers=40,
     lr_start=0.005,
     lr_min=0.0001,
     hs=0,
     negative=75,
     ns_exp=-0.1,
     callbacks=[w2v.TrainLogger()],
-    visualise_model=True,
-    encoded=False
+    visualise_model=False,
+    encoded=True
 )
 
-# ft.evaluation_pipeline_exec(
-#     corpus_path="results/virall_encode_better.pickle",
-#     output_prefix="virall_encode_better_CODED_31-12_ft",
-#     vector_size=25,
-#     window=2,
-#     min_count=5,
-#     epochs=150,
-#     workers=8,
-#     lr_start=0.005,
-#     lr_min=0.0001,
-#     negative=75,
-#     ns_exp=-0.75,
-#     visualise_model=True,
-#     encoded=True
-#     # callbacks=[ft.TrainLogger()]
-# )
+#ft.evaluation_pipeline_exec(
+#    corpus_path="results/virall_encode_better.pickle",
+#    output_prefix="virall_encode_coded_17-03_ft",
+#    vector_size=150,
+#    window=2,
+#    min_count=5,
+#    epochs=500,
+#    workers=40,
+#    lr_start=0.005,
+#    lr_min=0.0001,
+#    negative=75,
+#    ns_exp=-0.75,
+#    visualise_model=False,
+#    encoded=True
+#    # callbacks=[ft.TrainLogger()]
+#)
