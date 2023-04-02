@@ -55,7 +55,7 @@ class TrainLogger(CallbackAny2Vec):
         print("Actually finished all")
 
 
-class Word2VecPipeline:
+class Word2VecPipeline(object):
     __slots__ = ("corpus_path", "output_prefix", "metadata", "vector_size", "window",
                  "min_count", "epochs", "workers", "lr_start", "lr_min", "sg", "hs",
                  "callbacks", "negative", "ns_exp", "show_debug", "n_top_phrogs", "visualise_model",
