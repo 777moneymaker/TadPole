@@ -90,13 +90,14 @@ def create_phrog_lookup(path: Path):
         return
 
 
-def create_function_lookup(path: Path):
+def create_function_lookup(path: Path, out_path: Path):
     try:
         with open(path.as_posix(), 'rb') as in_strm:
             corpus = pickle.load(in_strm)
             metadata = read_metadata(Path("Data/metadata_phrog.pickle"))
             lookup = {x: metadata[f"phrog_{str(int(x[-5:]))}"] for elem in corpus for x in elem if not x.endswith("#####")}
-        with open("Data/metadata_phrog_coded.pickle", 'wb') as fh:
+        # with open("Data/metadata_phrog_coded.pickle", 'wb') as fh:
+        with open(out_path.as_posix(), 'wb') as fh:
             pickle.dump(lookup, fh)
     except:
         custom_logger.logger.critical("Incorrect or corrupted file!")

@@ -2,6 +2,7 @@ from pathlib import Path
 import re
 import time
 import logging
+import json
 
 from gensim.models import word2vec as wv
 from gensim.models.callbacks import CallbackAny2Vec
@@ -52,6 +53,144 @@ class TrainLogger(CallbackAny2Vec):
     def on_train_end(self, model):
         self.success = 1
         print("Actually finished all")
+
+
+class Word2VecPipeline:
+    __slots__ = ("corpus_path", "output_prefix", "metadata", "vector_size", "window",
+                 "min_count", "epochs", "workers", "lr_start", "lr_min", "sg", "hg",
+                 "callbacks", "negative", "ns_exp", "show_debug", "n_top_phrogs", "visualise_model",
+                 "encoded", "result", "model_name", "model_object")
+
+    def __init__(self, corpus_path: str, output_prefix: str, metadata: str, vector_size: int = 100,
+                 window: int = 5, min_count: int = 5, epochs: int = 5, workers: int = 3,
+                 lr_start: float = 0.025, lr_min: float = 0.0001, sg: int = 0, hs: int = 0,
+                 callbacks=[TrainLogger()], negative: int = 5, ns_exp: float = 0.75, show_debug: bool = False,
+                 n_top_phrogs: int = 50, visualise_model: bool = False, encoded: bool = True, save_model: bool = True):
+        self.corpus_path = corpus_path
+        self.output_prefix = output_prefix
+        self.metadata = metadata
+        self.vector_size = vector_size
+        self.window = window
+        self.min_count = min_count
+        self.epochs = epochs
+        self.workers = workers
+        self.lr_start = lr_start
+        self.lr_min = lr_min
+        self.sg = sg
+        self.hs = hs
+        self.callbacks = callbacks
+        self.negative = negative
+        self.ns_exp = ns_exp
+        self.show_debug = show_debug
+        self.n_top_phrogs = n_top_phrogs
+        self.visualise_model = visualise_model
+        self.encoded = encoded
+        self.save_model = save_model
+        self.result = None
+        self.model_name = None
+        self.model_object = None
+    
+    # def __getstate__(self):
+    #     state = self.__dict__.copy()
+    #     del state['model_object']
+    #     return state
+
+    def _make_summary(self):
+        summary = {k: v for k, v in self.__dict__.items() if k != 'model_object'}
+        with open(f"evaluation/{self.model_name}_summary.json", 'w') as f:
+            json.dump(summary, f)
+    
+    # def _dump_result(self):
+    #     with open(f"evaluation/{self.model_name}_summary.json", 'w') as f:
+    #         json.dump(self, f)
+    
+    def _generate_name(self) -> str:
+        ns_exp_str = str(self.ns_exp).replace(".", "")
+        lr_start_str = str(self.lr_start).replace(".", "")
+        lr_min_str = str(self.lr_min).replace(".", "")
+        self.model_name = f"{self.output_prefix}_ns{ns_exp_str}_lr{lr_start_str}_lrmin{lr_min_str}_d{self.vector_size}_w{self.window}_e{self.epochs}_hs{self.hs}_neg{self.negative}_mincount{self.min_count}"
+
+    def _model_train(self):
+        logging.basicConfig(level=logging.ERROR)
+        if self.show_debug:
+            logging.basicConfig(level=logging.DEBUG)
+
+        with alive_bar(title = "Loading corpus",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+            sentences = utils.read_corpus(Path(self.corpus_path))
+            bar()
+
+        with alive_bar(title = "Creating model",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+            model = wv.Word2Vec(
+                vector_size=self.vector_size,
+                window=self.window,
+                min_count=self.min_count,
+                epochs=self.epochs, 
+                workers=self.workers,
+                alpha=self.lr_start,
+                min_alpha=self.lr_min,
+                sg=self.sg,
+                hs=self.hs,
+                ns_exponent=self.ns_exp,
+                negative=self.negative)
+            model.build_vocab(sentences, progress_per=1000)
+            model.train(corpus_iterable=sentences, 
+                total_examples=model.corpus_count, 
+                epochs=model.epochs,
+                compute_loss=True,
+                callbacks=self.callbacks)
+            print(model.__dict__)
+            bar()
+            
+        self.model_object = model
+    
+    def _evaluate_model(self):
+        funcs = utils.read_metadata(Path(self.metadata))
+        prediction = evl.prediction(func_dict=funcs, model=self.model_object, model_name=self.model_name, top_known_phrogs=self.n_top_phrogs)
+        return prediction
+    
+    def _umap_reduce(self, vectors_obj: wv.KeyedVectors, n_dims: int):
+        with alive_bar(title = "UMAP Magic",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+            # custom_logger.logger.info("UMAP Magic")
+            reducer = umap.UMAP(n_components=n_dims)
+            # data_to_reduce = dataset['vector'].to_list()
+            data_to_reduce = vectors_obj.vectors
+            # reduce dimensionality
+            embedding = reducer.fit_transform(data_to_reduce)
+            bar()
+            return embedding
+
+    def _visualiser(self, vectors_obj: wv.KeyedVectors, reduced_embed: np.ndarray, visual_path: str, encoded: bool):
+        with alive_bar(title = "Gathering phrog metadata and embedding data",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+            # func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+            dataset = pd.DataFrame({'word': vectors_obj.index_to_key})
+            func = utils.read_metadata(Path(self.metadata))
+            dataset["function"] = dataset['word'].map(func)
+            dataset[['x', 'y', 'z']] = pd.DataFrame(reduced_embed, index=dataset.index)
+            bar()
+    
+        with alive_bar(title = "Generating visualisation",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+            fig = px.scatter_3d(dataset, x='x', y='y', z='z', color='function', hover_data=["word"], color_discrete_map=utils.colour_map)
+            fig.update_traces(marker_size = 4)
+            fig.write_html(Path(visual_path).as_posix())
+            bar()
+    
+    def _visualise_model(self):
+        visual_path = f"plots/{self.model_name}.html"
+        embedding = self._umap_reduce(self.model_object.wv, n_dims=3)
+        dataset = self._visualiser(self.model_object.wv, embedding, visual_path, self.encoded)
+    
+    @utils.time_this
+    def run(self):
+        self._generate_name()
+        self._model_train()
+        if self.save_model:
+            model_path = f"train_test/{self.model_name}.model"
+            self.model_object.save(model_path)
+        self.result = self._evaluate_model()
+        if self.visualise_model:
+            self._visualise_model()
+        self._make_summary()
+
 
 
 def _generate_name(

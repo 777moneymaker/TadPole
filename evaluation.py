@@ -36,6 +36,7 @@ def power_tuples(lst: list[str, float], power):
     return lst
 
 
+@utils.time_this
 def validation(func_dict_df, phrog_categories):
     answer_tally = {}
     for phrog, scoring_functions in phrog_categories.items():
@@ -175,6 +176,7 @@ def prediction(
         char_nl = '\n'
         with open("evaluation_log.txt", "a") as f:  # very rudimentary logging as of now
             f.write(f"{type(model).__name__}/{model_name}{str(scores)}{char_nl}")
+        return scores
 
 #
 ######## --------------------------------- ########
