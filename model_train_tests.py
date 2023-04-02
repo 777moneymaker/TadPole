@@ -145,3 +145,4 @@ pipe = w2v.Word2VecPipeline(
     encoded=True,
     save_model= True
 )
+pipe.run()
