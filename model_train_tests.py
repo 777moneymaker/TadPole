@@ -91,23 +91,23 @@ from pathlib import Path
 #     encoded=True
 # )
 
-w2v.evaluation_pipeline(
-    corpus_path="results/virall_encode_better.pickle",
-    output_prefix="virall_coded_17-03",
-    vector_size=150,
-    window=2,
-    min_count=5,
-    epochs=500,
-    workers=40,
-    lr_start=0.005,
-    lr_min=0.0001,
-    hs=0,
-    negative=75,
-    ns_exp=-0.1,
-    callbacks=[w2v.TrainLogger()],
-    visualise_model=False,
-    encoded=True
-)
+# w2v.evaluation_pipeline(
+#     corpus_path="results/virall_encode_better.pickle",
+#     output_prefix="virall_coded_17-03",
+#     vector_size=150,
+#     window=2,
+#     min_count=5,
+#     epochs=500,
+#     workers=40,
+#     lr_start=0.005,
+#     lr_min=0.0001,
+#     hs=0,
+#     negative=75,
+#     ns_exp=-0.1,
+#     callbacks=[w2v.TrainLogger()],
+#     visualise_model=False,
+#     encoded=True
+# )
 
 #ft.evaluation_pipeline_exec(
 #    corpus_path="results/virall_encode_better.pickle",
