@@ -98,6 +98,7 @@ class Word2VecPipeline(object):
     def _make_summary(self):
         # summary = {k: v for k, v in self.__dict__.items() if k != 'model_object'}
         summary = {attr: getattr(self, attr) for attr in self.__slots__ if attr != 'model_object'}
+        Path("evaluation").mkdir(exist_ok=True)
         with open(f"evaluation/{self.model_name}_summary.json", 'w') as f:
             json.dump(summary, f)
     
