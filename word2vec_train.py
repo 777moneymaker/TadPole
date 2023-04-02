@@ -59,7 +59,7 @@ class Word2VecPipeline:
     __slots__ = ("corpus_path", "output_prefix", "metadata", "vector_size", "window",
                  "min_count", "epochs", "workers", "lr_start", "lr_min", "sg", "hs",
                  "callbacks", "negative", "ns_exp", "show_debug", "n_top_phrogs", "visualise_model",
-                 "encoded", "result", "model_name", "model_object")
+                 "encoded", "result", "model_name", "model_object", "save_model")
 
     def __init__(self, corpus_path: str, output_prefix: str, metadata: str, vector_size: int = 100,
                  window: int = 5, min_count: int = 5, epochs: int = 5, workers: int = 3,
