@@ -181,6 +181,8 @@ def batch_exec2(phrogs_to_predict, vectors, func_dict_df, top_known_phrogs):
     # start process for each chunk
     for chunk in chunks:
         process = mp.Process(target=compute_predictions, args=(chunk, vectors, func_dict_df, top_known_phrogs, phrog_categories))
+        process.start()
+        processes.append(process)
     
     # wait for all processes to finish
     for process in processes:
