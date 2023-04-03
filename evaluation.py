@@ -223,7 +223,7 @@ def compute_predictions(phrog_batch, vectors, func_dict_df, top_known_phrogs, ph
         merged_id_category = merged[["category", "probability"]]
         # local_phrog_categories.update(
         #     parallel_scoring(phrog, merged_id_category))
-        parallel_scoring2(phrog, merged_id_category)
+        parallel_scoring2(phrog, merged_id_category, phrog_categories)
 
         # scores = parallel_scoring(phrog, merged_id_category)
         # with phrog_categories.get_lock():
