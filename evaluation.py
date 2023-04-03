@@ -66,32 +66,72 @@ def validation(func_dict_df, phrog_categories):
     return answer_tally
 
 
+# def compute_score(phrog, scoring_function):
+#         true_category = func_dict_df.loc[func_dict_df['phrog_id'] == phrog, 'category'].values[0]
+#         assigned_category = phrog_categories[phrog][scoring_function][0]
+#         return 1 if assigned_category == true_category else 0
+
+
+# @utils.time_this
+# def parallel_validation(func_dict_df, phrog_categories, workers= cpu_count() - 1):
+#     answer_tally = {}
+
+#     with mp.Pool(processes=workers) as pool:
+#         futures = []
+#         for phrog, scoring_functions in phrog_categories.items():
+#             for scoring_function in scoring_functions:
+#                 future = pool.apply_async(compute_score, (phrog, scoring_function))
+#                 futures.append(future)
+    
+#         for future in futures:
+#             scoring_function = future.get()
+#             if scoring_function not in answer_tally.keys():
+#                 answer_tally[scoring_function] = 0
+#             answer_tally[scoring_function] += scoring_function
+    
+#     for scoring_function, n_true_answers in answer_tally.items():
+#         answer_tally[scoring_function] = round(
+#             (n_true_answers / len(phrog_categories)) * 100, 2)
+#     return answer_tally
+
+
 @utils.time_this
-def parallel_validation(func_dict_df, phrog_categories, workers= cpu_count() - 1):
-    answer_tally = {}
+def parallel_validation(func_dict_df, phrog_categories):
+    answer_tally = mp.Manager().dict()
+    processes = []
 
-    def compute_score(phrog, scoring_function):
-        true_category = func_dict_df.loc[func_dict_df['phrog_id'] == phrog, 'category'].values[0]
-        assigned_category = phrog_categories[phrog][scoring_function][0]
-        return 1 if assigned_category == true_category else 0
+    # Divide phrog_categories into chunks
+    num_chunks = mp.cpu_count()
+    chunk_size = int(len(phrog_categories) / num_chunks) + 1
+    chunks = [dict(list(phrog_categories.items())[i:i+chunk_size]) for i in range(0, len(phrog_categories), chunk_size)]
 
-    with mp.Pool(processes=workers) as pool:
-        futures = []
-        for phrog, scoring_functions in phrog_categories.items():
-            for scoring_function in scoring_functions:
-                future = pool.apply_async(compute_score, (phrog, scoring_function))
-                futures.append(future)
-    
-        for future in futures:
-            scoring_function = future.get()
-            if scoring_function not in answer_tally.keys():
-                answer_tally[scoring_function] = 0
-            answer_tally[scoring_function] += scoring_function
-    
+    # Start a process for each chunk
+    for chunk in chunks:
+        process = mp.Process(target=validate_chunk, args=(func_dict_df, chunk, answer_tally))
+        process.start()
+        processes.append(process)
+
+    # Wait for all processes to finish
+    for process in processes:
+        process.join()
+
+    # Convert answer_tally to a regular dictionary and calculate percentages
+    answer_tally = dict(answer_tally)
     for scoring_function, n_true_answers in answer_tally.items():
         answer_tally[scoring_function] = round(
             (n_true_answers / len(phrog_categories)) * 100, 2)
     return answer_tally
+
+def validate_chunk(func_dict_df, phrog_categories, answer_tally):
+    for phrog, scoring_functions in phrog_categories.items():
+        true_category = func_dict_df.loc[func_dict_df['phrog_id'] == phrog, 'category'].values[
+            0]  # get the proper category of the phrog
+        for scoring_function, assigned_category in scoring_functions.items():
+            if scoring_function not in answer_tally.keys():
+                answer_tally[scoring_function] = mp.Value('i', 0)
+            if assigned_category[0] == true_category:
+                with answer_tally[scoring_function].get_lock():
+                    answer_tally[scoring_function].value += 1
 
 
 def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
