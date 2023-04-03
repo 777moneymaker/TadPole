@@ -17,11 +17,12 @@ import utils
 # @codon.jit
 def sum_tuples(lst: list[str, float]):
     # d = collections.defaultdict(float)
-    print(collections.defaultdict(float))
+    # print(collections.defaultdict(float))
     d = {}
-    print(lst[0:10])
+    # print(lst[0:10])
     for category, prob in lst:
-        print(category, prob)
+        # print(category, prob)
+        d.setdefault(category, 0.0)
         d[category] += prob
     return list(d.items())
 
@@ -33,6 +34,8 @@ def mean_tuples(lst: list[str, float]):
     d = {}
     occurs = {}
     for category, prob in lst:
+        d.setdefault(category, 0.0)
+        occurs.setdefault(category, 0)
         d[category] += prob
         occurs[category] += 1
     for category in d:
