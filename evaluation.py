@@ -14,16 +14,17 @@ import custom_logger
 import utils
 
 
-@codon.jit
+# @codon.jit
 def sum_tuples(lst: list[str, float]):
     # d = collections.defaultdict(float)
     d = {}
+    print(lst[0:10])
     for category, prob in lst:
         d[category] += prob
     return list(d.items())
 
 
-@codon.jit
+# @codon.jit
 def mean_tuples(lst: list[str, float]):
     # d = collections.defaultdict(float)
     # occurs = collections.defaultdict(int)
@@ -37,7 +38,7 @@ def mean_tuples(lst: list[str, float]):
     return list(d.items())
 
 
-@codon.jit
+# @codon.jit
 def power_tuples(lst: list[str, float], power):
     for cat_prob_list in lst:
         cat_prob_list[1] = cat_prob_list[1] ** power
