@@ -12,10 +12,6 @@ import custom_logger
 import utils
 
 
-# experimental for pandas 2.0
-pd.options.mode.dtype_backend = 'pyarrow'
-
-
 def sum_tuples(lst: list[str, float]):
     d = defaultdict(float)
     for category, prob in lst:
