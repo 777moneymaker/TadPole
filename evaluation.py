@@ -7,11 +7,13 @@ from gensim.models import FastText, Word2Vec
 from collections import defaultdict
 from joblib import Parallel, delayed
 from multiprocessing import cpu_count
+import codon
 
 import custom_logger
 import utils
 
 
+@codon.jit
 def sum_tuples(lst: list[str, float]):
     d = defaultdict(float)
     for category, prob in lst:
@@ -19,6 +21,7 @@ def sum_tuples(lst: list[str, float]):
     return list(d.items())
 
 
+@codon.jit
 def mean_tuples(lst: list[str, float]):
     d = defaultdict(float)
     occurs = defaultdict(int)
@@ -30,6 +33,7 @@ def mean_tuples(lst: list[str, float]):
     return list(d.items())
 
 
+@codon.jit
 def power_tuples(lst: list[str, float], power):
     for cat_prob_list in lst:
         cat_prob_list[1] = cat_prob_list[1] ** power
