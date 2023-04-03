@@ -96,7 +96,7 @@ def validation(func_dict_df, phrog_categories):
 
 
 @utils.time_this
-def parallel_validation(func_dict_df, phrog_categories):
+def validation_parallel(func_dict_df, phrog_categories):
     answer_tally = mp.Manager().dict()
     processes = []
 
@@ -123,15 +123,20 @@ def parallel_validation(func_dict_df, phrog_categories):
     return answer_tally
 
 def validate_chunk(func_dict_df, phrog_categories, answer_tally):
+    local_answer_tally = {}
     for phrog, scoring_functions in phrog_categories.items():
         true_category = func_dict_df.loc[func_dict_df['phrog_id'] == phrog, 'category'].values[
             0]  # get the proper category of the phrog
         for scoring_function, assigned_category in scoring_functions.items():
-            if scoring_function not in answer_tally.keys():
-                answer_tally[scoring_function] = mp.Value('i', 0)
+            if scoring_function not in local_answer_tally.keys():
+                local_answer_tally[scoring_function] = 0
             if assigned_category[0] == true_category:
-                with answer_tally[scoring_function].get_lock():
-                    answer_tally[scoring_function].value += 1
+                local_answer_tally[scoring_function] += 1
+
+    # Update the shared answer_tally dictionary atomically
+    for scoring_function, count in local_answer_tally.items():
+        with mp.Lock():
+            answer_tally[scoring_function] = answer_tally.get(scoring_function, 0) + count
 
 
 def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
