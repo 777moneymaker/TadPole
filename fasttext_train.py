@@ -3,6 +3,8 @@ import re
 import time
 import logging
 import os
+import json
+import os
 
 from gensim.models import FastText
 import gensim.models.fasttext
@@ -53,6 +55,111 @@ class TrainLogger(CallbackAny2Vec):
         self.epoch += 1
     def on_train_end(self, model):
         print("Actually finished all")
+
+
+class FastTextPipeline(object):
+    __slots__ = ("corpus_path", "output_prefix", "metadata", "vector_size", "window",
+                 "min_count", "epochs", "workers", "lr_start", "lr_min", "max_n", "min_n",
+                 "sg", "hs", "sorted_vocab", "callbacks", "negative", "ns_exp", "show_debug",
+                 "n_top_phrogs", "visualise_model", "encoded", "result", "model_name", "model_object")
+
+    def __init__(self, corpus_path: str, output_prefix: str, metadata: str, vector_size: int = 100,
+                 window: int = 5, min_count: int = 5, epochs: int = 5, workers: int = 3,
+                 lr_start: float = 0.025, lr_min: float = 0.0001, max_n: int = 3, min_n: int = 6, sg: int = 0, hs: int = 0,
+                 sorted_vocab: int = 1, callbacks=[TrainLogger()], negative: int = 5, ns_exp: float = 0.75, show_debug: bool = False,
+                 n_top_phrogs: int = 50, visualise_model: bool = False, encoded: bool = True):
+        self.corpus_path = corpus_path
+        self.output_prefix = output_prefix
+        self.metadata = metadata
+        self.vector_size = vector_size
+        self.window = window
+        self.min_count = min_count
+        self.epochs = epochs
+        self.workers = workers
+        self.lr_start = lr_start
+        self.lr_min = lr_min
+        self.max_n = max_n
+        self.min_n = min_n
+        self.sg = sg
+        self.hs = hs
+        self.sorted_vocab = sorted_vocab
+        self.callbacks = callbacks
+        self.negative = negative
+        self.ns_exp = ns_exp
+        self.show_debug = show_debug
+        self.n_top_phrogs = n_top_phrogs
+        self.visualise_model = visualise_model
+        self.encoded = encoded
+        self.result = None
+        self.model_name = None
+        self.model_object = None
+
+    def _make_summary(self):
+        # summary = {k: v for k, v in self.__dict__.items() if k != 'model_object'}
+        summary = {attr: getattr(self, attr) for attr in self.__slots__ if attr not in ['model_object', 'callbacks']}
+        Path("evaluation").mkdir(exist_ok=True)
+        with open(f"evaluation/{self.model_name}_summary.json", 'w') as f:
+            json.dump(summary, f)
+    
+    def _generate_name(self) -> str:
+        ns_exp_str = str(self.ns_exp).replace(".", "")
+        lr_start_str = str(self.lr_start).replace(".", "")
+        lr_min_str = str(self.lr_min).replace(".", "")
+        self.model_name = f"{self.output_prefix}_ns{ns_exp_str}_lr{lr_start_str}_lrmin{lr_min_str}_d{self.vector_size}_w{self.window}_e{self.epochs}_hs{self.hs}_neg{self.negative}_maxn{self.max_n}_minn{self.min_n}"
+    
+    def _model_train_exec(self):
+        os.system(f"python fasttext_exec.py -c {self.corpus_path} -v {self.vector_size} -w {self.window} -m {self.min_count} -e {self.epochs} -t {self.workers} --lr {self.lr_start} --lr_min {self.lr_min} --max_n {self.max_n} --min_n {self.min_n} --sg {self.sg} --hs {self.hs} --sorted_vocab {self.sorted_vocab} --neg {self.negative} --ns_exp {self.ns_exp} --debug {self.show_debug} --model_name {self.model_name}")
+        try:
+            model_path = f"train_test/{self.model_name}.model"
+            self.model_object = FastText.load(model_path)
+        except FileNotFoundError:
+            print(2137)
+            return 2137
+    
+    def _evaluate_model(self):
+        funcs = utils.read_metadata(Path(self.metadata))
+        prediction = evl.prediction(func_dict=funcs, model=self.model_object, model_name=self.model_name, top_known_phrogs=self.n_top_phrogs)
+        return prediction
+    
+    def _umap_reduce(self, vectors_obj: gensim.models.fasttext.FastTextKeyedVectors, n_dims: int):
+        with alive_bar(title = "UMAP Magic",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+            # custom_logger.logger.info("UMAP Magic")
+            reducer = umap.UMAP(n_components=n_dims)
+            # data_to_reduce = dataset['vector'].to_list()
+            data_to_reduce = vectors_obj.vectors
+            # reduce dimensionality
+            embedding = reducer.fit_transform(data_to_reduce)
+            bar()
+            return embedding
+    
+    def _visualiser(self, vectors_obj: gensim.models.fasttext.FastTextKeyedVectors.KeyedVectors, reduced_embed: np.ndarray, visual_path: str, encoded: bool):
+        with alive_bar(title = "Gathering phrog metadata and embedding data",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+            # func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+            dataset = pd.DataFrame({'word': vectors_obj.index_to_key})
+            func = utils.read_metadata(Path(self.metadata))
+            dataset["function"] = dataset['word'].map(func)
+            dataset[['x', 'y', 'z']] = pd.DataFrame(reduced_embed, index=dataset.index)
+            bar()
+    
+        with alive_bar(title = "Generating visualisation",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+            fig = px.scatter_3d(dataset, x='x', y='y', z='z', color='function', hover_data=["word"], color_discrete_map=utils.colour_map)
+            fig.update_traces(marker_size = 4)
+            fig.write_html(Path(visual_path).as_posix())
+            bar()
+    
+    def _visualise_model(self):
+        visual_path = f"plots/{self.model_name}.html"
+        embedding = self._umap_reduce(self.model_object.wv, n_dims=3)
+        dataset = self._visualiser(self.model_object.wv, embedding, visual_path, self.encoded)
+
+    @utils.time_this
+    def run(self):
+        self._generate_name()
+        self._model_train_exec()
+        self.result = self._evaluate_model()
+        if self.visualise_model:
+            self._visualise_model()
+        self._make_summary()
 
 
 def _generate_name(

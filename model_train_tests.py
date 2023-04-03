@@ -126,9 +126,34 @@ from pathlib import Path
 #    # callbacks=[ft.TrainLogger()]
 #)
 
-pipe = w2v.Word2VecPipeline(
+########### OOP version
+
+# w2v
+# pipe = w2v.Word2VecPipeline(
+#     corpus_path="results/virall_encode_02-04-2023.pickle",
+#     output_prefix="virall_coded_02-04",
+#     metadata="Data/metadata_02-04-2023.pickle",
+#     vector_size=150,
+#     window=2,
+#     min_count=5,
+#     epochs=500,
+#     workers=40,
+#     lr_start=0.005,
+#     lr_min=0.0001,
+#     hs=0,
+#     negative=75,
+#     ns_exp=-0.1,
+#     callbacks=[w2v.TrainLogger()],
+#     visualise_model=False,
+#     encoded=True,
+#     save_model= True
+# )
+# pipe.run()
+
+# fasttext
+pipe = ft.FastTextPipeline(
     corpus_path="results/virall_encode_02-04-2023.pickle",
-    output_prefix="virall_coded_02-04",
+    output_prefix="ft_virall_coded_02-04",
     metadata="Data/metadata_02-04-2023.pickle",
     vector_size=150,
     window=2,
@@ -137,12 +162,9 @@ pipe = w2v.Word2VecPipeline(
     workers=40,
     lr_start=0.005,
     lr_min=0.0001,
-    hs=0,
     negative=75,
-    ns_exp=-0.1,
-    callbacks=[w2v.TrainLogger()],
+    ns_exp=-0.75,
     visualise_model=False,
     encoded=True,
-    save_model= True
 )
 pipe.run()
