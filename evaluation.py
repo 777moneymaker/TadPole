@@ -5,7 +5,7 @@ import re
 from typing import Union
 from gensim.models import FastText, Word2Vec
 # from collections import defaultdict
-import collections
+# import collections
 from joblib import Parallel, delayed
 from multiprocessing import cpu_count
 import codon
@@ -16,7 +16,8 @@ import utils
 
 @codon.jit
 def sum_tuples(lst: list[str, float]):
-    d = collections.defaultdict(float)
+    # d = collections.defaultdict(float)
+    d = {}
     for category, prob in lst:
         d[category] += prob
     return list(d.items())
@@ -24,8 +25,10 @@ def sum_tuples(lst: list[str, float]):
 
 @codon.jit
 def mean_tuples(lst: list[str, float]):
-    d = collections.defaultdict(float)
-    occurs = collections.defaultdict(int)
+    # d = collections.defaultdict(float)
+    # occurs = collections.defaultdict(int)
+    d = {}
+    occurs = {}
     for category, prob in lst:
         d[category] += prob
         occurs[category] += 1
