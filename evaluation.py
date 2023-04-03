@@ -189,14 +189,13 @@ def batch_exec2(phrogs_to_predict, vectors, func_dict_df, top_known_phrogs):
         process.join()
     
     # transform to builtin dict 
-    phrog_categories = dict(phrog_categories)
-    return phrog_categories
+    return dict(phrog_categories)
     
 
 
 
 def compute_predictions(phrog_batch, vectors, func_dict_df, top_known_phrogs, phrog_categories):
-    local_phrog_categories: dict[str, dict[str, str]] = {}
+    # local_phrog_categories: dict[str, dict[str, str]] = {}
     print(len(phrog_batch))
     for phrog in phrog_batch:
         try:
@@ -222,14 +221,21 @@ def compute_predictions(phrog_batch, vectors, func_dict_df, top_known_phrogs, ph
             custom_logger.logger.warning("Not enough close phrogs with known function - "
                                          "scoring using less than {} phrogs.".format(top_known_phrogs))
         merged_id_category = merged[["category", "probability"]]
-        local_phrog_categories.update(
-            parallel_scoring(phrog, merged_id_category))
+        # local_phrog_categories.update(
+        #     parallel_scoring(phrog, merged_id_category))
+        scores = parallel_scoring(phrog, merged_id_category)
+        with phrog_categories.get_lock():
+            for k,v in scores.items():
+                if k in phrog_categories:
+                    phrog_categories[k].update(v)
+                else:
+                    phrog_categories[k] = v
     
     # TODO: refactor names
-    for k, v in local_phrog_categories.items():
-        with mp.Lock():
-            # phrog_categories[k] = phrog_categories.get(k, {})
-            phrog_categories[k] = local_phrog_categories[k]
+    # for k, v in local_phrog_categories.items():
+    #     with mp.Lock():
+    #         # phrog_categories[k] = phrog_categories.get(k, {})
+    #         phrog_categories[k] = local_phrog_categories[k]
 
 
 def batch_list(item_list, batch_count: int = cpu_count() - 1):
