@@ -334,16 +334,17 @@ def prediction(
 
     # parallel function to select best matches and score the model
     print(len(phrogs_to_predict))
-    # list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
-    #     batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
+    list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
+        batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
 
     # transform list of dicts to dict
-    # phrog_categories = {
-    #     k: v for x in list_phrog_categories for k, v in x.items()}
+    phrog_categories = {
+        k: v for x in list_phrog_categories for k, v in x.items()}
     # print(phrog_categories)
 
-    # alternative prediction using shared dictionary
-    phrog_categories = batch_exec2(phrogs_to_predict, vectors, func_dict_df, top_known_phrogs)
+    # alternative prediction using shared dictionary - not working really
+    # TODO: archive functions and remove from versioned script
+    # phrog_categories = batch_exec2(phrogs_to_predict, vectors, func_dict_df, top_known_phrogs)
 
     # Dictionary phrog: {
     #   scoring_function: category
