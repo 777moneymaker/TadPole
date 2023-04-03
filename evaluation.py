@@ -8,8 +8,9 @@ from gensim.models import FastText, Word2Vec
 import collections
 from joblib import Parallel, delayed
 from multiprocessing import cpu_count
+import multiprocessing as mp
 # import codon
-import concurrent.futures
+# import concurrent.futures
 
 import custom_logger
 import utils
@@ -74,18 +75,18 @@ def parallel_validation(func_dict_df, phrog_categories, workers= cpu_count() - 1
         assigned_category = phrog_categories[phrog][scoring_function][0]
         return 1 if assigned_category == true_category else 0
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as exec:
+    with mp.Pool(processes=workers) as pool:
+        futures = []
         for phrog, scoring_functions in phrog_categories.items():
-            future_scored = {}
             for scoring_function in scoring_functions:
-                future = exec.submit(compute_score, phrog, scoring_function)
-                future_scored[future] = scoring_function
+                future = pool.apply_async(compute_score, (phrog, scoring_function))
+                futures.append(future)
     
-        for future in concurrent.futures.as_completed(future_scored):
-            scoring_function = future_scored[future]
+        for future in futures:
+            scoring_function = future.get()
             if scoring_function not in answer_tally.keys():
                 answer_tally[scoring_function] = 0
-            answer_tally[scoring_function] += future.result()
+            answer_tally[scoring_function] += scoring_function
     
     for scoring_function, n_true_answers in answer_tally.items():
         answer_tally[scoring_function] = round(
