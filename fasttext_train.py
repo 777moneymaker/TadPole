@@ -132,7 +132,7 @@ class FastTextPipeline(object):
             bar()
             return embedding
     
-    def _visualiser(self, vectors_obj: gensim.models.fasttext.FastTextKeyedVectors.KeyedVectors, reduced_embed: np.ndarray, visual_path: str, encoded: bool):
+    def _visualiser(self, vectors_obj: gensim.models.fasttext.FastTextKeyedVectors, reduced_embed: np.ndarray, visual_path: str, encoded: bool):
         with alive_bar(title = "Gathering phrog metadata and embedding data",  dual_line = True, spinner = PHROG_SPINNER) as bar:
             # func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
             dataset = pd.DataFrame({'word': vectors_obj.index_to_key})
