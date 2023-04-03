@@ -15,7 +15,7 @@ import utils
 
 
 @codon.jit
-def sum_tuples(lst: list[str, float]):
+def sum_tuples(lst):
     # d = collections.defaultdict(float)
     # print(collections.defaultdict(float))
     d = {}
@@ -28,7 +28,7 @@ def sum_tuples(lst: list[str, float]):
 
 
 @codon.jit
-def mean_tuples(lst: list[str, float]):
+def mean_tuples(lst):
     # d = collections.defaultdict(float)
     # occurs = collections.defaultdict(int)
     d = {}
@@ -44,7 +44,7 @@ def mean_tuples(lst: list[str, float]):
 
 
 @codon.jit
-def power_tuples(lst: list[str, float], power):
+def power_tuples(lst, power):
     for cat_prob_list in lst:
         cat_prob_list[1] = cat_prob_list[1] ** power
     return lst
