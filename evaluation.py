@@ -5,7 +5,7 @@ import re
 from typing import Union
 from gensim.models import FastText, Word2Vec
 # from collections import defaultdict
-# import collections
+import collections
 from joblib import Parallel, delayed
 from multiprocessing import cpu_count
 import codon
@@ -17,9 +17,11 @@ import utils
 # @codon.jit
 def sum_tuples(lst: list[str, float]):
     # d = collections.defaultdict(float)
+    print(collections.defaultdict(float))
     d = {}
     print(lst[0:10])
     for category, prob in lst:
+        print(category, prob)
         d[category] += prob
     return list(d.items())
 
