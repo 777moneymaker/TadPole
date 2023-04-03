@@ -171,6 +171,65 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
     return local_phrog_categories
 
 
+def batch_exec2(phrogs_to_predict, vectors, func_dict_df, top_known_phrogs):
+    phrog_categories = mp.Manager().dict()
+    processes = []
+
+    # divide input into chunks
+    chunks = np.array_split(np.array(phrogs_to_predict), mp.cpu_count())
+
+    # start process for each chunk
+    for chunk in chunks:
+        process = mp.Process(target=compute_predictions, args=(chunk, vectors, func_dict_df, top_known_phrogs, phrog_categories))
+    
+    # wait for all processes to finish
+    for process in processes:
+        process.join()
+    
+    # transform to builtin dict 
+    phrog_categories = dict(phrog_categories)
+    return phrog_categories
+    
+
+
+
+def compute_predictions(phrog_batch, vectors, func_dict_df, top_known_phrogs, phrog_categories):
+    local_phrog_categories: dict[str, dict[str, str]] = {}
+    print(len(phrog_batch))
+    for phrog in phrog_batch:
+        try:
+            result = vectors.most_similar(phrog, topn=60_000)
+            # result = (list(filter(lambda x: 'joker' not in x[0], result)))  # to remove jokers from result; turns out mergeddf_to_tuple isnt returning them anyway so far
+
+        except KeyError:
+            continue
+
+         # replace phrogs with functions
+        model_result_tuples_to_df = pd.DataFrame(
+            result, columns=['phrog_id', 'probability'])
+        merged = model_result_tuples_to_df.merge(
+            func_dict_df, on='phrog_id')  # Same col, just use on=
+        # just use loc, add .head immeadiately
+        # separated to accomodate a very rare edge case
+        merged = merged.loc[merged['category'] != 'unknown function']
+        if merged.empty:
+            custom_logger.logger.error("All closest phrogs had unknown function - "
+                                       "all were dropped, no data left to score.")
+        merged = merged.head(top_known_phrogs)
+        if len(merged) < top_known_phrogs:
+            custom_logger.logger.warning("Not enough close phrogs with known function - "
+                                         "scoring using less than {} phrogs.".format(top_known_phrogs))
+        merged_id_category = merged[["category", "probability"]]
+        local_phrog_categories.update(
+            parallel_scoring(phrog, merged_id_category))
+    
+    # TODO: refactor names
+    for k, v in local_phrog_categories.items():
+        with mp.Lock():
+            # phrog_categories[k] = phrog_categories.get(k, {})
+            phrog_categories[k] = local_phrog_categories[k]
+
+
 def batch_list(item_list, batch_count: int = cpu_count() - 1):
     batches = np.array_split(np.array(item_list), batch_count)
     return batches
@@ -235,12 +294,16 @@ def prediction(
 
     # parallel function to select best matches and score the model
     print(len(phrogs_to_predict))
-    list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
-        batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
+    # list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
+    #     batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
+
     # transform list of dicts to dict
-    phrog_categories = {
-        k: v for x in list_phrog_categories for k, v in x.items()}
+    # phrog_categories = {
+    #     k: v for x in list_phrog_categories for k, v in x.items()}
     # print(phrog_categories)
+
+    # alternative prediction using shared dictionary
+    phrog_categories = batch_exec2(phrogs_to_predict, vectors, func_dict_df, top_known_phrogs)
 
     # Dictionary phrog: {
     #   scoring_function: category
