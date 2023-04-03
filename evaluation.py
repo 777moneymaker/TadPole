@@ -223,13 +223,15 @@ def compute_predictions(phrog_batch, vectors, func_dict_df, top_known_phrogs, ph
         merged_id_category = merged[["category", "probability"]]
         # local_phrog_categories.update(
         #     parallel_scoring(phrog, merged_id_category))
-        scores = parallel_scoring(phrog, merged_id_category)
-        with phrog_categories.get_lock():
-            for k,v in scores.items():
-                if k in phrog_categories:
-                    phrog_categories[k].update(v)
-                else:
-                    phrog_categories[k] = v
+        parallel_scoring2(phrog, merged_id_category)
+
+        # scores = parallel_scoring(phrog, merged_id_category)
+        # with phrog_categories.get_lock():
+        #     for k,v in scores.items():
+        #         if k in phrog_categories:
+        #             phrog_categories[k].update(v)
+        #         else:
+        #             phrog_categories[k] = v
     
     # TODO: refactor names
     # for k, v in local_phrog_categories.items():
@@ -241,6 +243,36 @@ def compute_predictions(phrog_batch, vectors, func_dict_df, top_known_phrogs, ph
 def batch_list(item_list, batch_count: int = cpu_count() - 1):
     batches = np.array_split(np.array(item_list), batch_count)
     return batches
+
+
+def parallel_scoring2(phrog, merged_id_category, phrog_categories):
+    d_phrog_categories = {}
+    list_for_scoring = list(merged_id_category.apply(list, 1))
+    def key_func(x): return x[1]
+
+    # 4 scoring functions
+    # mx: max value for a category
+    # sum: max value after summing prob for each category
+    # mean: max value after taking a mean prob for each category
+    # power: max value after summing probs to the power of n
+    # other functions return tuples, so...
+    mx = tuple(max(list_for_scoring, key=key_func))
+    summed = max(sum_tuples(list_for_scoring), key=key_func)
+    mean = max(mean_tuples(list_for_scoring), key=key_func)
+    power_2 = max(sum_tuples(power_tuples(list_for_scoring, 2)), key=key_func)
+    power_4 = max(sum_tuples(power_tuples(list_for_scoring, 4)), key=key_func)
+    power_8 = max(sum_tuples(power_tuples(list_for_scoring, 8)), key=key_func)
+
+    phrog_categories[phrog] = {
+        "max": mx,
+        "sum": summed,
+        "mean": mean,
+        "power 2": power_2,
+        "power 4": power_4,
+        "power 8": power_8
+    }
+
+    return d_phrog_categories
 
 
 def parallel_scoring(phrog, merged_id_category):
