@@ -8,7 +8,8 @@ from gensim.models import FastText, Word2Vec
 import collections
 from joblib import Parallel, delayed
 from multiprocessing import cpu_count
-import codon
+# import codon
+import concurrent.futures
 
 import custom_logger
 import utils
@@ -58,6 +59,34 @@ def validation(func_dict_df, phrog_categories):
                 answer_tally[scoring_function] = 0
             if assigned_category[0] == true_category:
                 answer_tally[scoring_function] = answer_tally[scoring_function] + 1
+    for scoring_function, n_true_answers in answer_tally.items():
+        answer_tally[scoring_function] = round(
+            (n_true_answers / len(phrog_categories)) * 100, 2)
+    return answer_tally
+
+
+@utils.time_this
+def parallel_validation(func_dict_df, phrog_categories, workers= cpu_count() - 1):
+    answer_tally = {}
+
+    def compute_score(phrog, scoring_function):
+        true_category = func_dict_df.loc[func_dict_df['phrog_id'] == phrog, 'category'].values[0]
+        assigned_category = phrog_categories[phrog][scoring_function][0]
+        return 1 if assigned_category == true_category else 0
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as exec:
+        for phrog, scoring_functions in phrog_categories.items():
+            future_scored = {}
+            for scoring_function in scoring_functions:
+                future = exec.submit(compute_score, phrog, scoring_function)
+                future_scored[future] = scoring_function
+    
+        for future in concurrent.futures.as_completed(future_scored):
+            scoring_function = future_scored[future]
+            if scoring_function not in answer_tally.keys():
+                answer_tally[scoring_function] = 0
+            answer_tally[scoring_function] += future.result()
+    
     for scoring_function, n_true_answers in answer_tally.items():
         answer_tally[scoring_function] = round(
             (n_true_answers / len(phrog_categories)) * 100, 2)
@@ -180,7 +209,8 @@ def prediction(
     # validation
 
     if evaluate_mode:
-        scores = validation(func_dict_df, phrog_categories)
+        # scores = validation(func_dict_df, phrog_categories)
+        scores = parallel_validation(func_dict_df, phrog_categories)
         max_value = max(scores.values())  # maximum value
         max_scoring_func = [k for k, v in scores.items() if v == max_value]
         print("{}%".format(max_value))
