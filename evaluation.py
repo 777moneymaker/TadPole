@@ -96,7 +96,7 @@ def validation(func_dict_df, phrog_categories):
 
 
 @utils.time_this
-def validation_parallel(func_dict_df, phrog_categories):
+def parallel_validation(func_dict_df, phrog_categories):
     answer_tally = mp.Manager().dict()
     processes = []
 
