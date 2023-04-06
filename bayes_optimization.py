@@ -13,6 +13,7 @@ import os
 class ModelOptLogger(_Tracker):
     def __init__(self, path, eval_func, reset=True):
         self._path = path if path[-5:] == ".json" else path + ".json"
+        self.eval_func = eval_func
         if reset:
             try:
                 os.remove(self._path)
@@ -29,7 +30,7 @@ class ModelOptLogger(_Tracker):
             "elapsed": time_elapsed,
             "delta": time_delta,
         }
-        data["function"] = eval_func
+        data["function"] = self.eval_func
 
         # print(dict(data))
 
