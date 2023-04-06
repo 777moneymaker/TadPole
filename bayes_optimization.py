@@ -87,6 +87,7 @@ class BayesianOptimizer(object):
                 self.best_score = local_best_score
                 self.best_model = self.initial_model
                 print(f"[OPT]   New best: {self.best_score}")
+            return local_best_score
     
         optimizer = BayesianOptimization(
             f=objective_func,
