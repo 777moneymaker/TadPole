@@ -57,7 +57,7 @@ class BayesianOptimizer(object):
         self.best_model_path = best_model_path
     
     # TODO: floats to ints? - it must be possible to differentiate
-    def _map_hyperparams(model, *args, **kwargs):
+    def _map_hyperparams(*args, **kwargs):
         for key, value in kwargs.items():
             if hasattr(model, key):
                 setattr(model, key, int(value))
