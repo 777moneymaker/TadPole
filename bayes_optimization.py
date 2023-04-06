@@ -96,6 +96,7 @@ class BayesianOptimizer(object):
         )
         
         # TODO: defineable logging path
+        Path("logs").mkdir(exist_ok=True)
         observer = ModelOptLogger(path="./logs/bayes_test.json", eval_func=self.current_function)
         optimizer.subscribe(Events.OPTIMIZATION_STEP, observer)
         optimizer.maximize(
