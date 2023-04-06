@@ -62,7 +62,7 @@ class BayesianOptimizer(object):
             if hasattr(model, key):
                 setattr(model, key, int(value))
     
-    def _get_local_best_score(scores):
+    def _get_local_best_score(self, scores):
         func = max(scores, key=scores.get)
         score = scores[func]
         return func, score
