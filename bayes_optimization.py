@@ -57,10 +57,10 @@ class BayesianOptimizer(object):
         self.best_model_path = best_model_path
     
     # TODO: floats to ints? - it must be possible to differentiate
-    def _map_hyperparams(*args, **kwargs):
+    def _map_hyperparams(**kwargs):
         for key, value in kwargs.items():
-            if hasattr(model, key):
-                setattr(model, key, int(value))
+            if hasattr(kwargs['model'], key):
+                setattr(kwargs['model'], key, int(value))
     
     def _get_local_best_score(scores):
         func = max(scores, key=scores.get)
@@ -69,6 +69,7 @@ class BayesianOptimizer(object):
     
     def optimize(self):
         def objective_func(**kwargs):
+            # self._map_hyperparams(**kwargs)
             self._map_hyperparams(model=self.initial_model, **kwargs)
             self.initial_model.run()
             scores = self.initial_model.result
