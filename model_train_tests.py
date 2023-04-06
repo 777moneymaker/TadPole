@@ -2,6 +2,7 @@ import fasttext_train as ft
 import word2vec_train as w2v
 import utils
 from pathlib import Path
+import bayes_optimization as bay
 # import evaluation as eval
 
 
@@ -151,20 +152,48 @@ from pathlib import Path
 # pipe.run()
 
 # fasttext
-pipe = ft.FastTextPipeline(
+# pipe = ft.FastTextPipeline(
+#     corpus_path="results/virall_encode_02-04-2023.pickle",
+#     output_prefix="ft_virall_coded_02-04",
+#     metadata="Data/metadata_02-04-2023.pickle",
+#     vector_size=150,
+#     window=2,
+#     min_count=5,
+#     epochs=500,
+#     workers=40,
+#     lr_start=0.005,
+#     lr_min=0.0001,
+#     negative=75,
+#     ns_exp=-0.75,
+#     visualise_model=False,
+#     encoded=True,
+# )
+# pipe.run()
+
+# opt
+pipe = w2v.Word2VecPipeline(
     corpus_path="results/virall_encode_02-04-2023.pickle",
-    output_prefix="ft_virall_coded_02-04",
+    output_prefix="virall_opt",
     metadata="Data/metadata_02-04-2023.pickle",
-    vector_size=150,
+    vector_size=20,
     window=2,
     min_count=5,
-    epochs=500,
+    epochs=5,
     workers=40,
     lr_start=0.005,
     lr_min=0.0001,
+    hs=0,
     negative=75,
-    ns_exp=-0.75,
+    ns_exp=-0.1,
+    callbacks=[w2v.TrainLogger()],
     visualise_model=False,
     encoded=True,
+    save_model= False
 )
-pipe.run()
+
+hypers = {
+    'vector_size': (20, 30)
+}
+
+bayes = bay.BayesianOptimizer(pipe, hypers, 2, 3, "test_opt", Path(""))
+bayes.optimize()

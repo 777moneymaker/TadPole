@@ -194,7 +194,6 @@ class Word2VecPipeline(object):
         self._make_summary()
 
 
-
 def _generate_name(
     prefix: str, 
     ns_exp: float, 
