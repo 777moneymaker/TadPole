@@ -69,9 +69,9 @@ class BayesianOptimizer(object):
     
     def optimize(self):
         def objective_func(**kwargs):
-            hypers = kwargs
-            # self._map_hyperparams(**kwargs)
-            self._map_hyperparams(model=self.initial_model, **hypers)
+            kwargs['model'] = self.initial_model
+            self._map_hyperparams(**kwargs)
+            # self._map_hyperparams(model=self.initial_model, **hypers)
             self.initial_model.run()
             scores = self.initial_model.result
             self.current_function, local_best_score = self._get_local_best_score(scores)
