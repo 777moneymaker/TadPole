@@ -71,6 +71,7 @@ class BayesianOptimizer(object):
         def objective_func(**kwargs):
             # kwargs['model'] = self.initial_model
             print(kwargs)
+            print(self.initial_model)
             # self._map_hyperparams(**kwargs)
             self._map_hyperparams(model=self.initial_model, **kwargs)
             self.initial_model.run()
