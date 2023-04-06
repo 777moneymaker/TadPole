@@ -81,6 +81,7 @@ class BayesianOptimizer(object):
             self.initial_model.run()
             scores = self.initial_model.result
             self.current_function, local_best_score = self._get_local_best_score(scores)
+            print(self.current_function)
             # self.current_function = max(scores, key=scores.get)
             # local_best_score = scores[self.current_function]
             if local_best_score > self.best_score:
