@@ -41,7 +41,7 @@ class ModelOptLogger(_Tracker):
 
 class BayesianOptimizer(object):
 
-    __slots__ = ("initial_model", "hyperparams", "initial_points", "num_iterations","best_model", "best_score", "best_function",
+    __slots__ = ("initial_model", "hyperparams", "initial_points", "num_iterations","best_model", "best_score", "current_function",
                  "opt_name", "best_model_path")
 
     def __init__(self, initial_model: typing.Union[w2v.Word2VecPipeline, ft.FastTextPipeline], hyperparams: dict, initial_points: int,
