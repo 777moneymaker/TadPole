@@ -73,7 +73,10 @@ class BayesianOptimizer(object):
             print(kwargs)
             print(self.initial_model)
             # self._map_hyperparams(**kwargs)
-            self._map_hyperparams(model=self.initial_model, **kwargs)
+            # self._map_hyperparams(model=self.initial_model, **kwargs)
+            for key, value in kwargs.items():
+                if hasattr(self.initial_model, key):
+                    setattr(self.initial_model, key, int(value))
             self.initial_model.run()
             scores = self.initial_model.result
             self.current_function, local_best_score = self._get_local_best_score(scores)
