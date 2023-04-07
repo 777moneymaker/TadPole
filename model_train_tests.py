@@ -195,5 +195,5 @@ hypers = {
     'vector_size': (20, 30)
 }
 
-bayes = bay.BayesianOptimizer(pipe, hypers, 2, 3, "test_opt", Path(""))
+bayes = bay.BayesianOptimizer(pipe, hypers, 2, 3, "test_opt", Path("./logs/test_opt_07_04"))
 bayes.optimize()
