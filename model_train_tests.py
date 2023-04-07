@@ -200,7 +200,9 @@ pipe = ft.FastTextPipeline(
     min_count=5,
     epochs=5,
     workers=40,
-    lr_start=0.005,
+    # lr_start=0.005,
+    # lr_min=0.0001,
+    lr_start=1,
     lr_min=0.0001,
     hs=0,
     negative=75,
@@ -211,7 +213,8 @@ pipe = ft.FastTextPipeline(
 
 hypers = {
     'vector_size': (20, 50),
-    'ns_exp': (-0.75, 0.75)
+    'ns_exp': (-0.75, 0.75),
+    'lr_start': (0.1, 1)
 }
 
 bayes = bay.BayesianOptimizer(pipe, hypers, 2, 3, "ft_test_opt", Path("./logs/ft_test_opt_07_04"))

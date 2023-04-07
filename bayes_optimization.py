@@ -78,7 +78,11 @@ class BayesianOptimizer(object):
             # for key, value in kwargs.items():
             #     if hasattr(self.initial_model, key):
             #         setattr(self.initial_model, key, int(value))
-            self.initial_model.run()
+            try:
+                self.initial_model.run()
+            except:
+                observer._eval_func = "fasttext failed"
+                return 0
             scores = self.initial_model.result
             self.current_function, local_best_score = self._get_local_best_score(scores)
             print(self.current_function)
