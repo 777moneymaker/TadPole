@@ -43,10 +43,10 @@ class ModelOptLogger(_Tracker):
 class BayesianOptimizer(object):
 
     __slots__ = ("initial_model", "hyperparams", "initial_points", "num_iterations","best_model", "best_score", "current_function",
-                 "opt_name", "best_model_path")
+                 "opt_name", "output_path")
 
     def __init__(self, initial_model: typing.Union[w2v.Word2VecPipeline, ft.FastTextPipeline], hyperparams: dict, initial_points: int,
-                  num_iterations: int, opt_name: str, best_model_path: Path):
+                  num_iterations: int, opt_name: str, output_path: Path):
         self.initial_model = initial_model
         self.hyperparams = hyperparams
         self.initial_points = initial_points
@@ -55,7 +55,7 @@ class BayesianOptimizer(object):
         self.best_score = 0
         self.current_function = ""
         self.opt_name = opt_name
-        self.best_model_path = best_model_path
+        self.output_path = output_path
     
     # TODO: floats to ints? - it must be possible to differentiate
     def _map_hyperparams(self, model, **kwargs):
@@ -89,6 +89,8 @@ class BayesianOptimizer(object):
             if local_best_score > self.best_score:
                 self.best_score = local_best_score
                 self.best_model = self.initial_model
+                best_model_path = self.output_path / f"{self.best_model.model_name}.model"
+                self.best_model.model_object.save(best_model_path.as_posix())
                 print(f"[OPT]   New best: {self.best_score}")
             return local_best_score
     
@@ -100,8 +102,10 @@ class BayesianOptimizer(object):
         )
         
         # TODO: defineable logging path
-        Path("logs").mkdir(exist_ok=True)
-        observer = ModelOptLogger(path="./logs/bayes_test.json", eval_func=self.current_function)
+        self.output_path.mkdir(exist_ok=True)
+        log_path = self.output_path / f"{self.opt_name}.json"
+        # observer = ModelOptLogger(path="./logs/bayes_test.json", eval_func=self.current_function)
+        observer = ModelOptLogger(path=log_path.as_posix(), eval_func=self.current_function)
         optimizer.subscribe(Events.OPTIMIZATION_STEP, observer)
         optimizer.maximize(
             init_points=self.initial_points,
