@@ -61,8 +61,7 @@ class BayesianOptimizer(object):
     def _map_hyperparams(self, model, **kwargs):
         for key, value in kwargs.items():
             if hasattr(model, key):
-                print(type(getattr(model, key)))
-                setattr(model, key, int(value))
+                setattr(model, key, int(value)) if isinstance(getattr(model, key), int) else setattr(model, key, value)
     
     def _get_local_best_score(self, scores):
         func = max(scores, key=scores.get)
