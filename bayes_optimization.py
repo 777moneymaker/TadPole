@@ -13,7 +13,7 @@ import os
 class ModelOptLogger(_Tracker):
     def __init__(self, path, eval_func, reset=True):
         self._path = path if path[-5:] == ".json" else path + ".json"
-        self.eval_func = eval_func
+        self._eval_func = eval_func
         if reset:
             try:
                 os.remove(self._path)
@@ -30,7 +30,7 @@ class ModelOptLogger(_Tracker):
             "elapsed": time_elapsed,
             "delta": time_delta,
         }
-        data["function"] = self.eval_func
+        data["function"] = self._eval_func
 
         # print(dict(data))
 
@@ -58,7 +58,7 @@ class BayesianOptimizer(object):
         self.best_model_path = best_model_path
     
     # TODO: floats to ints? - it must be possible to differentiate
-    def _map_hyperparams(model, **kwargs):
+    def _map_hyperparams(self, model, **kwargs):
         for key, value in kwargs.items():
             if hasattr(model, key):
                 setattr(model, key, int(value))
@@ -74,10 +74,10 @@ class BayesianOptimizer(object):
             print(kwargs)
             print(self.initial_model)
             # self._map_hyperparams(**kwargs)
-            # self._map_hyperparams(model=self.initial_model, **kwargs)
-            for key, value in kwargs.items():
-                if hasattr(self.initial_model, key):
-                    setattr(self.initial_model, key, int(value))
+            self._map_hyperparams(model=self.initial_model, **kwargs)
+            # for key, value in kwargs.items():
+            #     if hasattr(self.initial_model, key):
+            #         setattr(self.initial_model, key, int(value))
             self.initial_model.run()
             scores = self.initial_model.result
             self.current_function, local_best_score = self._get_local_best_score(scores)
