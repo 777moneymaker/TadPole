@@ -192,7 +192,8 @@ pipe = w2v.Word2VecPipeline(
 )
 
 hypers = {
-    'vector_size': (20, 30)
+    'vector_size': (20, 30),
+    'ns_exp': (-0.2, 0.2)
 }
 
 bayes = bay.BayesianOptimizer(pipe, hypers, 2, 3, "test_opt", Path("./logs/test_opt_07_04"))
