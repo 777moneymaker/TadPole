@@ -118,6 +118,7 @@ class FastTextPipeline(object):
     
     def _evaluate_model(self):
         funcs = utils.read_metadata(Path(self.metadata))
+        print(self.model_object)
         prediction = evl.prediction(func_dict=funcs, model=self.model_object, model_name=self.model_name, top_known_phrogs=self.n_top_phrogs)
         return prediction
     

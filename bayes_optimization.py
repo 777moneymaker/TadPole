@@ -81,7 +81,7 @@ class BayesianOptimizer(object):
             try:
                 self.initial_model.run()
             except:
-                observer._eval_func = "fasttext failed"
+                observer._eval_func = "training failed"
                 return 0
             scores = self.initial_model.result
             self.current_function, local_best_score = self._get_local_best_score(scores)

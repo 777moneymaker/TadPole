@@ -193,7 +193,7 @@ import bayes_optimization as bay
 
 pipe = ft.FastTextPipeline(
     corpus_path="results/virall_encode_02-04-2023.pickle",
-    output_prefix="ft_virall_opt",
+    output_prefix="ft_virall_opt_errorDebug",
     metadata="Data/metadata_02-04-2023.pickle",
     vector_size=20,
     window=2,
@@ -217,5 +217,5 @@ hypers = {
     'lr_start': (0.1, 1)
 }
 
-bayes = bay.BayesianOptimizer(pipe, hypers, 2, 3, "ft_test_opt", Path("./logs/ft_test_opt_07_04"))
+bayes = bay.BayesianOptimizer(pipe, hypers, 2, 3, "ft_test_opt_errorDebug", Path("./logs/ft_test_opt_07_04_errorDebug"))
 bayes.optimize()
