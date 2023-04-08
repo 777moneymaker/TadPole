@@ -165,7 +165,6 @@ class FastTextPipeline(object):
                 self._visualise_model()
             self._make_summary()
         except ValueError as e:
-            print(f"Failed to create and validate model: {e}")
             self.result = None
             self.model_object = None
             raise

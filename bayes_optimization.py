@@ -81,7 +81,7 @@ class BayesianOptimizer(object):
             try:
                 self.initial_model.run()
             except ValueError as e:
-                print(f"Training failed: {e}")
+                print(f"Training failed: {e} /nOptimization score for this iteration will be set to 0. Parameters for the next iteration will be semi-random.")
                 observer._eval_func = "Training failed"
                 return 0
             scores = self.initial_model.result
