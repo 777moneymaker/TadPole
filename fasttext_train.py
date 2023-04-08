@@ -61,13 +61,14 @@ class FastTextPipeline(object):
     __slots__ = ("corpus_path", "output_prefix", "metadata", "vector_size", "window",
                  "min_count", "epochs", "workers", "lr_start", "lr_min", "max_n", "min_n",
                  "sg", "hs", "sorted_vocab", "callbacks", "negative", "ns_exp", "show_debug",
-                 "n_top_phrogs", "visualise_model", "encoded", "result", "model_name", "model_object")
+                 "n_top_phrogs", "visualise_model", "encoded", "result", "model_name", "model_object",
+                 "save_model")
 
     def __init__(self, corpus_path: str, output_prefix: str, metadata: str, vector_size: int = 100,
                  window: int = 5, min_count: int = 5, epochs: int = 5, workers: int = 3,
                  lr_start: float = 0.025, lr_min: float = 0.0001, max_n: int = 3, min_n: int = 6, sg: int = 0, hs: int = 0,
                  sorted_vocab: int = 1, callbacks=[TrainLogger()], negative: int = 5, ns_exp: float = 0.75, show_debug: bool = False,
-                 n_top_phrogs: int = 50, visualise_model: bool = False, encoded: bool = True):
+                 n_top_phrogs: int = 50, visualise_model: bool = False, encoded: bool = True, save_model: bool = True):
         self.corpus_path = corpus_path
         self.output_prefix = output_prefix
         self.metadata = metadata
@@ -90,6 +91,7 @@ class FastTextPipeline(object):
         self.n_top_phrogs = n_top_phrogs
         self.visualise_model = visualise_model
         self.encoded = encoded
+        self.save_model = save_model
         self.result = None
         self.model_name = None
         self.model_object = None
@@ -112,6 +114,8 @@ class FastTextPipeline(object):
         try:
             model_path = f"train_test/{self.model_name}.model"
             self.model_object = FastText.load(model_path)
+            if not self.save_model:
+                Path(model_path).unlink(missing_ok=True)
         except FileNotFoundError:
             print(2137)
             # return 2137
