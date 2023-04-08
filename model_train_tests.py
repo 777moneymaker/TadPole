@@ -214,7 +214,7 @@ pipe = ft.FastTextPipeline(
 hypers = {
     'vector_size': (20, 50),
     'ns_exp': (-0.75, 0.75),
-    'lr_start': (0.1, 1)
+    'lr_start': (0.5, 1)
 }
 
 bayes = bay.BayesianOptimizer(pipe, hypers, 2, 3, "ft_test_opt_errorDebug", Path("./logs/ft_test_opt_07_04_errorDebug"))

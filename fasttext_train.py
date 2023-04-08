@@ -114,7 +114,8 @@ class FastTextPipeline(object):
             self.model_object = FastText.load(model_path)
         except FileNotFoundError:
             print(2137)
-            return 2137
+            # return 2137
+            return
     
     def _evaluate_model(self):
         funcs = utils.read_metadata(Path(self.metadata))
@@ -155,12 +156,17 @@ class FastTextPipeline(object):
 
     @utils.time_this
     def run(self):
-        self._generate_name()
-        self._model_train_exec()
-        self.result = self._evaluate_model()
-        if self.visualise_model:
-            self._visualise_model()
-        self._make_summary()
+        try:
+            self._generate_name()
+            self._model_train_exec()
+            self.result = self._evaluate_model()
+            if self.visualise_model:
+                self._visualise_model()
+            self._make_summary()
+        except Exception as e:
+            print("Failed to create and validate model:", e)
+            self.result = None
+            self.model_object = None
 
 
 def _generate_name(
