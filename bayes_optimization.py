@@ -80,7 +80,7 @@ class BayesianOptimizer(object):
             #         setattr(self.initial_model, key, int(value))
             try:
                 self.initial_model.run()
-            except Exception as e:
+            except ValueError as e:
                 print(f"Training failed: {e}")
                 observer._eval_func = "Training failed"
                 return 0
