@@ -40,6 +40,7 @@ class ModelOptLogger(_Tracker):
         self._update_tracker(event, instance)
 
 
+# TODO: let user choose the aquisition function and set its parameters
 class BayesianOptimizer(object):
 
     __slots__ = ("initial_model", "hyperparams", "initial_points", "num_iterations","best_model", "best_score", "current_function",
@@ -57,7 +58,6 @@ class BayesianOptimizer(object):
         self.opt_name = opt_name
         self.output_path = output_path
     
-    # TODO: floats to ints? - it must be possible to differentiate
     def _map_hyperparams(self, model, **kwargs):
         for key, value in kwargs.items():
             if hasattr(model, key):
@@ -107,7 +107,6 @@ class BayesianOptimizer(object):
             verbose=2
         )
         
-        # TODO: defineable logging path
         self.output_path.mkdir(exist_ok=True)
         log_path = self.output_path / f"{self.opt_name}.json"
         # observer = ModelOptLogger(path="./logs/bayes_test.json", eval_func=self.current_function)
