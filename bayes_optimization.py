@@ -6,6 +6,7 @@ from pathlib import Path
 from bayes_opt import BayesianOptimization
 from bayes_opt.observer import _Tracker
 from bayes_opt.event import Events
+from bayes_opt import UtilityFunction
 import typing
 import os
 
@@ -44,10 +45,11 @@ class ModelOptLogger(_Tracker):
 class BayesianOptimizer(object):
 
     __slots__ = ("initial_model", "hyperparams", "initial_points", "num_iterations","best_model", "best_score", "current_function",
-                 "opt_name", "output_path")
+                 "opt_name", "output_path", "aquisition_function", "kappa", "kappa_decay", "kappa_decay_delay", "xi")
 
     def __init__(self, initial_model: typing.Union[w2v.Word2VecPipeline, ft.FastTextPipeline], hyperparams: dict, initial_points: int,
-                  num_iterations: int, opt_name: str, output_path: Path):
+                  num_iterations: int, opt_name: str, output_path: Path, aquisition_function: typing.Literal['ucb', 'ei', 'poi'] = 'ucb',
+                kappa: float = 2.576, xi: float = 0, kappa_decay: float = 1, kappa_decay_delay: int = 0):
         self.initial_model = initial_model
         self.hyperparams = hyperparams
         self.initial_points = initial_points
@@ -57,6 +59,11 @@ class BayesianOptimizer(object):
         self.current_function = ""
         self.opt_name = opt_name
         self.output_path = output_path
+        self.aquisition_function = aquisition_function
+        self.kappa = kappa
+        self.kappa_decay = kappa_decay
+        self.kappa_decay_delay = kappa_decay_delay
+        self.xi = xi
     
     def _map_hyperparams(self, model, **kwargs):
         for key, value in kwargs.items():
@@ -111,10 +118,16 @@ class BayesianOptimizer(object):
         log_path = self.output_path / f"{self.opt_name}.json"
         # observer = ModelOptLogger(path="./logs/bayes_test.json", eval_func=self.current_function)
         observer = ModelOptLogger(path=log_path.as_posix(), eval_func=self.current_function)
+        aquisition_func = UtilityFunction(kind=self.aquisition_function,
+                                          kappa_decay_delay=self.kappa_decay_delay,
+                                          kappa_decay=self.kappa_decay,
+                                          kappa=self.kappa,
+                                          xi=self.xi)
         optimizer.subscribe(Events.OPTIMIZATION_STEP, observer)
         optimizer.maximize(
             init_points=self.initial_points,
-            n_iter=self.num_iterations
+            n_iter=self.num_iterations,
+            acquisition_function=aquisition_func
         )
 
         return optimizer.max
