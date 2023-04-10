@@ -241,5 +241,5 @@ hypers = {
 #     'negative': (0, 300),
 # }
 
-bayes = bay.BayesianOptimizer(pipe, hypers, 5, 20, "ft_optProto", Path("./logs/ft_optProto"), aquisition_function='ucb')
+bayes = bay.BayesianOptimizer(pipe, hypers, 5, 20, "ft_optProto", Path("./logs/ft_optProto"), aquisition_function='ucb', kappa=5)
 bayes.optimize()
