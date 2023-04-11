@@ -42,7 +42,7 @@ def mean_tuples(lst):
     # for category in d:
     #     d[category] /= occurs[category]
     # return list(d.items())
-    return [d[category] / occurs[category] for category in d]
+    return [(category, d[category] / occurs[category]) for category in d]
 
 
 # @codon.jit
@@ -288,8 +288,8 @@ def parallel_scoring2(phrog, merged_id_category, phrog_categories):
 # @utils.time_this
 def parallel_scoring(phrog, merged_id_category):
     d_phrog_categories = {}
-    list_for_scoring = list(merged_id_category.apply(list, 1))    
-    # list_for_scoring = [list(row) for row in merged_id_category.itertuples(index=False)]
+    # list_for_scoring = list(merged_id_category.apply(list, 1))    
+    list_for_scoring = [list(row) for row in merged_id_category.itertuples(index=False)]
     def key_func(x): return x[1]
 
     # 4 scoring functions
