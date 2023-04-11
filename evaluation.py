@@ -12,15 +12,15 @@ import multiprocessing as mp
 # import codon
 import concurrent.futures
 import time
-from alive_progress import alive_it
-from alive_progress import alive_bar
-from alive_progress.animations.spinners import bouncing_spinner_factory
+# from alive_progress import alive_it
+# from alive_progress import alive_bar
+# from alive_progress.animations.spinners import bouncing_spinner_factory
 
 import custom_logger
 import utils
 
 
-PHROG_SPINNER = bouncing_spinner_factory(("🐸", "🐸"), 8, background = ".", hide = False, overlay =True)
+# PHROG_SPINNER = bouncing_spinner_factory(("🐸", "🐸"), 8, background = ".", hide = False, overlay =True)
 
 # @codon.jit
 def sum_tuples(lst):
@@ -361,10 +361,10 @@ def prediction(
 
     # parallel function to select best matches and score the model
     print(len(phrogs_to_predict))
-    with alive_bar(title = "Evaluating",  dual_line = True, spinner = PHROG_SPINNER) as bar:
-        list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
-            batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
-        bar()
+    # with alive_bar(title = "Evaluating",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+    list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
+        batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
+        # bar()
 
     # start = time.perf_counter()
     # # parallel using futures
