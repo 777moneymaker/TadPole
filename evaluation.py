@@ -4,8 +4,8 @@ import numpy as np
 import re
 from typing import Union
 from gensim.models import FastText, Word2Vec
-# from collections import defaultdict
-import collections
+from collections import defaultdict
+# import collections
 from joblib import Parallel, delayed
 from multiprocessing import cpu_count
 import multiprocessing as mp
@@ -19,7 +19,7 @@ import utils
 
 # @codon.jit
 def sum_tuples(lst):
-    d = collections.defaultdict(float)
+    d = defaultdict(float)
     # d = {}
     for category, prob in lst:
         # d.setdefault(category, 0.0)
@@ -29,8 +29,8 @@ def sum_tuples(lst):
 
 # @codon.jit
 def mean_tuples(lst):
-    d = collections.defaultdict(float)
-    occurs = collections.defaultdict(int)
+    d = defaultdict(float)
+    occurs = defaultdict(int)
     # d = {}
     # occurs = {}
     for category, prob in lst:
@@ -38,16 +38,20 @@ def mean_tuples(lst):
         # occurs.setdefault(category, 0)
         d[category] += prob
         occurs[category] += 1
-    for category in d:
-        d[category] /= occurs[category]
-    return list(d.items())
+    # conventional for loop
+    # for category in d:
+    #     d[category] /= occurs[category]
+    # return list(d.items())
+    return [d[category] / occurs[category] for category in d]
 
 
 # @codon.jit
 def power_tuples(lst, power):
-    for cat_prob_list in lst:
-        cat_prob_list[1] = cat_prob_list[1] ** power
-    return lst
+    # conventional for-loop
+    # for cat_prob_list in lst:
+    #     cat_prob_list[1] = cat_prob_list[1] ** power
+    # return lst
+    return [cat_prob_list[1] ** power for cat_prob_list in lst]
 
 
 @utils.time_this
