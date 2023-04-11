@@ -206,6 +206,16 @@ def batch_exec2(phrogs_to_predict, vectors, func_dict_df, top_known_phrogs):
     
     # transform to builtin dict 
     return dict(phrog_categories)
+
+
+def batch_exec_thread(phrog_batch, vectors, func_dict_df, top_known_phrogs):
+    local_phrog_categories: dict[str, dict[str, str]] = {}
+    print(len(phrog_batch))
+    with parallel_backend("loky", inner_max_num_threads=cpu_count()):
+        results = Parallel()(delayed(process_phrog)(phrog, vectors, func_dict_df, top_known_phrogs) for phrog in phrog_batch)
+    for result in results:
+        local_phrog_categories.update(result)
+    return local_phrog_categories
     
 
 
@@ -254,6 +264,28 @@ def compute_predictions(phrog_batch, vectors, func_dict_df, top_known_phrogs, ph
     #     with mp.Lock():
     #         # phrog_categories[k] = phrog_categories.get(k, {})
     #         phrog_categories[k] = local_phrog_categories[k]
+
+def process_phrog(phrog, vectors, func_dict_df, top_known_phrogs):
+    try:
+        result = vectors.most_similar(phrog, topn=60_000)
+    except KeyError:
+        return {}
+
+    # replace phrogs with functions
+    model_result_tuples_to_df = pd.DataFrame(
+        result, columns=['phrog_id', 'probability'])
+    merged = model_result_tuples_to_df.merge(
+        func_dict_df, on='phrog_id')
+    merged = merged.loc[merged['category'] != 'unknown function']
+    if merged.empty:
+        custom_logger.logger.error("All closest phrogs had unknown function - "
+                                   "all were dropped, no data left to score.")
+    merged = merged.head(top_known_phrogs)
+    if len(merged) < top_known_phrogs:
+        custom_logger.logger.warning("Not enough close phrogs with known function - "
+                                     "scoring using less than {} phrogs.".format(top_known_phrogs))
+    merged_id_category = merged[["category", "probability"]]
+    return parallel_scoring(phrog, merged_id_category)
 
 
 def batch_list(item_list, batch_count: int = cpu_count() - 1):
@@ -362,8 +394,8 @@ def prediction(
     # parallel function to select best matches and score the model
     print(len(phrogs_to_predict))
     # with alive_bar(title = "Evaluating",  dual_line = True, spinner = PHROG_SPINNER) as bar:
-    with parallel_backend("loky", inner_max_num_threads=2):
-        list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
+    with parallel_backend("loky", inner_max_num_threads=cpu_count):
+        list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec_thread)(
             batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
         # bar()
 
