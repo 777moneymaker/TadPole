@@ -13,6 +13,7 @@ import multiprocessing as mp
 import concurrent.futures
 import time
 from alive_progress import alive_it
+from alive_progress import alive_bar
 from alive_progress.animations.spinners import bouncing_spinner_factory
 
 import custom_logger
@@ -152,7 +153,8 @@ def validate_chunk(func_dict_df, phrog_categories, answer_tally):
 def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
     local_phrog_categories: dict[str, dict[str, str]] = {}
     print(len(phrog_batch))
-    for phrog in alive_it(phrog_batch, dual_line = True, spinner = PHROG_SPINNER):
+    # for phrog in alive_it(phrog_batch, dual_line = True, spinner = PHROG_SPINNER):
+    for phrog in phrog_batch:
         # start = time.perf_counter()
         try:
             result = vectors.most_similar(phrog, topn=60_000)
@@ -359,8 +361,10 @@ def prediction(
 
     # parallel function to select best matches and score the model
     print(len(phrogs_to_predict))
-    list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
-        batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
+    with alive_bar(title = "Evaluating",  dual_line = True, spinner = PHROG_SPINNER) as bar:
+        list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
+            batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
+        bar()
 
     # start = time.perf_counter()
     # # parallel using futures
