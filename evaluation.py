@@ -6,7 +6,7 @@ from typing import Union
 from gensim.models import FastText, Word2Vec
 from collections import defaultdict
 # import collections
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed, parallel_backend
 from multiprocessing import cpu_count
 import multiprocessing as mp
 # import codon
