@@ -11,6 +11,7 @@ from multiprocessing import cpu_count
 import multiprocessing as mp
 # import codon
 import concurrent.futures
+import time
 
 import custom_logger
 import utils
@@ -139,7 +140,7 @@ def validate_chunk(func_dict_df, phrog_categories, answer_tally):
             answer_tally[scoring_function] = answer_tally.get(scoring_function, 0) + count
 
 
-@utils.time_this
+# @utils.time_this
 def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
     local_phrog_categories: dict[str, dict[str, str]] = {}
     print(len(phrog_batch))
@@ -338,6 +339,7 @@ def prediction(
     # list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
     #     batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
 
+    start = time.perf_counter()
     # parallel using futures
     with concurrent.futures.ProcessPoolExecutor() as executor:
         futures = []
@@ -347,7 +349,9 @@ def prediction(
         list_phrog_categories = []
         for future in concurrent.futures.as_completed(futures):
             list_phrog_categories.append(future.result())
-
+    end = time.perf_counter()
+    runtime = end - start
+    print(f"Done parallel futures in {runtime:0.8f}")
     # transform list of dicts to dict
     phrog_categories = {
         k: v for x in list_phrog_categories for k, v in x.items()}
