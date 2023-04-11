@@ -362,8 +362,9 @@ def prediction(
     # parallel function to select best matches and score the model
     print(len(phrogs_to_predict))
     # with alive_bar(title = "Evaluating",  dual_line = True, spinner = PHROG_SPINNER) as bar:
-    list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
-        batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
+    with parallel_backend("loky", inner_max_num_threads=2):
+        list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
+            batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
         # bar()
 
     # start = time.perf_counter()
