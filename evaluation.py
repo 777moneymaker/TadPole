@@ -330,9 +330,9 @@ def prediction(
 
     # create a list of phrogs with known function
     start = time.perf_counter()
-    # known_func_phrog_list = func_dict_df[((func_dict_df['category'] != 'unknown function') & (
-    #     func_dict_df['category'] != 'other'))]['phrog_id'].tolist()
-    known_func_phrog_list = set(func_dict_df[~func_dict_df['category'].isin(['unknown function', 'other'])]['phrog_id'].tolist())
+    known_func_phrog_list = func_dict_df[((func_dict_df['category'] != 'unknown function') & (
+        func_dict_df['category'] != 'other'))]['phrog_id'].tolist()
+    # known_func_phrog_list = set(func_dict_df[~func_dict_df['category'].isin(['unknown function', 'other'])]['phrog_id'].tolist())
     end = time.perf_counter()
     runtime = end - start
     print(f"Done known_func_phrog_list in {runtime:0.8f}")
@@ -350,7 +350,7 @@ def prediction(
 
     # parallel function to select best matches and score the model
     print(len(phrogs_to_predict))
-    list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
+    list_phrog_categories = Parallel(prefer="threads", verbose=True, n_jobs=-1)(delayed(batch_exec)(
         batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
 
     # start = time.perf_counter()
