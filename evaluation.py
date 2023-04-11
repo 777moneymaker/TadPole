@@ -284,7 +284,8 @@ def parallel_scoring2(phrog, merged_id_category, phrog_categories):
 # @utils.time_this
 def parallel_scoring(phrog, merged_id_category):
     d_phrog_categories = {}
-    list_for_scoring = list(merged_id_category.apply(list, 1))
+    # list_for_scoring = list(merged_id_category.apply(list, 1))    
+    list_for_scoring = [list(row) for row in merged_id_category.itertuples(index=False)]
     def key_func(x): return x[1]
 
     # 4 scoring functions
@@ -350,7 +351,7 @@ def prediction(
 
     # parallel function to select best matches and score the model
     print(len(phrogs_to_predict))
-    list_phrog_categories = Parallel(backend="multiprocessing", verbose=True, n_jobs=-1)(delayed(batch_exec)(
+    list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
         batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
 
     # start = time.perf_counter()
