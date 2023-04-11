@@ -51,7 +51,7 @@ def power_tuples(lst, power):
     # for cat_prob_list in lst:
     #     cat_prob_list[1] = cat_prob_list[1] ** power
     # return lst
-    return [cat_prob_list[1] ** power for cat_prob_list in lst]
+    return [(cat_prob_list[0], cat_prob_list[1] ** power) for cat_prob_list in lst]
 
 
 @utils.time_this
