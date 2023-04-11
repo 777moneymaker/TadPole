@@ -145,7 +145,7 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
     local_phrog_categories: dict[str, dict[str, str]] = {}
     print(len(phrog_batch))
     for phrog in phrog_batch:
-        start = time.perf_counter()
+        # start = time.perf_counter()
         try:
             result = vectors.most_similar(phrog, topn=60_000)
             # result = (list(filter(lambda x: 'joker' not in x[0], result)))  # to remove jokers from result; turns out mergeddf_to_tuple isnt returning them anyway so far
@@ -171,9 +171,9 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
         merged_id_category = merged[["category", "probability"]]
         local_phrog_categories.update(
             parallel_scoring(phrog, merged_id_category))
-        end = time.perf_counter()
-        runtime = end - start
-        print(f"Done one iteration of phrog from one frog batch in {runtime:0.8f}")
+        # end = time.perf_counter()
+        # runtime = end - start
+        # print(f"Done one iteration of phrog from one frog batch in {runtime:0.8f}")
     return local_phrog_categories
 
 
@@ -281,7 +281,7 @@ def parallel_scoring2(phrog, merged_id_category, phrog_categories):
     return d_phrog_categories
 
 
-@utils.time_this
+# @utils.time_this
 def parallel_scoring(phrog, merged_id_category):
     d_phrog_categories = {}
     list_for_scoring = list(merged_id_category.apply(list, 1))
@@ -330,8 +330,9 @@ def prediction(
 
     # create a list of phrogs with known function
     start = time.perf_counter()
-    known_func_phrog_list = func_dict_df[((func_dict_df['category'] != 'unknown function') & (
-        func_dict_df['category'] != 'other'))]['phrog_id'].tolist()
+    # known_func_phrog_list = func_dict_df[((func_dict_df['category'] != 'unknown function') & (
+    #     func_dict_df['category'] != 'other'))]['phrog_id'].tolist()
+    known_func_phrog_list = set(func_dict_df[~func_dict_df['category'].isin(['unknown function', 'other'])]['phrog_id'].tolist())
     end = time.perf_counter()
     runtime = end - start
     print(f"Done known_func_phrog_list in {runtime:0.8f}")
