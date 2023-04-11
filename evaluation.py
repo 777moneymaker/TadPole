@@ -10,7 +10,7 @@ from joblib import Parallel, delayed
 from multiprocessing import cpu_count
 import multiprocessing as mp
 # import codon
-# import concurrent.futures
+import concurrent.futures
 
 import custom_logger
 import utils
@@ -139,6 +139,7 @@ def validate_chunk(func_dict_df, phrog_categories, answer_tally):
             answer_tally[scoring_function] = answer_tally.get(scoring_function, 0) + count
 
 
+@utils.time_this
 def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
     local_phrog_categories: dict[str, dict[str, str]] = {}
     print(len(phrog_batch))
@@ -334,8 +335,18 @@ def prediction(
 
     # parallel function to select best matches and score the model
     print(len(phrogs_to_predict))
-    list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
-        batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
+    # list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
+    #     batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
+
+    # parallel using futures
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        futures = []
+        for batch in batch_list(phrogs_to_predict):
+            futures.append(executor.submit(batch_exec, batch, vectors, func_dict_df, top_known_phrogs))
+        
+        list_phrog_categories = []
+        for future in concurrent.futures.as_completed(futures):
+            list_phrog_categories.append(future.result())
 
     # transform list of dicts to dict
     phrog_categories = {
