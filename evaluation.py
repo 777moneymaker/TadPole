@@ -11,7 +11,7 @@ from multiprocessing import cpu_count
 import multiprocessing as mp
 # import codon
 import concurrent.futures
-# import time
+import time
 from alive_progress import alive_it
 from alive_progress.animations.spinners import bouncing_spinner_factory
 
