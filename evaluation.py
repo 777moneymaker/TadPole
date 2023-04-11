@@ -315,13 +315,21 @@ def prediction(
     evaluate_mode: bool = True,
 ):
     # convert dict to pandas dataframe or read it directly
+    start = time.perf_counter()
     func_dict_df = pd.DataFrame(func_dict.items(), columns=[
                                 'phrog_id', 'category'])
+    end = time.perf_counter()
+    runtime = end - start
+    print(f"Done func_dict_df in {runtime:0.8f}")
     # df = pd.read_table('Data/metadata-phrog.tsv', header=0)
 
     # create a list of phrogs with known function
+    start = time.perf_counter()
     known_func_phrog_list = func_dict_df[((func_dict_df['category'] != 'unknown function') & (
         func_dict_df['category'] != 'other'))]['phrog_id'].tolist()
+    end = time.perf_counter()
+    runtime = end - start
+    print(f"Done func_dict_df in {runtime:0.8f}")
     # TODO: Consider making this a set, O(1) membership checking
     # known_func_phrog_list = set(known_func_phrog_list)
 
@@ -336,22 +344,22 @@ def prediction(
 
     # parallel function to select best matches and score the model
     print(len(phrogs_to_predict))
-    # list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
-    #     batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
+    list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
+        batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
 
-    start = time.perf_counter()
-    # parallel using futures
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        futures = []
-        for batch in batch_list(phrogs_to_predict):
-            futures.append(executor.submit(batch_exec, batch, vectors, func_dict_df, top_known_phrogs))
+    # start = time.perf_counter()
+    # # parallel using futures
+    # with concurrent.futures.ProcessPoolExecutor() as executor:
+    #     futures = []
+    #     for batch in batch_list(phrogs_to_predict):
+    #         futures.append(executor.submit(batch_exec, batch, vectors, func_dict_df, top_known_phrogs))
         
-        list_phrog_categories = []
-        for future in concurrent.futures.as_completed(futures):
-            list_phrog_categories.append(future.result())
-    end = time.perf_counter()
-    runtime = end - start
-    print(f"Done parallel futures in {runtime:0.8f}")
+    #     list_phrog_categories = []
+    #     for future in concurrent.futures.as_completed(futures):
+    #         list_phrog_categories.append(future.result())
+    # end = time.perf_counter()
+    # runtime = end - start
+    # print(f"Done parallel futures in {runtime:0.8f}")
     # transform list of dicts to dict
     phrog_categories = {
         k: v for x in list_phrog_categories for k, v in x.items()}
