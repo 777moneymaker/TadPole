@@ -37,28 +37,12 @@ def mean_tuples(lst):
 
 def power_tuples(lst, power):
     return [(cat_prob_list[0], cat_prob_list[1] ** power) for cat_prob_list in lst]
-
-
-@utils.time_this
-def validation(func_dict_df, phrog_categories):
-    answer_tally = {}
-    for phrog, scoring_functions in phrog_categories.items():
-        true_category = func_dict_df.loc[func_dict_df['phrog_id'] == phrog, 'category'].values[
-            0]  # get the proper category of the phrog
-        for scoring_function, assigned_category in scoring_functions.items():
-            if scoring_function not in answer_tally.keys():
-                answer_tally[scoring_function] = 0
-            if assigned_category[0] == true_category:
-                answer_tally[scoring_function] = answer_tally[scoring_function] + 1
-    for scoring_function, n_true_answers in answer_tally.items():
-        answer_tally[scoring_function] = round(
-            (n_true_answers / len(phrog_categories)) * 100, 2)
-    return answer_tally
-
+    
 
 @utils.time_this
 def parallel_validation(func_dict_df, phrog_categories):
-    answer_tally = mp.Manager().dict()
+    score_tally = mp.Manager().dict()
+    function_tally = mp.Manager().dict()
     processes = []
 
     # Divide phrog_categories into chunks
@@ -70,7 +54,7 @@ def parallel_validation(func_dict_df, phrog_categories):
     # Start a process for each chunk
     for chunk in chunks:
         process = mp.Process(target=validate_chunk, args=(
-            func_dict_df, chunk, answer_tally))
+            func_dict_df, chunk, score_tally, function_tally))
         process.start()
         processes.append(process)
 
@@ -79,28 +63,49 @@ def parallel_validation(func_dict_df, phrog_categories):
         process.join()
 
     # Convert answer_tally to a regular dictionary and calculate percentages
-    answer_tally = dict(answer_tally)
-    for scoring_function, n_true_answers in answer_tally.items():
-        answer_tally[scoring_function] = round(
+    score_tally = dict(score_tally)
+    for scoring_function, n_true_answers in score_tally.items():
+        score_tally[scoring_function] = round(
             (n_true_answers / len(phrog_categories)) * 100, 2)
-    return answer_tally
+
+    function_tally = dict(function_tally)
+
+    print ('\n\n I-- CHECK THOSE NUMBERS --I')  # TODO check if this works correctly (new changes with function_tally)
+    print('Correctly assigned raw count:', function_tally)
+    function_counts = {}
+    for category in func_dict_df['category'].values.tolist():
+        function_counts[category] = function_counts.get(category, 0) + 1
+    print('Total count:', function_counts)
+    for category in function_tally:
+        function_tally[category] = round((function_tally[category] / function_counts[category]) * 100, 2)
+
+    return score_tally, function_tally
 
 
-def validate_chunk(func_dict_df, phrog_categories, answer_tally):
-    local_answer_tally = {}
+def validate_chunk(func_dict_df, phrog_categories, score_tally, function_tally):
+    local_score_tally = {}
+    local_function_tally = {}
     for phrog, scoring_functions in phrog_categories.items():
         true_category = func_dict_df.loc[func_dict_df['phrog_id'] == phrog, 'category'].values[
             0]  # get the proper category of the phrog
         for scoring_function, assigned_category in scoring_functions.items():
-            if scoring_function not in local_answer_tally.keys():
-                local_answer_tally[scoring_function] = 0
+            if scoring_function not in local_score_tally.keys():
+                local_score_tally[scoring_function] = 0
+            if assigned_category not in local_function_tally.keys():
+                local_function_tally[assigned_category[0]] = 0
             if assigned_category[0] == true_category:
-                local_answer_tally[scoring_function] += 1
+                local_score_tally[scoring_function] += 1
+                local_function_tally[true_category] += 1
+
     # Update the shared answer_tally dictionary atomically
-    for scoring_function, count in local_answer_tally.items():
+    for scoring_function, count in local_score_tally.items():
         with mp.Lock():
-            answer_tally[scoring_function] = answer_tally.get(
+            score_tally[scoring_function] = score_tally.get(
                 scoring_function, 0) + count
+    for phrog_function, count in local_function_tally.items():
+        with mp.Lock():
+            function_tally[phrog_function] = function_tally.get(
+                phrog_function, 0) + count
 
 
 # @utils.time_this
@@ -120,8 +125,9 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
         merged = model_result_tuples_to_df.merge(
             func_dict_df, on='phrog_id')  # Same col, just use on=
         # just use loc, add .head immeadiately
-        # separated to accomodate a very rare edge case
-        merged = merged.loc[merged['category'] != 'unknown function']
+        # separated to accomodate a very rare edge 
+        merged = merged.loc[((merged['category'] != 'unknown function') & (
+        merged['category'] != 'other')& (merged['category'] != 'moron, auxiliary metabolic gene and host takeover'))]
         if merged.empty:
             custom_logger.logger.error("All closest phrogs had unknown function - "
                                        "all were dropped, no data left to score.")
@@ -189,7 +195,7 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
     # create a list of phrogs with known function
     start = time.perf_counter()
     known_func_phrog_list = func_dict_df[((func_dict_df['category'] != 'unknown function') & (
-        func_dict_df['category'] != 'other'))]['phrog_id'].tolist()
+        func_dict_df['category'] != 'other')& (func_dict_df['category'] != 'moron, auxiliary metabolic gene and host takeover'))]['phrog_id'].tolist()
     end = time.perf_counter()
     runtime = end - start
     print(f"Done known_func_phrog_list in {runtime:0.8f}")
@@ -228,7 +234,8 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
 
     # validation
     if evaluate_mode:
-        scores = parallel_validation(func_dict_df, phrog_categories)
+        scores, func_scores = parallel_validation(func_dict_df, phrog_categories)
+        print('Correctly assigned procentage:', func_scores)
         max_value = max(scores.values())  # maximum value
         max_scoring_func = [k for k, v in scores.items() if v == max_value]
         print(f"{max_value}%")
@@ -236,3 +243,4 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
         with open("evaluation_log.txt", "a") as f:  # very rudimentary logging as of now
             f.write(f"{type(model).__name__}/{model_name}{str(scores)}{char_nl}")
         return scores
+
