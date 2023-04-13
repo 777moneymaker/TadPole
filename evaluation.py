@@ -396,7 +396,7 @@ def prediction(
     print(len(phrogs_to_predict))
     # with alive_bar(title = "Evaluating",  dual_line = True, spinner = PHROG_SPINNER) as bar:
     # with parallel_backend("loky", inner_max_num_threads=cpu_count):
-    list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
+    list_phrog_categories = Parallel(prefer="threading", verbose=True, n_jobs=-1)(delayed(batch_exec)(
         batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
         # bar()
 
