@@ -71,10 +71,6 @@ def parallel_validation(func_dict_df, phrog_categories):
 
     function_tally = dict(function_tally)
 
-    print ('\n\n I-- CHECK THOSE NUMBERS --I')  # TODO check if this works correctly (new changes with function_tally)
-    #function_counts = {}
-    #for category in func_dict_df['category'].values.tolist():
-    #    function_counts[category] = function_counts.get(category, 0) + 1
     print('\nTotal count:', used_phrog_function_tally)
     for category in function_tally:
         function_tally[category] = round((function_tally[category] / used_phrog_function_tally[category[1]]) * 100, 2)
