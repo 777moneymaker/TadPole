@@ -157,7 +157,8 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
     for phrog in phrog_batch:
         start = time.perf_counter()
         try:
-            result = [vector for vector in vectors.most_similar(phrog, topn=60_000) if not vector[0].endswith(phrog[-5:])]
+            # result = [vector for vector in vectors.most_similar(phrog, topn=60_000) if not vector[0].endswith(phrog[-5:])]
+            result = vectors.most_similar(phrog, topn=60_000)
             # result = (list(filter(lambda x: 'joker' not in x[0], result)))  # to remove jokers from result; turns out mergeddf_to_tuple isnt returning them anyway so far
 
         except KeyError:
@@ -396,7 +397,7 @@ def prediction(
     # with alive_bar(title = "Evaluating",  dual_line = True, spinner = PHROG_SPINNER) as bar:
     # with parallel_backend("loky", inner_max_num_threads=cpu_count):
     list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
-        batch, vectors, func_dict_df, top_known_phrogs) for batch in alive_it(batch_list(phrogs_to_predict), dual_line = True, spinner = PHROG_SPINNER))
+        batch, vectors, func_dict_df, top_known_phrogs) for batch in batch_list(phrogs_to_predict))
         # bar()
 
     # start = time.perf_counter()
