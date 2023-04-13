@@ -72,10 +72,11 @@ def parallel_validation(func_dict_df, phrog_categories):
 
     print ('\n\n I-- CHECK THOSE NUMBERS --I')  # TODO check if this works correctly (new changes with function_tally)
     function_counts = {}
-    func_dict_df['phrog_id'].apply(lambda x: f"phrog_{str(int(x[-5:]))}")
-    print(func_dict_df)
-    func_dict_df.drop_duplicates()
-    for category in func_dict_df['category'].values.tolist():
+    deduplicated_dict_df = func_dict_df
+    deduplicated_dict_df['phrog_id'] = deduplicated_dict_df['phrog_id'].apply(lambda x: f"phrog_{str(int(x[-5:]))}")
+    print(deduplicated_dict_df)
+    deduplicated_dict_df.drop_duplicates()
+    for category in deduplicated_dict_df['category'].values.tolist():
         function_counts[category] = function_counts.get(category, 0) + 1
     print('\nTotal count:', function_counts)
     for category in function_tally:
