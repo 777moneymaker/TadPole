@@ -116,7 +116,8 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
     for phrog in phrog_batch:
         # start = time.perf_counter()
         try:
-            result = vectors.most_similar(phrog, topn=60_000)
+            # result = vectors.most_similar(phrog, topn=60_000)
+            result = [vector for vector in vectors.most_similar(phrog, topn=60_000) if not vector[0].endswith(phrog[-5:])]
         except KeyError:
             continue
 
