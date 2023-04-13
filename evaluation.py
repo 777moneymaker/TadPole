@@ -77,6 +77,7 @@ def parallel_validation(func_dict_df, phrog_categories):
     print('\nTotal count:', function_counts)
     for category in function_tally:
         function_tally[category] = round((function_tally[category] / function_counts[category[1]]) * 100, 2)
+    print(function_tally)
 
     return score_tally, function_tally
 
