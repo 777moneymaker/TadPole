@@ -155,7 +155,7 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
     print(len(phrog_batch))
     # for phrog in alive_it(phrog_batch, dual_line = True, spinner = PHROG_SPINNER):
     for phrog in phrog_batch:
-        # start = time.perf_counter()
+        start = time.perf_counter()
         try:
             result = [vector for vector in vectors.most_similar(phrog, topn=60_000) if not vector[0].endswith(phrog[-5:])]
             # result = (list(filter(lambda x: 'joker' not in x[0], result)))  # to remove jokers from result; turns out mergeddf_to_tuple isnt returning them anyway so far
@@ -181,9 +181,9 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
         merged_id_category = merged[["category", "probability"]]
         local_phrog_categories.update(
             parallel_scoring(phrog, merged_id_category))
-        # end = time.perf_counter()
-        # runtime = end - start
-        # print(f"Done one iteration of phrog from one frog batch in {runtime:0.8f}")
+        end = time.perf_counter()
+        runtime = end - start
+        print(f"Done one iteration of phrog from one frog batch in {runtime:0.8f}")
     return local_phrog_categories
 
 
