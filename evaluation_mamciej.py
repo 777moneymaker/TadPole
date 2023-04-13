@@ -43,7 +43,7 @@ def power_tuples(lst, power):
 def parallel_validation(func_dict_df, phrog_categories):
     score_tally = mp.Manager().dict()
     # function_tally = mp.Manager().dict()
-    function_tally = defaultdict(mp.Manager().dict())
+    function_tally = defaultdict(mp.Manager().dict)
     mini_function_tally = defaultdict(lambda: defaultdict(int))
     # mini_function_tally = {}
     processes = []
