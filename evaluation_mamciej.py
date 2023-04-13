@@ -124,19 +124,30 @@ def validate_chunk(func_dict_df, phrog_categories, score_tally, function_tally, 
         with mp.Lock():
             score_tally[scoring_function] = score_tally.get(
                 scoring_function, 0) + count
-
+    # org
     # for scoring_function, count in local_function_tally.items():
     #     with mp.Lock():
     #         for phrog_category, value in count.items():
     #             print(scoring_function, value, phrog_category)
     #             mini_function_tally[scoring_function][phrog_category] += value
     #         function_tally[scoring_function] = mini_function_tally[scoring_function]
+    # gepp1
+    # for scoring_function, count in local_function_tally.items():
+    #     with mp.Lock():
+    #         for phrog_category, value in count.items():
+    #             print(scoring_function, value, phrog_category)
+    #             mini_function_tally[scoring_function][phrog_category] += value
+    #         function_tally[scoring_function] = dict(mini_function_tally[scoring_function])
+    # gepp2
+    # Accumulate the counts for each category in the local_function_tally dictionary
     for scoring_function, count in local_function_tally.items():
-        with mp.Lock():
-            for phrog_category, value in count.items():
-                print(scoring_function, value, phrog_category)
-                mini_function_tally[scoring_function][phrog_category] += value
-            function_tally[scoring_function] = dict(mini_function_tally[scoring_function])
+        for phrog_category, value in count.items():
+            mini_function_tally[scoring_function][phrog_category] += value
+
+    # Update the shared function_tally dictionary atomically after all threads have finished executing
+    with mp.Lock():
+        for scoring_function, count in mini_function_tally.items():
+            function_tally[scoring_function] = dict(count)
 
 
 # @utils.time_this
