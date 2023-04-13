@@ -71,13 +71,12 @@ def parallel_validation(func_dict_df, phrog_categories):
     function_tally = dict(function_tally)
 
     print ('\n\n I-- CHECK THOSE NUMBERS --I')  # TODO check if this works correctly (new changes with function_tally)
-    print('Correctly assigned raw count:', function_tally)
     function_counts = {}
     for category in func_dict_df['category'].values.tolist():
         function_counts[category] = function_counts.get(category, 0) + 1
-    print('Total count:', function_counts)
+    print('\nTotal count:', function_counts)
     for category in function_tally:
-        function_tally[category] = round((function_tally[category] / function_counts[category]) * 100, 2)
+        function_tally[category] = round((function_tally[category] / function_counts[category[1]]) * 100, 2)
 
     return score_tally, function_tally
 
@@ -91,21 +90,22 @@ def validate_chunk(func_dict_df, phrog_categories, score_tally, function_tally):
         for scoring_function, assigned_category in scoring_functions.items():
             if scoring_function not in local_score_tally.keys():
                 local_score_tally[scoring_function] = 0
-            if assigned_category not in local_function_tally.keys():
-                local_function_tally[assigned_category[0]] = 0
+            if (scoring_function,assigned_category[0]) not in local_function_tally.keys():
+                local_function_tally[(scoring_function,assigned_category[0])] = 0
             if assigned_category[0] == true_category:
                 local_score_tally[scoring_function] += 1
-                local_function_tally[true_category] += 1
+                local_function_tally[(scoring_function,true_category)] += 1
 
     # Update the shared answer_tally dictionary atomically
     for scoring_function, count in local_score_tally.items():
         with mp.Lock():
             score_tally[scoring_function] = score_tally.get(
                 scoring_function, 0) + count
-    for phrog_function, count in local_function_tally.items():
+
+    for key, value in local_function_tally.items():
         with mp.Lock():
-            function_tally[phrog_function] = function_tally.get(
-                phrog_function, 0) + count
+            function_tally[key] = function_tally.get(
+                key, 0) + value
 
 
 # @utils.time_this
@@ -235,9 +235,13 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
     # validation
     if evaluate_mode:
         scores, func_scores = parallel_validation(func_dict_df, phrog_categories)
-        print('Correctly assigned procentage:', func_scores)
         max_value = max(scores.values())  # maximum value
         max_scoring_func = [k for k, v in scores.items() if v == max_value]
+        max_func_scores = {}
+        for key, value in func_scores.items():
+            if key[0] == max_scoring_func[0]:
+                max_func_scores[key[1]] = value
+        print('Correctly assigned procentages: ', max_func_scores)
         print(f"{max_value}%")
         char_nl = '\n'
         with open("evaluation_log.txt", "a") as f:  # very rudimentary logging as of now
