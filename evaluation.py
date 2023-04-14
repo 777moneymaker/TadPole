@@ -128,6 +128,7 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
         try:
             result = [vector for vector in vectors.most_similar(phrog, topn=60_000) if not vector[0].endswith(phrog[-5:])]
         except KeyError:
+            print(f"Key error on {phrog}")
             continue
 
          # replace phrogs with functions
@@ -152,7 +153,7 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
         # end = time.perf_counter()
         # runtime = end - start
         # print(f"Done one iteration of phrog from one frog batch in {runtime:0.8f}")
-    print(f"phrog_batch len: {len(phrog_batch)};{len(local_phrog_categories)} :local_phrog_categories")
+    # print(f"phrog_batch len: {len(phrog_batch)};{len(local_phrog_categories)} :local_phrog_categories")
     return local_phrog_categories
 
 
@@ -230,6 +231,7 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
         k: v for x in list_phrog_categories for k, v in x.items()}
     end = time.perf_counter()
     print(len(phrog_categories))
+    print(f"list_phrog_categories len: {len(list_phrog_categories)};{len(phrog_categories)} :phrog_categories")
     runtime = end - start
     print(f"Done phrog_categories in {runtime:0.8f}")
     # print(phrog_categories)
@@ -260,3 +262,45 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
         with open("evaluation_log.txt", "a") as f:  # very rudimentary logging as of now
             f.write(f"{type(model).__name__}/{model_name}{str(scores)}{char_nl}")
         return scores
+
+"""
+phrog_batch len: 1584;22 :local_phrog_categories
+phrog_batch len: 1584;23 :local_phrog_categories
+phrog_batch len: 1584;25 :local_phrog_categories
+phrog_batch len: 1584;26 :local_phrog_categories
+phrog_batch len: 1584;39 :local_phrog_categories
+phrog_batch len: 1584;42 :local_phrog_categories
+phrog_batch len: 1584;45 :local_phrog_categories
+phrog_batch len: 1584;62 :local_phrog_categories
+phrog_batch len: 1584;65 :local_phrog_categories
+phrog_batch len: 1584;61 :local_phrog_categories
+phrog_batch len: 1584;108 :local_phrog_categories
+phrog_batch len: 1584;221 :local_phrog_categories
+phrog_batch len: 1584;237 :local_phrog_categories
+phrog_batch len: 1584;238 :local_phrog_categories
+phrog_batch len: 1585;293 :local_phrog_categories
+phrog_batch len: 1585;362 :local_phrog_categories
+phrog_batch len: 1585;312 :local_phrog_categories
+phrog_batch len: 1585;366 :local_phrog_categories
+phrog_batch len: 1585;494 :local_phrog_categories
+phrog_batch len: 1585;372 :local_phrog_categories
+phrog_batch len: 1585;444 :local_phrog_categories
+phrog_batch len: 1585;575 :local_phrog_categories
+phrog_batch len: 1585;543 :local_phrog_categories
+phrog_batch len: 1585;603 :local_phrog_categories
+phrog_batch len: 1585;543 :local_phrog_categories
+phrog_batch len: 1585;733 :local_phrog_categories
+phrog_batch len: 1585;594 :local_phrog_categories
+phrog_batch len: 1585;724 :local_phrog_categories
+phrog_batch len: 1585;829 :local_phrog_categories
+phrog_batch len: 1585;838 :local_phrog_categories
+phrog_batch len: 1585;750 :local_phrog_categories
+phrog_batch len: 1585;980 :local_phrog_categories
+phrog_batch len: 1585;972 :local_phrog_categories
+phrog_batch len: 1585;1095 :local_phrog_categories
+phrog_batch len: 1585;1087 :local_phrog_categories
+phrog_batch len: 1585;1008 :local_phrog_categories
+phrog_batch len: 1585;978 :local_phrog_categories
+phrog_batch len: 1585;1258 :local_phrog_categories
+phrog_batch len: 1585;1254 :local_phrog_categories
+"""
