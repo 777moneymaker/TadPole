@@ -172,9 +172,9 @@ import bayes_optimization as bay
 
 # opt
 pipe = w2v.Word2VecPipeline(
-    corpus_path="results/virall_encode_02-04-2023.pickle",
-    output_prefix="logging_test_w2v",
-    metadata="Data/metadata_02-04-2023.pickle",
+    corpus_path="results/virall_noncoded_14-04-2023.pickle",
+    output_prefix="logging_test_w2v_noncoded",
+    metadata="Data/metadata-phrog.pickle",
     vector_size=20,
     window=2,
     min_count=5,
@@ -268,7 +268,7 @@ quick_hypers = {
 #     'negative': (0, 300),
 # }
 
-bayes = bay.BayesianOptimizer(pipe, quick_hypers, 2, 2, "logging_test_w2v", Path("./logs/logging_test_w2v"), aquisition_function='ucb', kappa=5)
+bayes = bay.BayesianOptimizer(pipe, quick_hypers, 2, 2, "logging_test_w2v_noncoded", Path("./logs/logging_test_w2v_noncoded"), aquisition_function='ucb', kappa=5)
 bayes.optimize()
 
 # >>> import fasttext_train as ft
