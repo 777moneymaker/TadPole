@@ -20,6 +20,17 @@ PHROG_SPINNER = bouncing_spinner_factory(
 
 
 def sum_tuples(lst):
+    """Sums the probabilities of the same category.
+
+    Args: lst (list): A list of tuples, where the first element is the category and the second is the probability.
+    
+    Returns: list: A list of tuples, where the first element is the category and the second is the sum of the probabilities.
+    
+    Example:
+    >>> sum_tuples([('a', 0.5), ('b', 0.5), ('a', 0.5)])
+    [('a', 1.0), ('b', 0.5)]
+    
+    """
     d = defaultdict(float)
     for category, prob in lst:
         d[category] += prob
@@ -27,6 +38,17 @@ def sum_tuples(lst):
 
 
 def mean_tuples(lst):
+    """ Calculates the mean of the probabilities of the same category.
+
+    Args: lst (list): A list of tuples, where the first element is the category and the second is the probability.
+
+    Returns: list: A list of tuples, where the first element is the category and the second is the mean of the probabilities.
+
+    Example:
+    >>> mean_tuples([('a', 0.5), ('b', 0.5), ('a', 0.5)])
+    [('a', 0.5), ('b', 0.5)]
+
+    """
     d = defaultdict(float)
     occurs = defaultdict(int)
     for category, prob in lst:
@@ -36,11 +58,37 @@ def mean_tuples(lst):
 
 
 def power_tuples(lst, power):
+    """ Raises the probabilities of the same category to a power.
+
+    Args: lst (list): A list of tuples, where the first element is the category and the second is the probability.
+            power (float): The power to which the probabilities will be raised.
+
+    Returns: list: A list of tuples, where the first element is the category and the second is the probability raised to the power.
+
+    Example:
+    >>> power_tuples([('a', 0.5), ('b', 0.5), ('a', 0.5)], 2)
+    [('a', 0.25), ('b', 0.25)]
+
+    """
     return [(cat_prob_list[0], cat_prob_list[1] ** power) for cat_prob_list in lst]
     
 
 @utils.time_this
 def parallel_validation(func_dict_df, phrog_categories):
+    """ Validates the phrog categories using multiprocessing.
+
+    Args: func_dict_df (pandas.DataFrame): A dataframe containing the phrog ids and their categories.
+            phrog_categories (dict): A dictionary containing the phrog ids and their categories assigned by the scoring functions.
+
+    Returns: tuple: A tuple containing two dictionaries. The first dictionary contains the scoring functions as keys and the percentage of correct assignments as values. The second dictionary contains the scoring functions and the categories as keys and the percentage of correct assignments as values.
+
+    Example:
+    >>> parallel_validation(func_dict_df, phrog_categories)
+    ({'sum_tuples': 0.0, 'mean_tuples': 0.0, 'power_tuples': 0.0},
+    {('sum_tuples', 'a'): 0.0, ('sum_tuples', 'b'): 0.0, ('mean_tuples', 'a'): 0.0, ('mean_tuples', 'b'): 0.0, ('power_tuples', 'a'): 0.0, ('power_tuples', 'b'): 0.0})
+
+    """
+
     score_tally = mp.Manager().dict()
     function_tally = mp.Manager().dict()
     used_phrog_function_tally = mp.Manager().dict()
@@ -79,6 +127,21 @@ def parallel_validation(func_dict_df, phrog_categories):
 
 
 def validate_chunk(func_dict_df, phrog_categories, score_tally, function_tally, used_phrog_function_tally):
+    """ Validates the phrog categories using multiprocessing.
+
+    Args: func_dict_df (pandas.DataFrame): A dataframe containing the phrog ids and their categories.
+            phrog_categories (dict): A dictionary containing the phrog ids and their categories assigned by the scoring functions.
+            score_tally (dict): A dictionary containing the scoring functions as keys and the number of correct assignments as values.
+            function_tally (dict): A dictionary containing the scoring functions and the categories as keys and the number of correct assignments as values.
+            used_phrog_function_tally (dict): A dictionary containing the phrog ids as keys and the number of times they were used as values.
+
+    Returns: None
+
+    Example:
+    >>> validate_chunk(func_dict_df, phrog_categories, score_tally, function_tally, used_phrog_function_tally)
+    None
+
+    """
     local_score_tally = {}
     local_function_tally = {}
     local_used_phrog_function_tally = {}
@@ -120,6 +183,21 @@ def validate_chunk(func_dict_df, phrog_categories, score_tally, function_tally, 
 
 # @utils.time_this
 def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
+    """ Executes the scoring functions on a batch of phrogs.
+
+    Args: phrog_batch (list): A list of phrogs.
+            vectors (gensim.models.keyedvectors.Word2VecKeyedVectors): A gensim Word2Vec model.
+            func_dict_df (pandas.DataFrame): A dataframe containing the phrog ids and their categories.
+            top_known_phrogs (list): A list of the top 1000 phrogs.
+
+    Returns: dict: A dictionary containing the phrog ids and their categories assigned by the scoring functions.
+
+    Example:
+    >>> batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs)
+    {'phrog_1': {'func_1': ('category_1', 0.5), 'func_2': ('category_2', 0.5)}, 'phrog_2': {'func_1': ('category_1', 0.5), 'func_2': ('category_2', 0.5)}}
+
+    """
+
     local_phrog_categories: dict[str, dict[str, str]] = {}
     print(len(phrog_batch))
     for phrog in phrog_batch:
@@ -155,17 +233,41 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
 
 
 def batch_list(item_list, batch_count: int = cpu_count() - 1):
+    """ Splits a list into batches.
+
+    Args: item_list (list): A list of items.
+
+    Returns: list: A list of batches.
+
+    Example:
+    >>> batch_list([1,2,3,4,5,6,7,8,9,10], 2)
+    [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]
+
+    """
     batches = np.array_split(np.array(item_list), batch_count)
     return batches
 
 
 # @utils.time_this
 def parallel_scoring(phrog, merged_id_category):
+    """ Scores a phrog using the 4 scoring functions.
+
+    Args: phrog (str): A phrog id.
+            merged_id_category (pandas.DataFrame): A dataframe containing the phrog ids and their categories.
+
+    Returns: dict: A dictionary containing the phrog ids and their categories assigned by the scoring functions.
+
+    Example:
+    >>> parallel_scoring(phrog, merged_id_category)
+    {'phrog_1': {'func_1': ('category_1', 0.5), 'func_2': ('category_2', 0.5)}, 'phrog_2': {'func_1': ('category_1', 0.5), 'func_2': ('category_2', 0.5)}}
+
+    """
     d_phrog_categories = {}
     list_for_scoring = [list(row)
                         for row in merged_id_category.itertuples(index=False)]
 
     def key_func(x): return x[1]
+    
 
     # 4 scoring functions
     # mx: max value for a category
@@ -194,6 +296,24 @@ def parallel_scoring(phrog, merged_id_category):
 
 def prediction(func_dict: dict, model: Union[FastText, Word2Vec], 
                model_name: str, top_known_phrogs: int = 50, evaluate_mode: bool = True):
+    
+    """ Predicts the function of a phrog using the 4 scoring functions.
+
+    Args: func_dict (dict): A dictionary containing the phrog ids and their functions.
+            model (Union[FastText, Word2Vec]): A gensim model.
+            model_name (str): The name of the model.
+            top_known_phrogs (int): The number of known phrogs to use for scoring.
+            evaluate_mode (bool): Whether to use the evaluation mode.
+
+    Returns: pandas.DataFrame: A dataframe containing the phrog ids and their functions assigned by the scoring functions.
+
+    Example:
+    >>> prediction(func_dict, model, model_name, top_known_phrogs, evaluate_mode)
+    phrog_id  func_1  func_2  func_3  func_4
+    phrog_1  category_1  category_2  category_3  category_4
+    phrog_2  category_1  category_2  category_3  category_4
+
+    """
     
     # convert dict to pandas dataframe or read it directly
     start = time.perf_counter()
