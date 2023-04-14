@@ -174,7 +174,7 @@ import bayes_optimization as bay
 pipe = w2v.Word2VecPipeline(
     corpus_path="results/virall_noncoded_14-04-2023.pickle",
     output_prefix="logging_test_w2v_noncoded",
-    metadata="Data/metadata-phrog.pickle",
+    metadata="Data/metadata_phrog.pickle",
     vector_size=20,
     window=2,
     min_count=5,
