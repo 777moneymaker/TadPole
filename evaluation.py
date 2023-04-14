@@ -163,7 +163,6 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
     vectors = model.wv
     if evaluate_mode:
         phrogs_to_predict = known_func_phrog_list
-        phrogs_to_predict = phrogs_to_predict[:4000]
     else:
         model_keys = model.wv.key_to_index
         phrogs_to_predict = [w for w in model_keys if not w[-1].isdigit() or 'joker' in w]
