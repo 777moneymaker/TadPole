@@ -78,7 +78,10 @@ def parallel_validation(func_dict_df, phrog_categories):
     for category in function_tally:
         function_tally[category] = round((function_tally[category] / used_phrog_function_tally[category[1]]) * 100, 2)
 
-    print([x for x in phrog_categories if not x in used_phrog_name_tally])
+    print(len(used_phrog_name_tally))
+    monkey = [x for x in phrog_categories if x not in used_phrog_name_tally]
+    print(monkey)
+    print(len(monkey))
     return score_tally, function_tally
 
 
