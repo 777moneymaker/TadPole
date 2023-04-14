@@ -107,6 +107,8 @@ class BayesianOptimizer(object):
             # self.current_function = max(scores, key=scores.get)
             # local_best_score = scores[self.current_function]
             observer._eval_func = self.current_function
+            observer._correct_percent = self.current_correct_percentage
+            observer._not_evaluated = self.current_not_evaluated_num
             
             if local_best_score > self.best_score:
                 self.best_score = local_best_score
