@@ -22,12 +22,24 @@ import evaluation as evl
 PHROG_SPINNER = bouncing_spinner_factory(("🐸", "🐸"), 8, background = ".", hide = False, overlay =True)
 
 
+
 class TrainLogger(CallbackAny2Vec):
-    """
-    Callback to print training stats after each epoch
+    """ Callback to print training stats after each epoch
+
+    Attributes: CallbackAny2Vec
+
+    Methods: on_epoch_end, on_train_end
+
     """
 
     def __init__(self):
+        """ Initialise TrainLogger
+
+        Args: None
+
+        Returns: None
+
+        """
         self.epoch = 0
         self.loss_to_show = 0
         self.success = 0
@@ -36,6 +48,13 @@ class TrainLogger(CallbackAny2Vec):
     #     model.compute_loss = True
     
     def on_epoch_end(self, model):
+        """ Print training stats after each epoch
+
+        Args: model (gensim.models.word2vec.Word2Vec): Word2Vec model
+
+        Returns: None
+
+        """
         loss = model.get_latest_training_loss()
         loss_current = loss - self.loss_to_show
         self.loss_to_show = loss
@@ -51,11 +70,38 @@ class TrainLogger(CallbackAny2Vec):
         self.epoch += 1
     
     def on_train_end(self, model):
+        """ Print training stats after all epochs
+
+        Args: model (gensim.models.word2vec.Word2Vec): Word2Vec model
+
+        Returns: None
+
+        """
         self.success = 1
         print("Actually finished all")
 
 
 class Word2VecPipeline(object):
+    """ Word2Vec pipeline
+    
+    Attributes: corpus_path (str): Path to corpus
+                output_prefix (str): Prefix for output files
+                metadata (str): Path to metadata file
+                vector_size (int): Dimensionality of the feature vectors
+                window (int): Maximum distance between the current and predicted word within a sentence
+                min_count (int): Ignores all words with total frequency lower than this
+                epochs (int): Number of iterations (epochs) over the corpus
+                workers (int): Use these many worker threads to train the model (=faster training with multicore machines)
+                lr_start (float): Initial learning rate
+                lr_min (float): Minimal learning rate
+                sg (int): Training algorithm: 1 for skip-gram; otherwise CBOW
+                hs (int): If 1, hierarchical softmax will be used for model training. If set to 0, and negative is non-zero, negative sampling will be used.
+                callbacks (list): List of callbacks to use during training
+
+    Methods: __init__, _make_summary, _dump_result, _load_corpus, _load_metadata, _train_model, _visualise_model, _evaluate_model, _save_model, run
+
+    """
+
     __slots__ = ("corpus_path", "output_prefix", "metadata", "vector_size", "window",
                  "min_count", "epochs", "workers", "lr_start", "lr_min", "sg", "hs",
                  "callbacks", "negative", "ns_exp", "show_debug", "n_top_phrogs", "visualise_model",
@@ -66,6 +112,27 @@ class Word2VecPipeline(object):
                  lr_start: float = 0.025, lr_min: float = 0.0001, sg: int = 0, hs: int = 0,
                  callbacks=[TrainLogger()], negative: int = 5, ns_exp: float = 0.75, show_debug: bool = False,
                  n_top_phrogs: int = 50, visualise_model: bool = False, encoded: bool = True, save_model: bool = True):
+        
+        """ Initialise Word2VecPipeline
+        
+        Args: corpus_path (str): Path to corpus
+                output_prefix (str): Prefix for output files
+                metadata (str): Path to metadata file
+                vector_size (int): Dimensionality of the feature vectors
+                window (int): Maximum distance between the current and predicted word within a sentence
+                min_count (int): Ignores all words with total frequency lower than this
+                epochs (int): Number of iterations (epochs) over the corpus
+                workers (int): Use these many worker threads to train the model (=faster training with multicore machines)
+                lr_start (float): Initial learning rate
+                lr_min (float): Minimal learning rate
+                sg (int): Training algorithm: 1 for skip-gram; otherwise CBOW
+                hs (int): If 1, hierarchical softmax will be used for model training. If set to 0, and negative is non-zero, negative sampling will be used.
+                callbacks (list): List of callbacks to use during training
+
+        Returns: None
+
+        """
+
         self.corpus_path = corpus_path
         self.output_prefix = output_prefix
         self.metadata = metadata
@@ -96,6 +163,14 @@ class Word2VecPipeline(object):
     #     return state
 
     def _make_summary(self):
+        """ Make summary of pipeline parameters
+
+        Args: None
+
+        Returns: None
+        
+        """
+
         # summary = {k: v for k, v in self.__dict__.items() if k != 'model_object'}
         summary = {attr: getattr(self, attr) for attr in self.__slots__ if attr not in ['model_object', 'callbacks']}
         Path("evaluation").mkdir(exist_ok=True)
@@ -107,12 +182,30 @@ class Word2VecPipeline(object):
     #         json.dump(self, f)
     
     def _generate_name(self) -> str:
+
+        """ Generate name for model
+
+        Args: None
+
+        Returns: None
+
+        """
+
         ns_exp_str = str(self.ns_exp).replace(".", "")
         lr_start_str = str(self.lr_start).replace(".", "")
         lr_min_str = str(self.lr_min).replace(".", "")
         self.model_name = f"{self.output_prefix}_ns{ns_exp_str}_lr{lr_start_str}_lrmin{lr_min_str}_d{self.vector_size}_w{self.window}_e{self.epochs}_hs{self.hs}_neg{self.negative}_mincount{self.min_count}"
 
     def _model_train(self):
+
+        """ Train model
+        
+        Args: None
+
+        Returns: None
+        
+        """
+
         logging.basicConfig(level=logging.ERROR)
         if self.show_debug:
             logging.basicConfig(level=logging.DEBUG)
@@ -146,11 +239,31 @@ class Word2VecPipeline(object):
         self.model_object = model
     
     def _evaluate_model(self):
+
+        """ Evaluate model
+        
+        Args: None
+
+        Returns: None
+        
+        """
+
         funcs = utils.read_metadata(Path(self.metadata))
         prediction = evl.prediction(func_dict=funcs, model=self.model_object, model_name=self.model_name, top_known_phrogs=self.n_top_phrogs)
         return prediction
     
     def _umap_reduce(self, vectors_obj: wv.KeyedVectors, n_dims: int):
+        """ Reduce dimensionality of vectors using UMAP
+
+        Args:  vectors_obj (wv.KeyedVectors): Word2Vec model object
+                n_dims (int): Number of dimensions to reduce to
+
+        Returns: embedding (np.ndarray): Reduced dimensionality vectors
+
+        Example: embedding = _umap_reduce(model, 2) 
+        
+        """
+
         with alive_bar(title = "UMAP Magic",  dual_line = True, spinner = PHROG_SPINNER) as bar:
             # custom_logger.logger.info("UMAP Magic")
             reducer = umap.UMAP(n_components=n_dims)
@@ -162,6 +275,18 @@ class Word2VecPipeline(object):
             return embedding
 
     def _visualiser(self, vectors_obj: wv.KeyedVectors, reduced_embed: np.ndarray, visual_path: str, encoded: bool):
+
+        """ Visualise model
+        
+        Args:  vectors_obj (wv.KeyedVectors): Word2Vec model object
+                reduced_embed (np.ndarray): Reduced dimensionality vectors
+                visual_path (str): Path to save visualisation
+                encoded (bool): Whether the model was trained on encoded data
+
+        Returns: None
+        
+        """
+
         with alive_bar(title = "Gathering phrog metadata and embedding data",  dual_line = True, spinner = PHROG_SPINNER) as bar:
             # func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
             dataset = pd.DataFrame({'word': vectors_obj.index_to_key})
@@ -177,12 +302,26 @@ class Word2VecPipeline(object):
             bar()
     
     def _visualise_model(self):
+        """ Visualise model
+        
+        Args: None
+
+        Returns: None
+        
+        """
         visual_path = f"plots/{self.model_name}.html"
         embedding = self._umap_reduce(self.model_object.wv, n_dims=3)
         dataset = self._visualiser(self.model_object.wv, embedding, visual_path, self.encoded)
     
     @utils.time_this
     def run(self):
+        """ Run model
+        
+        Args: None
+
+        Returns: None
+        
+        """
         self._generate_name()
         self._model_train()
         if self.save_model:
@@ -208,6 +347,24 @@ def _generate_name(
     ns_exp_str = str(ns_exp).replace(".", "")
     lr_start_str = str(lr_start).replace(".", "")
     lr_min_str = str(lr_min).replace(".", "")
+
+    """Generate model name
+    
+    Args:  prefix (str): Prefix for model name
+            ns_exp (float): Negative sampling exponent
+            lr_start (float): Starting learning rate
+            lr_min (float): Minimum learning rate
+            vector_size (int): Vector size
+            window (int): Window size
+            epochs (int): Number of epochs
+            hs (int): Hierarchical softmax
+            negative (int): Number of negative samples
+            min_count (int): Minimum word count
+
+    Returns: model_name (str): Model name
+
+    """
+
     return f"{prefix}_ns{ns_exp_str}_lr{lr_start_str}_lrmin{lr_min_str}_d{vector_size}_w{window}_e{epochs}_hs{hs}_neg{negative}_mincount{min_count}"
 
 
@@ -227,9 +384,24 @@ def model_train(
     callbacks=[],
     show_debug: bool = False):
 
-    """
+    """ Train Word2Vec model
 
-    Train w2v model.
+    Args:  corpus_path (str): Path to corpus
+            min_count (int): Minimum word count
+            workers (int): Number of workers
+            vector_size (int): Vector size
+            window (int): Window size
+            sg (int): Skip-gram
+            hs (int): Hierarchical softmax
+            lr_start (float): Starting learning rate
+            lr_min (float): Minimum learning rate
+            epochs (int): Number of epochs
+            negative (int): Number of negative samples
+            ns_exp (float): Negative sampling exponent
+            callbacks (list): List of callbacks
+            show_debug (bool): Show debug messages
+
+    Returns: model (wv.Word2Vec): Word2Vec model
 
     """
 
@@ -277,9 +449,12 @@ def umap_reduce(
     vectors_obj: wv.KeyedVectors, 
     n_dims: int):
 
-    """
+    """ Reduce dimensionality of vectors using UMAP of ebeded vectors
 
-    Uses UMAP to reduce the dimensionality of the embedded vectors.
+    Args:  vectors_obj (wv.KeyedVectors): Word2Vec model
+            n_dims (int): Number of dimensions to reduce to
+
+    Returns: embedding (np.ndarray): Reduced dimensionality vectors
 
     """
 
@@ -300,9 +475,14 @@ def model_visualise(vectors_obj: wv.KeyedVectors,
                     visual_path: str,
                     encoded: bool):
 
-    """
+    """ Visualise model using UMAP reduced vectors in 3D by plotting with Plotly
     
-    Generates model visualisation in plotly's 3D scatter.
+    Args:  vectors_obj (wv.KeyedVectors): Word2Vec model
+            reduced_embed (np.ndarray): Reduced dimensionality vectors
+            visual_path (str): Path to save visualisation
+            encoded (bool): Whether the model is encoded or not
+
+    Returns: None
 
     """
 
@@ -344,8 +524,26 @@ def visualisation_pipeline(
     ns_exp: float = 0.75,
     show_debug: bool = False):
 
-    """
-    Automated word2vec visualisation pipeline: model training, UMAP dimensionality reduction, 3D scatter visualisation.
+    """ Pipeline to train Word2Vec model and visualise using UMAP
+
+    Args:  corpus_path (str): Path to corpus
+            visual_path (str): Path to save visualisation
+            vector_size (int): Dimensionality of word vectors
+            window (int): Context window size
+            min_count (int): Minimum frequency count of words
+            epochs (int): Number of epochs to train for
+            workers (int): Number of workers to use
+            lr_start (float): Starting learning rate
+            lr_min (float): Minimum learning rate
+            sg (int): Skip-gram or CBOW
+            hs (int): Hierarchical Softmax or Negative Sampling
+            callbacks (list): List of callbacks to use
+            negative (int): Number of negative samples
+            ns_exp (float): Negative sampling exponent
+            show_debug (bool): Whether to show debug messages
+
+    Returns: None
+
     """
 
     # *** w2v train + loading corpus ***
@@ -402,9 +600,31 @@ def evaluation_pipeline(
     visualise_model: bool = False,
     encoded: bool = True):
 
+    """ Pipeline to train Word2Vec model and evaluate using phrog dataset
+
+    Args:  corpus_path (str): Path to corpus
+            output_prefix (str): Prefix for output files
+            vector_size (int): Dimensionality of word vectors
+            window (int): Context window size
+            min_count (int): Minimum frequency count of words
+            epochs (int): Number of epochs to train for
+            workers (int): Number of workers to use
+            lr_start (float): Starting learning rate
+            lr_min (float): Minimum learning rate
+            sg (int): Skip-gram or CBOW
+            hs (int): Hierarchical Softmax or Negative Sampling
+            callbacks (list): List of callbacks to use
+            negative (int): Number of negative samples
+            ns_exp (float): Negative sampling exponent
+            show_debug (bool): Whether to show debug messages
+            n_top_phrogs (int): Number of top phrogs to evaluate
+            visualise_model (bool): Whether to visualise model
+            encoded (bool): Whether to use encoded phrog dataset
+
+    Returns: None
+
     """
-    Automated word2vec evaluation pipeline: model training, automated model save and model scoring.
-    """
+    
     # *** w2v train + loading corpus ***
     model = model_train(
         corpus_path=corpus_path, 
