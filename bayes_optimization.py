@@ -12,9 +12,11 @@ import os
 
 
 class ModelOptLogger(_Tracker):
-    def __init__(self, path, eval_func, reset=True):
+    def __init__(self, path, eval_func, correct_percent, not_evaluated, reset=True):
         self._path = path if path[-5:] == ".json" else path + ".json"
         self._eval_func = eval_func
+        self._correct_percent = correct_percent
+        self._not_evaluated = not_evaluated
         if reset:
             try:
                 os.remove(self._path)
@@ -32,6 +34,8 @@ class ModelOptLogger(_Tracker):
             "delta": time_delta,
         }
         data["function"] = self._eval_func
+        data["correct_percent_per_category"] = self._correct_percent
+        data["not_evaluated_num"] = self._not_evaluated
 
         # print(dict(data))
 
@@ -57,6 +61,8 @@ class BayesianOptimizer(object):
         self.best_model = None
         self.best_score = 0
         self.current_function = ""
+        self.current_correct_percentage = None
+        self.current_not_evaluated_num = 0
         self.opt_name = opt_name
         self.output_path = output_path
         self.aquisition_function = aquisition_function
@@ -93,6 +99,8 @@ class BayesianOptimizer(object):
                 return 0
             scores = self.initial_model.result
             self.current_function, local_best_score = self._get_local_best_score(scores)
+            self.current_correct_percentage = self.initial_model.correct_percent_per_category
+            self.current_not_evaluated_num = self.initial_model.not_evaluated_number
             print(self.current_function)
             print(local_best_score)
             # self.current_function = max(scores, key=scores.get)
@@ -117,7 +125,10 @@ class BayesianOptimizer(object):
         self.output_path.mkdir(exist_ok=True)
         log_path = self.output_path / f"{self.opt_name}.json"
         # observer = ModelOptLogger(path="./logs/bayes_test.json", eval_func=self.current_function)
-        observer = ModelOptLogger(path=log_path.as_posix(), eval_func=self.current_function)
+        observer = ModelOptLogger(path=log_path.as_posix(), 
+                                  eval_func=self.current_function, 
+                                  correct_percent=self.current_correct_percentage, 
+                                  not_evaluated=self.current_not_evaluated_num)
         aquisition_func = UtilityFunction(kind=self.aquisition_function,
                                           kappa_decay_delay=self.kappa_decay_delay,
                                           kappa_decay=self.kappa_decay,

@@ -171,46 +171,68 @@ import bayes_optimization as bay
 # pipe.run()
 
 # opt
-# pipe = w2v.Word2VecPipeline(
-#     corpus_path="results/virall_encode_02-04-2023.pickle",
-#     output_prefix="virall_optProto_w2v",
-#     metadata="Data/metadata_02-04-2023.pickle",
-#     vector_size=20,
-#     window=2,
-#     min_count=5,
-#     epochs=5,
-#     workers=40,
-#     lr_start=0.005,
-#     lr_min=0.0001,
-#     hs=0,
-#     negative=75,
-#     ns_exp=-0.1,
-#     callbacks=[w2v.TrainLogger()],
-#     visualise_model=False,
-#     encoded=True,
-#     save_model= False
-# )
-
-pipe = ft.FastTextPipeline(
+pipe = w2v.Word2VecPipeline(
     corpus_path="results/virall_encode_02-04-2023.pickle",
-    output_prefix="ft_virall_optProto",
+    output_prefix="logging_test_w2v",
     metadata="Data/metadata_02-04-2023.pickle",
     vector_size=20,
     window=2,
     min_count=5,
     epochs=5,
     workers=40,
-    # lr_start=0.005,
-    # lr_min=0.0001,
-    lr_start=1,
+    lr_start=0.005,
     lr_min=0.0001,
     hs=0,
     negative=75,
-    ns_exp=-0.75,
+    ns_exp=-0.1,
+    callbacks=[w2v.TrainLogger()],
     visualise_model=False,
     encoded=True,
-    save_model=False
+    save_model= False
 )
+
+#pipe = ft.FastTextPipeline(
+#    corpus_path="results/virall_encode_02-04-2023.pickle",
+#    output_prefix="ft_virall_evalSpeedup",
+#    metadata="Data/metadata_02-04-2023.pickle",
+#    vector_size=20,
+#    window=2,
+#    min_count=5,
+#    epochs=5,
+#    workers=40,
+    # lr_start=0.005,
+    # lr_min=0.0001,
+#    lr_start=0.1,
+#    lr_min=0.0001,
+#    hs=0,
+#    negative=75,
+#    ns_exp=-0.75,
+#    visualise_model=False,
+#    encoded=True,
+#    save_model=False
+#)
+
+# validate_pipe = ft.FastTextPipeline(
+#     corpus_path="results/virall_encode_02-04-2023.pickle",
+#     output_prefix="ft_virall_optProto_90Validation",
+#     metadata="Data/metadata_02-04-2023.pickle",
+#     vector_size=62,
+#     window=2,
+#     min_count=5,
+#     epochs=507,
+#     workers=40,
+#     max_n=8,
+#     min_n=2,
+#     lr_start=0.08727363947530192,
+#     lr_min=0.0074157752401361075,
+#     hs=0,
+#     negative=137,
+#     ns_exp=0.24751227405245746,
+#     visualise_model=True,
+#     encoded=True,
+#     save_model=True
+# )
+# validate_pipe.run()
 
 # hypers = {
 #     'vector_size': (50, 200),
@@ -221,16 +243,21 @@ pipe = ft.FastTextPipeline(
 #     'negative': (45, 135)
 # }
 
-hypers = {
-    'vector_size': (50, 300),
-    'epochs': (100, 700),
+quick_hypers = {
     'ns_exp': (-0.9, 0.9),
-    'lr_start': (0.0001, 0.1),
-    'lr_min': (0.00001, 0.01),
-    'negative': (45, 300),
-    'max_n': (2, 12),
-    'min_n': (2, 12)
+    'negative': (45, 100),
 }
+
+# hypers = {
+#     'vector_size': (50, 300),
+#     'epochs': (100, 700),
+#     'ns_exp': (-0.9, 0.9),
+#     'lr_start': (0.0001, 0.1),
+#     'lr_min': (0.00001, 0.01),
+#     'negative': (45, 300),
+#     'max_n': (2, 12),
+#     'min_n': (2, 12)
+# }
 
 # hypers = {
 #     'vector_size': (200, 500),
@@ -241,5 +268,12 @@ hypers = {
 #     'negative': (0, 300),
 # }
 
-bayes = bay.BayesianOptimizer(pipe, hypers, 5, 20, "ft_optProto", Path("./logs/ft_optProto"), aquisition_function='ucb', kappa=5)
+bayes = bay.BayesianOptimizer(pipe, quick_hypers, 2, 2, "logging_test_w2v", Path("./logs/logging_test_w2v"), aquisition_function='ucb', kappa=5)
 bayes.optimize()
+
+# >>> import fasttext_train as ft
+# >>> from gensim.models import FastText
+# >>> model = FastText.load("logs/ft_optProto/ft_virall_optProto_ns024751227405245746_lr0_lrmin00074157752401361075_d62_w2_e507_hs0_neg137_maxn8_minn2.model")
+# >>> embedding = ft.umap_reduce(model.wv, 3)
+# UMAP Magic |████████████████████████████████████████| 1 in 45.1s (0.02/s)
+# >>> visual = ft.model_visualise(model.wv, embedding, "plots/ft_virall_optProto_ns024751227405245746_lr0_lrmin00074157752401361075_d62_w2_e507_hs0_neg137_maxn8_minn2.html", True)

@@ -226,4 +226,5 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
         char_nl = '\n'
         with open("evaluation_log.txt", "a") as f:  # very rudimentary logging as of now
             f.write(f"{type(model).__name__}/{model_name}{str(scores)}{char_nl}")
-        return scores, max_func_scores
+        not_evaluated_num = len(phrogs_to_predict) - len(phrog_categories)
+        return scores, max_func_scores, not_evaluated_num

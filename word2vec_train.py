@@ -59,7 +59,8 @@ class Word2VecPipeline(object):
     __slots__ = ("corpus_path", "output_prefix", "metadata", "vector_size", "window",
                  "min_count", "epochs", "workers", "lr_start", "lr_min", "sg", "hs",
                  "callbacks", "negative", "ns_exp", "show_debug", "n_top_phrogs", "visualise_model",
-                 "encoded", "result", "model_name", "model_object", "save_model")
+                 "encoded", "result", "model_name", "model_object", "save_model", "correct_percent_per_category",
+                 "not_evaluated_number")
 
     def __init__(self, corpus_path: str, output_prefix: str, metadata: str, vector_size: int = 100,
                  window: int = 5, min_count: int = 5, epochs: int = 5, workers: int = 3,
@@ -87,6 +88,8 @@ class Word2VecPipeline(object):
         self.encoded = encoded
         self.save_model = save_model
         self.result = None
+        self.correct_percent_per_category = None
+        self.not_evaluated_number = 0
         self.model_name = None
         self.model_object = None
     
@@ -147,8 +150,8 @@ class Word2VecPipeline(object):
     
     def _evaluate_model(self):
         funcs = utils.read_metadata(Path(self.metadata))
-        prediction = evl.prediction(func_dict=funcs, model=self.model_object, model_name=self.model_name, top_known_phrogs=self.n_top_phrogs)
-        return prediction
+        prediction, correct_category, not_eval = evl.prediction(func_dict=funcs, model=self.model_object, model_name=self.model_name, top_known_phrogs=self.n_top_phrogs)
+        return prediction, correct_category, not_eval
     
     def _umap_reduce(self, vectors_obj: wv.KeyedVectors, n_dims: int):
         with alive_bar(title = "UMAP Magic",  dual_line = True, spinner = PHROG_SPINNER) as bar:
@@ -188,7 +191,7 @@ class Word2VecPipeline(object):
         if self.save_model:
             model_path = f"train_test/{self.model_name}.model"
             self.model_object.save(model_path)
-        self.result = self._evaluate_model()
+        self.result, self.correct_percent_per_category, self.not_evaluated_number = self._evaluate_model()
         if self.visualise_model:
             self._visualise_model()
         self._make_summary()
