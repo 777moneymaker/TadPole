@@ -303,16 +303,31 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
     if evaluate_mode:
         # scores, func_scores = parallel_validation(func_dict_df, phrog_categories)
         result = Parallel(verbose=True, n_jobs=-1)(delayed(validate_chunk)(func_dict_df, chunk) for chunk in batch_dict(phrog_categories))
-        print(result)
-        # max_value = max(scores.values())  # maximum value
-        # max_scoring_func = [k for k, v in scores.items() if v == max_value]
-        # max_func_scores = {}
-        # for key, value in func_scores.items():
-        #     if key[0] == max_scoring_func[0]:
-        #         max_func_scores[key[1]] = value
-        # print('Correctly assigned procentages: ', max_func_scores)
-        # print(f"{max_value}%")
-        # char_nl = '\n'
-        # with open("evaluation_log.txt", "a") as f:  # very rudimentary logging as of now
-        #     f.write(f"{type(model).__name__}/{model_name}{str(scores)}{char_nl}")
-        # return scores
+        # print(result)
+        score_tally = {}
+        function_tally = {}
+        used_phrog_function_tally = {}
+        for tup in result:
+            score_tally.update(tup[0])
+            function_tally.update(tup[1])
+            used_phrog_function_tally.update(tup[2])
+        for scoring_function, n_true_answers in score_tally.items():
+            score_tally[scoring_function] = round((n_true_answers / len(phrog_categories)) * 100, 2)
+        print('\nfunction_tally:', function_tally)
+        print('\nTotal count:', used_phrog_function_tally)
+        for category in function_tally:
+            function_tally[category] = round((function_tally[category] / used_phrog_function_tally[category[1]]) * 100, 2)
+        scores = score_tally
+        func_scores = function_tally
+        max_value = max(scores.values())  # maximum value
+        max_scoring_func = [k for k, v in scores.items() if v == max_value]
+        max_func_scores = {}
+        for key, value in func_scores.items():
+            if key[0] == max_scoring_func[0]:
+                max_func_scores[key[1]] = value
+        print('Correctly assigned procentages: ', max_func_scores)
+        print(f"{max_value}%")
+        char_nl = '\n'
+        with open("evaluation_log.txt", "a") as f:  # very rudimentary logging as of now
+            f.write(f"{type(model).__name__}/{model_name}{str(scores)}{char_nl}")
+        return scores
