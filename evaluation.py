@@ -44,6 +44,8 @@ def parallel_validation(func_dict_df, phrog_categories):
     score_tally = mp.Manager().dict()
     function_tally = mp.Manager().dict()
     used_phrog_function_tally = mp.Manager().dict()
+    # only for debugging purposes
+    used_phrog_name_tally = mp.Manager().dict()
     processes = []
 
     # Divide phrog_categories into chunks
@@ -76,14 +78,15 @@ def parallel_validation(func_dict_df, phrog_categories):
     for category in function_tally:
         function_tally[category] = round((function_tally[category] / used_phrog_function_tally[category[1]]) * 100, 2)
 
-    print([x for x in phrog_categories if not x in used_phrog_function_tally])
+    print([x for x in phrog_categories if not x in used_phrog_name_tally])
     return score_tally, function_tally
 
 
-def validate_chunk(func_dict_df, phrog_categories, score_tally, function_tally, used_phrog_function_tally):
+def validate_chunk(func_dict_df, phrog_categories, score_tally, function_tally, used_phrog_function_tally, used_phrog_name_tally):
     local_score_tally = {}
     local_function_tally = {}
     local_used_phrog_function_tally = {}
+    local_used_phrog_name_tally = {}
     for phrog, scoring_functions in phrog_categories.items():
         true_category = func_dict_df.loc[func_dict_df['phrog_id'] == phrog, 'category'].values[
             0]  # get the proper category of the phrog
@@ -98,6 +101,9 @@ def validate_chunk(func_dict_df, phrog_categories, score_tally, function_tally, 
         true_category = func_dict_df.loc[func_dict_df['phrog_id'] == phrog, 'category'].values[0]  # get the proper category of the phrog
         if true_category not in local_used_phrog_function_tally.keys():
             local_used_phrog_function_tally[true_category] = 0
+            # debug
+            local_used_phrog_name_tally[phrog] = phrog
+            ####
         local_used_phrog_function_tally[true_category] += 1
 
     # Update the shared answer_tally dictionary atomically
@@ -115,6 +121,11 @@ def validate_chunk(func_dict_df, phrog_categories, score_tally, function_tally, 
         with mp.Lock():
             used_phrog_function_tally[key] = used_phrog_function_tally.get(
                 key, 0) + value
+    
+    for key, value in local_used_phrog_name_tally.items():
+        with mp.Lock():
+            used_phrog_name_tally[key] = used_phrog_name_tally.get(
+                key, "")
 
 
 # @utils.time_this
