@@ -46,13 +46,6 @@ def batch_dict(phrog_categories, num_chunks: int = cpu_count()):
               for i in range(0, len(phrog_categories), chunk_size)]
     return chunks
 
-
-# def batch_validate(func_dict_df, phrog_categories):
-#     local_score_tally, local_function_tally, local_used_phrog_function_tally = {}
-#     for phrog, scoring_functions in phrog_categories.items():
-#         (local_score_tally, local_function_tally, local_used_phrog_function_tally).update(validate_chunk(func_dict_df, phrog, phrog_categories))
-
-
 def validate_chunk(func_dict_df, phrog_categories):
     local_score_tally = {}
     local_function_tally = {}
@@ -72,104 +65,8 @@ def validate_chunk(func_dict_df, phrog_categories):
         true_category = func_dict_df.loc[func_dict_df['phrog_id'] == phrog, 'category'].values[0]  # get the proper category of the phrog
         if true_category not in local_used_phrog_function_tally.keys():
             local_used_phrog_function_tally[true_category] = 0
-            # debug
-            # local_used_phrog_name_tally[phrog] = phrog
-            ####
         local_used_phrog_function_tally[true_category] += 1
     return local_score_tally, local_function_tally, local_used_phrog_function_tally
-
-
-# @utils.time_this
-# def parallel_validation(func_dict_df, phrog_categories):
-#     score_tally = mp.Manager().dict()
-#     function_tally = mp.Manager().dict()
-#     used_phrog_function_tally = mp.Manager().dict()
-#     # only for debugging purposes
-#     used_phrog_name_tally = mp.Manager().dict()
-#     processes = []
-
-#     # Divide phrog_categories into chunks
-#     num_chunks = mp.cpu_count()
-#     chunk_size = int(len(phrog_categories) / num_chunks) + 1
-#     chunks = [dict(list(phrog_categories.items())[i:i+chunk_size])
-#               for i in range(0, len(phrog_categories), chunk_size)]
-
-#     # Start a process for each chunk
-#     for chunk in chunks:
-#         process = mp.Process(target=validate_chunk, args=(
-#             func_dict_df, chunk, score_tally, function_tally, used_phrog_function_tally, used_phrog_name_tally))
-#         process.start()
-#         processes.append(process)
-
-#     # Wait for all processes to finish
-#     for process in processes:
-#         process.join()
-
-#     # Convert answer_tally to a regular dictionary and calculate percentages
-#     score_tally = dict(score_tally)
-#     for scoring_function, n_true_answers in score_tally.items():
-#         score_tally[scoring_function] = round(
-#             (n_true_answers / len(phrog_categories)) * 100, 2)
-
-#     function_tally = dict(function_tally)
-
-#     print('\nfunction_tally:', function_tally)
-#     print('\nTotal count:', used_phrog_function_tally)
-#     for category in function_tally:
-#         function_tally[category] = round((function_tally[category] / used_phrog_function_tally[category[1]]) * 100, 2)
-
-#     print(len(used_phrog_name_tally))
-#     monkey = [x for x in phrog_categories if x not in used_phrog_name_tally]
-#     print(monkey)
-#     print(len(monkey))
-#     return score_tally, function_tally
-
-
-# def validate_chunk(func_dict_df, phrog_categories, score_tally, function_tally, used_phrog_function_tally, used_phrog_name_tally):
-#     local_score_tally = {}
-#     local_function_tally = {}
-#     local_used_phrog_function_tally = {}
-#     local_used_phrog_name_tally = {}
-#     for phrog, scoring_functions in phrog_categories.items():
-#         true_category = func_dict_df.loc[func_dict_df['phrog_id'] == phrog, 'category'].values[
-#             0]  # get the proper category of the phrog
-#         for scoring_function, assigned_category in scoring_functions.items():
-#             if scoring_function not in local_score_tally.keys():
-#                 local_score_tally[scoring_function] = 0
-#             if (scoring_function,assigned_category[0]) not in local_function_tally.keys():
-#                 local_function_tally[(scoring_function,assigned_category[0])] = 0
-#             if assigned_category[0] == true_category:
-#                 local_score_tally[scoring_function] += 1
-#                 local_function_tally[(scoring_function,true_category)] += 1
-#         true_category = func_dict_df.loc[func_dict_df['phrog_id'] == phrog, 'category'].values[0]  # get the proper category of the phrog
-#         if true_category not in local_used_phrog_function_tally.keys():
-#             local_used_phrog_function_tally[true_category] = 0
-#             # debug
-#             local_used_phrog_name_tally[phrog] = phrog
-#             ####
-#         local_used_phrog_function_tally[true_category] += 1
-
-#     # Update the shared answer_tally dictionary atomically
-#     for scoring_function, count in local_score_tally.items():
-#         with mp.Lock():
-#             score_tally[scoring_function] = score_tally.get(
-#                 scoring_function, 0) + count
-
-#     for key, value in local_function_tally.items():
-#         with mp.Lock():
-#             function_tally[key] = function_tally.get(
-#                 key, 0) + value
-
-#     for key, value in local_used_phrog_function_tally.items():
-#         with mp.Lock():
-#             used_phrog_function_tally[key] = used_phrog_function_tally.get(
-#                 key, 0) + value
-    
-#     for key, value in local_used_phrog_name_tally.items():
-#         with mp.Lock():
-#             used_phrog_name_tally[key] = used_phrog_name_tally.get(
-#                 key, "") + value
-
 
 # @utils.time_this
 def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
@@ -180,10 +77,9 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
         try:
             result = [vector for vector in vectors.most_similar(phrog, topn=60_000) if not vector[0].endswith(phrog[-5:])]
         except KeyError:
-            # print(f"Key error on {phrog}")
             continue
 
-         # replace phrogs with functions
+        # replace phrogs with functions
         model_result_tuples_to_df = pd.DataFrame(
             result, columns=['phrog_id', 'probability'])
         merged = model_result_tuples_to_df.merge(
@@ -205,7 +101,6 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
         # end = time.perf_counter()
         # runtime = end - start
         # print(f"Done one iteration of phrog from one frog batch in {runtime:0.8f}")
-    # print(f"phrog_batch len: {len(phrog_batch)};{len(local_phrog_categories)} :local_phrog_categories")
     return local_phrog_categories
 
 
@@ -266,9 +161,9 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
     print(f"Done known_func_phrog_list in {runtime:0.8f}")
 
     vectors = model.wv
-    print(f"known_func_phrog_list: {len(set(known_func_phrog_list))}")
     if evaluate_mode:
         phrogs_to_predict = known_func_phrog_list
+        phrogs_to_predict = phrogs_to_predict[:4000]
     else:
         model_keys = model.wv.key_to_index
         phrogs_to_predict = [w for w in model_keys if not w[-1].isdigit() or 'joker' in w]
@@ -283,10 +178,8 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
         k: v for x in list_phrog_categories for k, v in x.items()}
     end = time.perf_counter()
     print(len(phrog_categories))
-    print(f"list_phrog_categories len: {len(list_phrog_categories)};{len(phrog_categories)} :phrog_categories")
     runtime = end - start
     print(f"Done phrog_categories in {runtime:0.8f}")
-    # print(phrog_categories)
 
     # TODO: put to docstring
     # Dictionary phrog: {
@@ -301,7 +194,6 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
 
     # validation
     if evaluate_mode:
-        # scores, func_scores = parallel_validation(func_dict_df, phrog_categories)
         result = Parallel(verbose=True, n_jobs=-1)(delayed(validate_chunk)(func_dict_df, chunk) for chunk in batch_dict(phrog_categories))
         # print(result)
         score_tally = defaultdict(int)
@@ -319,8 +211,6 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
         used_phrog_function_tally = dict(used_phrog_function_tally)
         for scoring_function, n_true_answers in score_tally.items():
             score_tally[scoring_function] = round((n_true_answers / len(phrog_categories)) * 100, 2)
-        print('\nfunction_tally:', function_tally)
-        print('\nTotal count:', used_phrog_function_tally)
         for category in function_tally:
             function_tally[category] = round((function_tally[category] / used_phrog_function_tally[category[1]]) * 100, 2)
         scores = score_tally
@@ -336,4 +226,4 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
         char_nl = '\n'
         with open("evaluation_log.txt", "a") as f:  # very rudimentary logging as of now
             f.write(f"{type(model).__name__}/{model_name}{str(scores)}{char_nl}")
-        return scores
+        return scores, max_func_scores
