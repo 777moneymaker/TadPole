@@ -304,13 +304,19 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
         # scores, func_scores = parallel_validation(func_dict_df, phrog_categories)
         result = Parallel(verbose=True, n_jobs=-1)(delayed(validate_chunk)(func_dict_df, chunk) for chunk in batch_dict(phrog_categories))
         # print(result)
-        score_tally = {}
-        function_tally = {}
-        used_phrog_function_tally = {}
+        score_tally = defaultdict(int)
+        function_tally = defaultdict(int)
+        used_phrog_function_tally = defaultdict(int)
         for tup in result:
-            score_tally.update(tup[0])
-            function_tally.update(tup[1])
-            used_phrog_function_tally.update(tup[2])
+            for elem in tup[0]:
+                score_tally[elem] += tup[0][elem]
+            for elem in tup[1]:
+                function_tally[elem] += tup[1][elem]
+            for elem in tup[2]:
+                used_phrog_function_tally[elem] += tup[2][elem]
+        score_tally = dict(score_tally)
+        function_tally = dict(function_tally)
+        used_phrog_function_tally = dict(used_phrog_function_tally)
         for scoring_function, n_true_answers in score_tally.items():
             score_tally[scoring_function] = round((n_true_answers / len(phrog_categories)) * 100, 2)
         print('\nfunction_tally:', function_tally)
