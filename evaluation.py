@@ -57,7 +57,7 @@ def parallel_validation(func_dict_df, phrog_categories):
     # Start a process for each chunk
     for chunk in chunks:
         process = mp.Process(target=validate_chunk, args=(
-            func_dict_df, chunk, score_tally, function_tally, used_phrog_function_tally))
+            func_dict_df, chunk, score_tally, function_tally, used_phrog_function_tally, used_phrog_name_tally))
         process.start()
         processes.append(process)
 
@@ -137,7 +137,7 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
         try:
             result = [vector for vector in vectors.most_similar(phrog, topn=60_000) if not vector[0].endswith(phrog[-5:])]
         except KeyError:
-            print(f"Key error on {phrog}")
+            # print(f"Key error on {phrog}")
             continue
 
          # replace phrogs with functions
