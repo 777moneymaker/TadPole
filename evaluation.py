@@ -71,6 +71,7 @@ def parallel_validation(func_dict_df, phrog_categories):
 
     function_tally = dict(function_tally)
 
+    print('\nfunction_tally:', function_tally)
     print('\nTotal count:', used_phrog_function_tally)
     for category in function_tally:
         function_tally[category] = round((function_tally[category] / used_phrog_function_tally[category[1]]) * 100, 2)
@@ -151,6 +152,7 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
         # end = time.perf_counter()
         # runtime = end - start
         # print(f"Done one iteration of phrog from one frog batch in {runtime:0.8f}")
+        print(f"phrog_batch len: {len(phrog_batch)};{len(local_phrog_categories)} :local_phrog_categories")
     return local_phrog_categories
 
 
