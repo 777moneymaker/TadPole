@@ -76,6 +76,7 @@ def parallel_validation(func_dict_df, phrog_categories):
     for category in function_tally:
         function_tally[category] = round((function_tally[category] / used_phrog_function_tally[category[1]]) * 100, 2)
 
+    print([x for x in phrog_categories if not x in used_phrog_function_tally])
     return score_tally, function_tally
 
 
@@ -94,10 +95,7 @@ def validate_chunk(func_dict_df, phrog_categories, score_tally, function_tally, 
             if assigned_category[0] == true_category:
                 local_score_tally[scoring_function] += 1
                 local_function_tally[(scoring_function,true_category)] += 1
-
-    for phrog, scoring_functions in phrog_categories.items():
-        true_category = func_dict_df.loc[func_dict_df['phrog_id'] == phrog, 'category'].values[
-            0]  # get the proper category of the phrog
+        true_category = func_dict_df.loc[func_dict_df['phrog_id'] == phrog, 'category'].values[0]  # get the proper category of the phrog
         if true_category not in local_used_phrog_function_tally.keys():
             local_used_phrog_function_tally[true_category] = 0
         local_used_phrog_function_tally[true_category] += 1
