@@ -225,7 +225,7 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
     print(f"Done known_func_phrog_list in {runtime:0.8f}")
 
     vectors = model.wv
-
+    print(f"known_func_phrog_list: {len(set(known_func_phrog_list))}")
     if evaluate_mode:
         phrogs_to_predict = known_func_phrog_list
     else:
