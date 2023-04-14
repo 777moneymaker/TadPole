@@ -127,7 +127,8 @@ def validate_chunk(func_dict_df, phrog_categories, score_tally, function_tally, 
     
     for key, value in local_used_phrog_name_tally.items():
         with mp.Lock():
-            used_phrog_name_tally[key] = value
+            used_phrog_name_tally[key] = used_phrog_name_tally.get(
+                key, "") + value
 
 
 # @utils.time_this
