@@ -47,6 +47,12 @@ def batch_dict(phrog_categories, num_chunks: int = cpu_count()):
     return chunks
 
 
+# def batch_validate(func_dict_df, phrog_categories):
+#     local_score_tally, local_function_tally, local_used_phrog_function_tally = {}
+#     for phrog, scoring_functions in phrog_categories.items():
+#         (local_score_tally, local_function_tally, local_used_phrog_function_tally).update(validate_chunk(func_dict_df, phrog, phrog_categories))
+
+
 def validate_chunk(func_dict_df, phrog_categories):
     local_score_tally = {}
     local_function_tally = {}
@@ -296,10 +302,8 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
     # validation
     if evaluate_mode:
         # scores, func_scores = parallel_validation(func_dict_df, phrog_categories)
-        scores_list, func_scores_list, used_list = Parallel(verbose=True, n_jobs=-1)(delayed(validate_chunk)(func_dict_df, chunk) for chunk in batch_dict(phrog_categories))
-        print(scores_list)
-        print(func_scores_list)
-        print(used_list)
+        result = Parallel(verbose=True, n_jobs=-1)(delayed(validate_chunk)(func_dict_df, chunk) for chunk in batch_dict(phrog_categories))
+        print(result)
         # max_value = max(scores.values())  # maximum value
         # max_scoring_func = [k for k, v in scores.items() if v == max_value]
         # max_func_scores = {}
