@@ -152,7 +152,7 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
         # end = time.perf_counter()
         # runtime = end - start
         # print(f"Done one iteration of phrog from one frog batch in {runtime:0.8f}")
-        print(f"phrog_batch len: {len(phrog_batch)};{len(local_phrog_categories)} :local_phrog_categories")
+    print(f"phrog_batch len: {len(phrog_batch)};{len(local_phrog_categories)} :local_phrog_categories")
     return local_phrog_categories
 
 
