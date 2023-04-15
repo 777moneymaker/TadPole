@@ -187,7 +187,7 @@ pipe = w2v.Word2VecPipeline(
     ns_exp=-0.1,
     callbacks=[w2v.TrainLogger()],
     visualise_model=False,
-    encoded=True,
+    encoded=False,
     save_model= False
 )
 
