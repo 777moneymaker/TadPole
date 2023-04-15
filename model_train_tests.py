@@ -173,12 +173,12 @@ import bayes_optimization as bay
 # opt
 pipe = w2v.Word2VecPipeline(
     corpus_path="results/virall_noncoded_14-04-2023.pickle",
-    output_prefix="logging_test_w2v_noncoded",
+    output_prefix="aus_w2v",
     metadata="Data/metadata_phrog.pickle",
     vector_size=20,
     window=2,
-    min_count=5,
-    epochs=5,
+    min_count=2,
+    epochs=500,
     workers=40,
     lr_start=0.005,
     lr_min=0.0001,
@@ -243,9 +243,18 @@ pipe = w2v.Word2VecPipeline(
 #     'negative': (45, 135)
 # }
 
-quick_hypers = {
-    'ns_exp': (-0.9, 0.9),
-    'negative': (45, 100),
+# quick_hypers = {
+#     'ns_exp': (-0.9, 0.9),
+#     'negative': (45, 100),
+# }
+
+hypers = {
+    'vector_size': (50, 200),
+    'window':   (2, 4),
+    'ns_exp': (0.2, 0.95),
+    'lr_start': (0.00001, 0.5),
+    'lr_min': (0.000001, 0.1),
+    'negative': (10, 100),
 }
 
 # hypers = {
@@ -268,7 +277,7 @@ quick_hypers = {
 #     'negative': (0, 300),
 # }
 
-bayes = bay.BayesianOptimizer(pipe, quick_hypers, 2, 2, "logging_test_w2v_noncoded", Path("./logs/logging_test_w2v_noncoded"), aquisition_function='ucb', kappa=5)
+bayes = bay.BayesianOptimizer(pipe, hypers, 12, 23, "aus_w2v", Path("./logs/aus_w2v"), aquisition_function='ucb', kappa=5)
 bayes.optimize()
 
 # >>> import fasttext_train as ft

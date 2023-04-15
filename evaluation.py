@@ -126,17 +126,17 @@ def parallel_scoring(phrog, merged_id_category):
     mx = tuple(max(list_for_scoring, key=key_func))
     summed = max(sum_tuples(list_for_scoring), key=key_func)
     mean = max(mean_tuples(list_for_scoring), key=key_func)
-    power_2 = max(sum_tuples(power_tuples(list_for_scoring, 2)), key=key_func)
+    power_3 = max(sum_tuples(power_tuples(list_for_scoring, 3)), key=key_func)
     power_4 = max(sum_tuples(power_tuples(list_for_scoring, 4)), key=key_func)
-    power_8 = max(sum_tuples(power_tuples(list_for_scoring, 8)), key=key_func)
+    power_5 = max(sum_tuples(power_tuples(list_for_scoring, 5)), key=key_func)
 
     d_phrog_categories[phrog] = {
         "max": mx,
         "sum": summed,
         "mean": mean,
-        "power 2": power_2,
+        "power 3": power_3,
         "power 4": power_4,
-        "power 8": power_8
+        "power 5": power_5
     }
 
     return d_phrog_categories
