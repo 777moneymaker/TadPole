@@ -173,9 +173,9 @@ import bayes_optimization as bay
 # opt
 pipe = w2v.Word2VecPipeline(
     corpus_path="results/virall_noncoded_14-04-2023.pickle",
-    output_prefix="aus_w2v",
+    output_prefix="aus_w2v_2nd",
     metadata="Data/metadata_phrog.pickle",
-    vector_size=20,
+    vector_size=120,
     window=2,
     min_count=2,
     epochs=500,
@@ -183,7 +183,7 @@ pipe = w2v.Word2VecPipeline(
     lr_start=0.005,
     lr_min=0.0001,
     hs=0,
-    negative=75,
+    negative=50,
     ns_exp=-0.1,
     callbacks=[w2v.TrainLogger()],
     visualise_model=False,
@@ -249,12 +249,10 @@ pipe = w2v.Word2VecPipeline(
 # }
 
 hypers = {
-    'vector_size': (50, 200),
-    'window': (2, 4),
-    'ns_exp': (0.2, 0.95),
-    'lr_start': (0.00001, 0.5),
-    'lr_min': (0.000001, 0.1),
-    'negative': (10, 100),
+    'window': (2, 5),
+    'ns_exp': (0.01, 0.95),
+    'lr_start': (0.000001, 0.1),
+    'lr_min': (0.000001, 0.2)
 }
 
 # hypers = {
@@ -277,7 +275,7 @@ hypers = {
 #     'negative': (0, 300),
 # }
 
-bayes = bay.BayesianOptimizer(pipe, hypers, 12, 23, "aus_w2v", Path("./logs/aus_w2v"), aquisition_function='ucb', kappa=5)
+bayes = bay.BayesianOptimizer(pipe, hypers, 12, 23, "aus_w2v_2nd", Path("./logs/aus_w2v_2nd"), aquisition_function='ucb', kappa=10)
 bayes.optimize()
 
 # >>> import fasttext_train as ft
@@ -286,3 +284,13 @@ bayes.optimize()
 # >>> embedding = ft.umap_reduce(model.wv, 3)
 # UMAP Magic |████████████████████████████████████████| 1 in 45.1s (0.02/s)
 # >>> visual = ft.model_visualise(model.wv, embedding, "plots/ft_virall_optProto_ns024751227405245746_lr0_lrmin00074157752401361075_d62_w2_e507_hs0_neg137_maxn8_minn2.html", True)
+
+# >>> import word2vec_train as w2v
+# >>> from gensim.models import Word2Vec
+# >>> model = Word2Vec.load("logs/aus_w2v/aus_w2v_ns08058672247759169_lr00036911154899140854_lrmin00831695614225197_d63_w3_e500_hs0_neg13_mincount2.model")
+# >>> embedding = w2v.umap_reduce(model.wv, 3)
+# UMAP Magic |████████████████████████████████████████| 1 in 33.1s (0.03/s)
+# >>> visual = w2v.model_visualise(model.wv, embedding, "plots/aus_w2v_ns08058672247759169_lr00036911154899140854_lrmin00831695614225197_d63_w3_e500_hs0_neg13_mincount2.html", False)
+# on 0:     INFO >>> Loading dill with phrog metadata
+# Gathering phrog metadata and embedding data |████████████████████████████████████████| 1 in 0.1s (9.19/s)
+# Generating visualisation |████████████████████████████████████████| 1 in 1.3s (0.75/s)
