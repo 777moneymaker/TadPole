@@ -250,7 +250,7 @@ pipe = w2v.Word2VecPipeline(
 
 hypers = {
     'vector_size': (50, 200),
-    'window':   (2, 4),
+    'window': (2, 4),
     'ns_exp': (0.2, 0.95),
     'lr_start': (0.00001, 0.5),
     'lr_min': (0.000001, 0.1),
