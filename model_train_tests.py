@@ -171,46 +171,47 @@ import bayes_optimization as bay
 # pipe.run()
 
 # opt
-pipe = w2v.Word2VecPipeline(
-    corpus_path="results/virall_noncoded_14-04-2023.pickle",
-    output_prefix="aus_w2v_2nd",
-    metadata="Data/metadata_phrog.pickle",
-    vector_size=120,
-    window=2,
-    min_count=2,
-    epochs=500,
-    workers=40,
-    lr_start=0.005,
-    lr_min=0.0001,
-    hs=0,
-    negative=50,
-    ns_exp=-0.1,
-    callbacks=[w2v.TrainLogger()],
-    visualise_model=False,
-    encoded=False,
-    save_model= False
-)
+# aus_w2v_2nd
+# pipe = w2v.Word2VecPipeline(
+#     corpus_path="results/virall_noncoded_14-04-2023.pickle",
+#     output_prefix="aus_w2v_2nd",
+#     metadata="Data/metadata_phrog.pickle",
+#     vector_size=120,
+#     window=2,
+#     min_count=2,
+#     epochs=500,
+#     workers=40,
+#     lr_start=0.005,
+#     lr_min=0.0001,
+#     hs=0,
+#     negative=50,
+#     ns_exp=-0.1,
+#     callbacks=[w2v.TrainLogger()],
+#     visualise_model=False,
+#     encoded=False,
+#     save_model= False
+# )
 
-#pipe = ft.FastTextPipeline(
-#    corpus_path="results/virall_encode_02-04-2023.pickle",
-#    output_prefix="ft_virall_evalSpeedup",
-#    metadata="Data/metadata_02-04-2023.pickle",
-#    vector_size=20,
-#    window=2,
-#    min_count=5,
-#    epochs=5,
-#    workers=40,
+pipe = ft.FastTextPipeline(
+   corpus_path="results/virall_encode_02-04-2023.pickle",
+   output_prefix="aus_ft",
+   metadata="Data/metadata_02-04-2023.pickle",
+   vector_size=20,
+   window=2,
+   min_count=2,
+   epochs=5,
+   workers=40,
     # lr_start=0.005,
     # lr_min=0.0001,
-#    lr_start=0.1,
-#    lr_min=0.0001,
-#    hs=0,
-#    negative=75,
-#    ns_exp=-0.75,
-#    visualise_model=False,
-#    encoded=True,
-#    save_model=False
-#)
+   lr_start=0.1,
+   lr_min=0.0001,
+   hs=0,
+   negative=75,
+   ns_exp=-0.75,
+   visualise_model=False,
+   encoded=True,
+   save_model=False
+)
 
 # validate_pipe = ft.FastTextPipeline(
 #     corpus_path="results/virall_encode_02-04-2023.pickle",
@@ -248,11 +249,24 @@ pipe = w2v.Word2VecPipeline(
 #     'negative': (45, 100),
 # }
 
+# aus_w2v_2nd
+# hypers = {
+#     'window': (2, 5),
+#     'ns_exp': (0.01, 0.95),
+#     'lr_start': (0.000001, 0.1),
+#     'lr_min': (0.000001, 0.2)
+# }
+
+# aus_ft
 hypers = {
-    'window': (2, 5),
-    'ns_exp': (0.01, 0.95),
-    'lr_start': (0.000001, 0.1),
-    'lr_min': (0.000001, 0.2)
+    'vector_size': (50, 250),
+    # 'epochs': 500, 
+    'ns_exp': (-0.1, 0.7),
+    'lr_start': (0.005, 0.25),
+    'lr_min': (0.00001, 0.01),
+    'negative': (45, 300),
+    'max_n': (5, 12), #ngram max
+    'min_n': (2, 8) #ngram min
 }
 
 # hypers = {
@@ -275,7 +289,7 @@ hypers = {
 #     'negative': (0, 300),
 # }
 
-bayes = bay.BayesianOptimizer(pipe, hypers, 12, 23, "aus_w2v_2nd", Path("./logs/aus_w2v_2nd"), aquisition_function='ucb', kappa=10)
+bayes = bay.BayesianOptimizer(pipe, hypers, 12, 23, "aus_ft", Path("./logs/aus_ft"), aquisition_function='ucb', kappa=10)
 bayes.optimize()
 
 # >>> import fasttext_train as ft
@@ -287,10 +301,10 @@ bayes.optimize()
 
 # >>> import word2vec_train as w2v
 # >>> from gensim.models import Word2Vec
-# >>> model = Word2Vec.load("logs/aus_w2v/aus_w2v_ns08058672247759169_lr00036911154899140854_lrmin00831695614225197_d63_w3_e500_hs0_neg13_mincount2.model")
+# >>> model = Word2Vec.load("logs/aus_w2v_2nd/aus_w2v_2nd_ns06768068921197985_lr0016186931560335408_lrmin00015449634769682278_d120_w4_e500_hs0_neg50_mincount2.model")
 # >>> embedding = w2v.umap_reduce(model.wv, 3)
 # UMAP Magic |████████████████████████████████████████| 1 in 33.1s (0.03/s)
-# >>> visual = w2v.model_visualise(model.wv, embedding, "plots/aus_w2v_ns08058672247759169_lr00036911154899140854_lrmin00831695614225197_d63_w3_e500_hs0_neg13_mincount2.html", False)
+# >>> visual = w2v.model_visualise(model.wv, embedding, "plots/aus_w2v_2nd_ns06768068921197985_lr0016186931560335408_lrmin00015449634769682278_d120_w4_e500_hs0_neg50_mincount2.html", False)
 # on 0:     INFO >>> Loading dill with phrog metadata
 # Gathering phrog metadata and embedding data |████████████████████████████████████████| 1 in 0.1s (9.19/s)
 # Generating visualisation |████████████████████████████████████████| 1 in 1.3s (0.75/s)
