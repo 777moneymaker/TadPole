@@ -384,7 +384,8 @@ def model_visualise(vectors_obj: gensim.models.fasttext.FastTextKeyedVectors, re
             func = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
         else:
             # func = utils.read_metadata(Path("Data/metadata_phrog_encoded.pickle"))
-            func = utils.read_metadata(Path("Data/metadata_phrog_coded.pickle"))
+            # func = utils.read_metadata(Path("Data/metadata_phrog_coded.pickle"))
+            func = utils.read_metadata(Path("Data/metadata_02-04-2023.pickle"))
 
         # map functions to words
         dataset["function"] = dataset['word'].map(func)
