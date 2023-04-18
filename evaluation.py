@@ -208,6 +208,7 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
         score_tally = dict(score_tally)
         function_tally = dict(function_tally)
         used_phrog_function_tally = dict(used_phrog_function_tally)
+        print(used_phrog_function_tally)
         for scoring_function, n_true_answers in score_tally.items():
             score_tally[scoring_function] = round((n_true_answers / len(phrog_categories)) * 100, 2)
         for category in function_tally:
