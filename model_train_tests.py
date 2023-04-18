@@ -192,26 +192,27 @@ import bayes_optimization as bay
 #     save_model= False
 # )
 
-pipe = ft.FastTextPipeline(
-   corpus_path="results/virall_encode_02-04-2023.pickle",
-   output_prefix="aus_ft",
-   metadata="Data/metadata_02-04-2023.pickle",
-   vector_size=20,
-   window=2,
-   min_count=2,
-   epochs=450,
-   workers=40,
-    # lr_start=0.005,
-    # lr_min=0.0001,
-   lr_start=0.1,
-   lr_min=0.0001,
-   hs=0,
-   negative=75,
-   ns_exp=-0.75,
-   visualise_model=False,
-   encoded=True,
-   save_model=False
-)
+## aus_ft
+# pipe = ft.FastTextPipeline(
+#    corpus_path="results/virall_encode_02-04-2023.pickle",
+#    output_prefix="aus_ft",
+#    metadata="Data/metadata_02-04-2023.pickle",
+#    vector_size=20,
+#    window=2,
+#    min_count=2,
+#    epochs=450,
+#    workers=40,
+#     # lr_start=0.005,
+#     # lr_min=0.0001,
+#    lr_start=0.1,
+#    lr_min=0.0001,
+#    hs=0,
+#    negative=75,
+#    ns_exp=-0.75,
+#    visualise_model=False,
+#    encoded=True,
+#    save_model=False
+# )
 
 # validate_pipe = ft.FastTextPipeline(
 #     corpus_path="results/virall_encode_02-04-2023.pickle",
@@ -258,16 +259,16 @@ pipe = ft.FastTextPipeline(
 # }
 
 # aus_ft
-hypers = {
-    'vector_size': (50, 250),
-    # 'epochs': 500, 
-    'ns_exp': (-0.1, 0.7),
-    'lr_start': (0.005, 0.25),
-    'lr_min': (0.00001, 0.01),
-    'negative': (45, 300),
-    'max_n': (5, 12), #ngram max
-    'min_n': (2, 8) #ngram min
-}
+# hypers = {
+#     'vector_size': (50, 250),
+#     # 'epochs': 500, 
+#     'ns_exp': (-0.1, 0.7),
+#     'lr_start': (0.005, 0.25),
+#     'lr_min': (0.00001, 0.01),
+#     'negative': (45, 300),
+#     'max_n': (5, 12), #ngram max
+#     'min_n': (2, 8) #ngram min
+# }
 
 # hypers = {
 #     'vector_size': (50, 300),
@@ -289,15 +290,15 @@ hypers = {
 #     'negative': (0, 300),
 # }
 
-bayes = bay.BayesianOptimizer(pipe, hypers, 12, 23, "aus_ft", Path("./logs/aus_ft"), aquisition_function='ucb', kappa=10)
-bayes.optimize()
+# bayes = bay.BayesianOptimizer(pipe, hypers, 12, 23, "aus_ft", Path("./logs/aus_ft"), aquisition_function='ucb', kappa=10)
+# bayes.optimize()
 
 # >>> import fasttext_train as ft
 # >>> from gensim.models import FastText
-# >>> model = FastText.load("logs/ft_optProto/ft_virall_optProto_ns024751227405245746_lr0_lrmin00074157752401361075_d62_w2_e507_hs0_neg137_maxn8_minn2.model")
+# >>> model = FastText.load("logs/aus_ft/aus_ft_ns0032283357693546205_lr003868130251582819_lrmin0009034985133725956_d235_w2_e450_hs0_neg146_maxn5_minn6.model")
 # >>> embedding = ft.umap_reduce(model.wv, 3)
 # UMAP Magic |████████████████████████████████████████| 1 in 45.1s (0.02/s)
-# >>> visual = ft.model_visualise(model.wv, embedding, "plots/ft_virall_optProto_ns024751227405245746_lr0_lrmin00074157752401361075_d62_w2_e507_hs0_neg137_maxn8_minn2.html", True)
+# >>> visual = ft.model_visualise(model.wv, embedding, "plots/aus_ft_ns0032283357693546205_lr003868130251582819_lrmin0009034985133725956_d235_w2_e450_hs0_neg146_maxn5_minn6.html", True)
 
 # >>> import word2vec_train as w2v
 # >>> from gensim.models import Word2Vec
@@ -308,3 +309,26 @@ bayes.optimize()
 # on 0:     INFO >>> Loading dill with phrog metadata
 # Gathering phrog metadata and embedding data |████████████████████████████████████████| 1 in 0.1s (9.19/s)
 # Generating visualisation |████████████████████████████████████████| 1 in 1.3s (0.75/s)
+
+
+# import word2vec_train as w2v
+# from gensim.models import Word2Vec
+pipe = w2v.Word2VecPipeline(corpus_path="results/virall_noncoded_14-04-2023.pickle", 
+                        output_prefix="sg_w2v",
+                        metadata="Data/metadata_phrog.pickle",
+                        vector_size=120,
+                        window=4,
+                        min_count=2,
+                        epochs=500,
+                        workers=40,
+                        lr_start=0.016186931560335408,
+                        lr_min=0.0015449634769682278,
+                        hs=0,
+                        sg=1,
+                        negative=50,
+                        ns_exp=0.6768068921197985,
+                        callbacks=[w2v.TrainLogger()],
+                        visualise_model=True,
+                        encoded=False,
+                        save_model= True)
+pipe.run()
