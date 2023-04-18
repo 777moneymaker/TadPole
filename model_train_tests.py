@@ -236,6 +236,28 @@ import bayes_optimization as bay
 # )
 # validate_pipe.run()
 
+# aus_w2v_sg
+pipe = w2v.Word2VecPipeline(
+    corpus_path="results/virall_noncoded_14-04-2023.pickle",
+    output_prefix="aus_w2v_sg",
+    metadata="Data/metadata_phrog.pickle",
+    vector_size=120,
+    window=2,
+    min_count=2,
+    epochs=500,
+    workers=40,
+    lr_start=0.005,
+    lr_min=0.0001,
+    hs=0,
+    sg=1,
+    negative=50,
+    ns_exp=-0.1,
+    callbacks=[w2v.TrainLogger()],
+    visualise_model=False,
+    encoded=False,
+    save_model= False
+)
+
 # hypers = {
 #     'vector_size': (50, 200),
 #     'epochs': (100, 500),
@@ -257,6 +279,17 @@ import bayes_optimization as bay
 #     'lr_start': (0.000001, 0.1),
 #     'lr_min': (0.000001, 0.2)
 # }
+
+# aus_w2v_sg
+hypers = {
+    'vector_size': (100, 300),
+    'epochs': (400, 750),
+    'window': (2, 5),
+    'ns_exp': (0.01, 0.95),
+    'lr_start': (0.000001, 0.1),
+    'lr_min': (0.000001, 0.2),
+    'negative': (0, 135)
+}
 
 # aus_ft
 # hypers = {
@@ -290,8 +323,8 @@ import bayes_optimization as bay
 #     'negative': (0, 300),
 # }
 
-# bayes = bay.BayesianOptimizer(pipe, hypers, 12, 23, "aus_ft", Path("./logs/aus_ft"), aquisition_function='ucb', kappa=10)
-# bayes.optimize()
+bayes = bay.BayesianOptimizer(pipe, hypers, 12, 23, "aus_w2v_sg", Path("./logs/aus_w2v_sg"), aquisition_function='ucb', kappa=10)
+bayes.optimize()
 
 # >>> import fasttext_train as ft
 # >>> from gensim.models import FastText
@@ -311,24 +344,25 @@ import bayes_optimization as bay
 # Generating visualisation |████████████████████████████████████████| 1 in 1.3s (0.75/s)
 
 
+# earliest test of sg to compare to best aus_w2v_2nd
 # import word2vec_train as w2v
 # from gensim.models import Word2Vec
-pipe = w2v.Word2VecPipeline(corpus_path="results/virall_noncoded_14-04-2023.pickle", 
-                        output_prefix="sg_w2v",
-                        metadata="Data/metadata_phrog.pickle",
-                        vector_size=120,
-                        window=4,
-                        min_count=2,
-                        epochs=500,
-                        workers=40,
-                        lr_start=0.016186931560335408,
-                        lr_min=0.0015449634769682278,
-                        hs=0,
-                        sg=1,
-                        negative=50,
-                        ns_exp=0.6768068921197985,
-                        callbacks=[w2v.TrainLogger()],
-                        visualise_model=True,
-                        encoded=False,
-                        save_model= True)
-pipe.run()
+# pipe = w2v.Word2VecPipeline(corpus_path="results/virall_noncoded_14-04-2023.pickle", 
+#                         output_prefix="sg_w2v",
+#                         metadata="Data/metadata_phrog.pickle",
+#                         vector_size=120,
+#                         window=4,
+#                         min_count=2,
+#                         epochs=500,
+#                         workers=40,
+#                         lr_start=0.016186931560335408,
+#                         lr_min=0.0015449634769682278,
+#                         hs=0,
+#                         sg=1,
+#                         negative=50,
+#                         ns_exp=0.6768068921197985,
+#                         callbacks=[w2v.TrainLogger()],
+#                         visualise_model=True,
+#                         encoded=False,
+#                         save_model= True)
+# pipe.run()
