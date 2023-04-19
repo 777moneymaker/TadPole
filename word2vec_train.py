@@ -58,14 +58,14 @@ class TrainLogger(CallbackAny2Vec):
 class Word2VecPipeline(object):
     __slots__ = ("corpus_path", "output_prefix", "metadata", "vector_size", "window",
                  "min_count", "epochs", "workers", "lr_start", "lr_min", "sg", "hs",
-                 "callbacks", "negative", "ns_exp", "show_debug", "n_top_phrogs", "visualise_model",
+                 "callbacks", "negative", "ns_exp", "sample", "show_debug", "n_top_phrogs", "visualise_model",
                  "encoded", "result", "model_name", "model_object", "save_model", "correct_percent_per_category",
                  "not_evaluated_number")
 
     def __init__(self, corpus_path: str, output_prefix: str, metadata: str, vector_size: int = 100,
                  window: int = 5, min_count: int = 5, epochs: int = 5, workers: int = 3,
                  lr_start: float = 0.025, lr_min: float = 0.0001, sg: int = 0, hs: int = 0,
-                 callbacks=[TrainLogger()], negative: int = 5, ns_exp: float = 0.75, show_debug: bool = False,
+                 callbacks=[TrainLogger()], negative: int = 5, ns_exp: float = 0.75, sample: float = 0.001, show_debug: bool = False,
                  n_top_phrogs: int = 50, visualise_model: bool = False, encoded: bool = True, save_model: bool = True):
         self.corpus_path = corpus_path
         self.output_prefix = output_prefix
@@ -82,6 +82,7 @@ class Word2VecPipeline(object):
         self.callbacks = callbacks
         self.negative = negative
         self.ns_exp = ns_exp
+        self.sample = sample
         self.show_debug = show_debug
         self.n_top_phrogs = n_top_phrogs
         self.visualise_model = visualise_model
@@ -136,7 +137,8 @@ class Word2VecPipeline(object):
                 sg=self.sg,
                 hs=self.hs,
                 ns_exponent=self.ns_exp,
-                negative=self.negative)
+                negative=self.negative,
+                sample=self.sample)
             model.build_vocab(sentences, progress_per=1000)
             model.train(corpus_iterable=sentences, 
                 total_examples=model.corpus_count, 
