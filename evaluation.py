@@ -194,7 +194,7 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
     # validation
     if evaluate_mode:
         result = Parallel(verbose=True, n_jobs=-1)(delayed(validate_chunk)(func_dict_df, chunk) for chunk in batch_dict(phrog_categories))
-        # print(result)
+        print(result)
         score_tally = defaultdict(int)
         function_tally = defaultdict(int)
         used_phrog_function_tally = defaultdict(int)
