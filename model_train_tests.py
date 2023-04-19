@@ -237,26 +237,26 @@ import bayes_optimization as bay
 # validate_pipe.run()
 
 # aus_w2v_sg
-pipe = w2v.Word2VecPipeline(
-    corpus_path="results/virall_noncoded_14-04-2023.pickle",
-    output_prefix="aus_w2v_sg",
-    metadata="Data/metadata_phrog.pickle",
-    vector_size=120,
-    window=2,
-    min_count=2,
-    epochs=500,
-    workers=40,
-    lr_start=0.005,
-    lr_min=0.0001,
-    hs=0,
-    sg=1,
-    negative=50,
-    ns_exp=-0.1,
-    callbacks=[w2v.TrainLogger()],
-    visualise_model=False,
-    encoded=False,
-    save_model= False
-)
+# pipe = w2v.Word2VecPipeline(
+#     corpus_path="results/virall_noncoded_14-04-2023.pickle",
+#     output_prefix="aus_w2v_sg",
+#     metadata="Data/metadata_phrog.pickle",
+#     vector_size=120,
+#     window=2,
+#     min_count=2,
+#     epochs=500,
+#     workers=40,
+#     lr_start=0.005,
+#     lr_min=0.0001,
+#     hs=0,
+#     sg=1,
+#     negative=50,
+#     ns_exp=-0.1,
+#     callbacks=[w2v.TrainLogger()],
+#     visualise_model=False,
+#     encoded=False,
+#     save_model= False
+# )
 
 # hypers = {
 #     'vector_size': (50, 200),
@@ -323,8 +323,31 @@ hypers = {
 #     'negative': (0, 300),
 # }
 
-bayes = bay.BayesianOptimizer(pipe, hypers, 12, 23, "aus_w2v_sg", Path("./logs/aus_w2v_sg"), aquisition_function='ucb', kappa=10)
-bayes.optimize()
+# bayes = bay.BayesianOptimizer(pipe, hypers, 12, 23, "aus_w2v_sg", Path("./logs/aus_w2v_sg"), aquisition_function='ucb', kappa=10)
+# bayes.optimize()
+
+# aus_w2v_sg even categories 59% model word tweak
+pipe = w2v.Word2VecPipeline(
+    corpus_path="results/virall_noncoded_14-04-2023.pickle",
+    output_prefix="aus_w2v_sg_even_categories_59_wordstweak",
+    metadata="Data/metadata_phrog.pickle",
+    vector_size=155,
+    window=25,
+    min_count=2,
+    epochs=500,
+    workers=40,
+    lr_start=0.018327240440219397,
+    lr_min=0.06047517970145826,
+    hs=0,
+    sg=1,
+    negative=82,
+    ns_exp=0.38757200932613456,
+    callbacks=[w2v.TrainLogger()],
+    visualise_model=True,
+    encoded=False,
+    save_model= True
+)
+pipe.run()
 
 # >>> import fasttext_train as ft
 # >>> from gensim.models import FastText
