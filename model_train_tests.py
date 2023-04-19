@@ -371,10 +371,10 @@ hypers = {
 # import word2vec_train as w2v
 # from gensim.models import Word2Vec
 pipe = w2v.Word2VecPipeline(corpus_path="results/virall_noncoded_14-04-2023.pickle", 
-                        output_prefix="sg_w2v_sampletest_lowsample",
+                        output_prefix="sg_w2v_sampletest_lowsample_wordy",
                         metadata="Data/metadata_phrog.pickle",
                         vector_size=120,
-                        window=4,
+                        window=20,
                         min_count=2,
                         epochs=500,
                         workers=40,
