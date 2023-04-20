@@ -357,6 +357,15 @@ hypers = {
     'sample': (0, 0.0009)
 }
 
+# aus_w2v_sghs
+hypers = {
+    'window': (5, 25),
+    'ns_exp': (0.01, 0.95),
+    'lr_start': (0.000001, 0.1),
+    'lr_min': (0.000001, 0.2),
+    'sample': (0, 0.0009)
+}
+
 # aus_ft
 # hypers = {
 #     'vector_size': (50, 250),
@@ -459,7 +468,7 @@ hypers = {
 
 pipe = w2v.Word2VecPipeline(
     corpus_path="results/virall_noncoded_14-04-2023.pickle",
-    output_prefix="sampletest_aus_w2v_sghs",
+    output_prefix="sampletest_aus_w2v_sghs_doublecheck",
     metadata="Data/metadata_phrog.pickle",
     vector_size=120,
     window=5,
@@ -470,7 +479,7 @@ pipe = w2v.Word2VecPipeline(
     lr_min=0.0006380197844771706,
     hs=1,
     sg=1,
-    negative=50,
+    negative=0,
     ns_exp=0.5515559349266264,
     sample=0.001,
     callbacks=[w2v.TrainLogger()],
