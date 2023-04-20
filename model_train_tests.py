@@ -459,12 +459,12 @@ hypers = {
 
 pipe = w2v.Word2VecPipeline(
     corpus_path="results/virall_noncoded_14-04-2023.pickle",
-    output_prefix="sampletest_aus_w2v_cbow",
+    output_prefix="sampletest_aus_w2v_cbow_shorter",
     metadata="Data/metadata_phrog.pickle",
     vector_size=120,
     window=5,
     min_count=2,
-    epochs=450,
+    epochs=200,
     workers=40,
     lr_start=0.0006380197844771706,
     lr_min=0.03324065123940248,
