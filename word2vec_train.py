@@ -93,7 +93,7 @@ class Word2VecPipeline(object):
         self.not_evaluated_number = 0
         self.model_name = None
         self.model_object = None
-    
+
     # def __getstate__(self):
     #     state = self.__dict__.copy()
     #     del state['model_object']

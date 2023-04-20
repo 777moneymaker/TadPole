@@ -281,27 +281,27 @@ import bayes_optimization as bay
 # )
 
 # aus_w2v_cbow_sampleword
-pipe = w2v.Word2VecPipeline(
-    corpus_path="results/virall_noncoded_14-04-2023.pickle",
-    output_prefix="aus_w2v_cbow_sampleword",
-    metadata="Data/metadata_phrog.pickle",
-    vector_size=120,
-    window=2,
-    min_count=2,
-    epochs=500,
-    workers=40,
-    lr_start=0.005,
-    lr_min=0.0001,
-    hs=0,
-    sg=0,
-    negative=50,
-    ns_exp=-0.1,
-    sample=0.001,
-    callbacks=[w2v.TrainLogger()],
-    visualise_model=False,
-    encoded=False,
-    save_model= False
-)
+# pipe = w2v.Word2VecPipeline(
+#     corpus_path="results/virall_noncoded_14-04-2023.pickle",
+#     output_prefix="aus_w2v_cbow_sampleword",
+#     metadata="Data/metadata_phrog.pickle",
+#     vector_size=120,
+#     window=2,
+#     min_count=2,
+#     epochs=450,
+#     workers=40,
+#     lr_start=0.005,
+#     lr_min=0.0001,
+#     hs=0,
+#     sg=0,
+#     negative=50,
+#     ns_exp=-0.1,
+#     sample=0.001,
+#     callbacks=[w2v.TrainLogger()],
+#     visualise_model=False,
+#     encoded=False,
+#     save_model= False
+# )
 
 # hypers = {
 #     'vector_size': (50, 200),
@@ -354,7 +354,7 @@ hypers = {
     'ns_exp': (0.01, 0.95),
     'lr_start': (0.000001, 0.1),
     'lr_min': (0.000001, 0.2),
-    'sample': (0, 0.0001)
+    'sample': (0, 0.0009)
 }
 
 # aus_ft
@@ -389,8 +389,8 @@ hypers = {
 #     'negative': (0, 300),
 # }
 
-bayes = bay.BayesianOptimizer(pipe, hypers, 12, 23, "aus_w2v_cbow_sampleword", Path("./logs/aus_w2v_cbow_sampleword"), aquisition_function='ucb', kappa=10)
-bayes.optimize()
+# bayes = bay.BayesianOptimizer(pipe, hypers, 12, 23, "aus_w2v_cbow_sampleword", Path("./logs/aus_w2v_cbow_sampleword"), aquisition_function='ucb', kappa=10)
+# bayes.optimize()
 
 # aus_w2v_sg even categories 59% model word tweak - veeery slow
 # pipe = w2v.Word2VecPipeline(
@@ -457,25 +457,25 @@ bayes.optimize()
 #                         save_model= True)
 # pipe.run()
 
-# pipe = w2v.Word2VecPipeline(
-#     corpus_path="results/virall_noncoded_14-04-2023.pickle",
-#     output_prefix="sampletest_aus_w2v_sg_2nd",
-#     metadata="Data/metadata_phrog.pickle",
-#     vector_size=150,
-#     window=5,
-#     min_count=2,
-#     epochs=450,
-#     workers=40,
-#     lr_start=0.05192551100497838,
-#     lr_min=0.00664097230039091,
-#     hs=0,
-#     sg=1,
-#     negative=94,
-#     ns_exp=0.5613617380718733,
-#     sample=0.1,
-#     callbacks=[w2v.TrainLogger()],
-#     visualise_model=True,
-#     encoded=False,
-#     save_model= True
-# )
-# pipe.run()
+pipe = w2v.Word2VecPipeline(
+    corpus_path="results/virall_noncoded_14-04-2023.pickle",
+    output_prefix="sampletest_aus_w2v_cbow",
+    metadata="Data/metadata_phrog.pickle",
+    vector_size=120,
+    window=5,
+    min_count=2,
+    epochs=450,
+    workers=40,
+    lr_start=0.0006380197844771706,
+    lr_min=0.03324065123940248,
+    hs=0,
+    sg=0,
+    negative=50,
+    ns_exp=0.5515559349266264,
+    sample=0,
+    callbacks=[w2v.TrainLogger()],
+    visualise_model=True,
+    encoded=False,
+    save_model= True
+)
+pipe.run()
