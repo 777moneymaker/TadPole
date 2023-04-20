@@ -468,10 +468,10 @@ hypers = {
 
 pipe = w2v.Word2VecPipeline(
     corpus_path="results/virall_noncoded_14-04-2023.pickle",
-    output_prefix="sampletest_aus_w2v_sghs_doublecheck",
+    output_prefix="sampletest_aus_w2v_sghs",
     metadata="Data/metadata_phrog.pickle",
     vector_size=120,
-    window=5,
+    window=15,
     min_count=2,
     epochs=250,
     workers=40,
