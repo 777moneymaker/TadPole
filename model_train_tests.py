@@ -304,27 +304,27 @@ import bayes_optimization as bay
 # )
 
 # aus_w2v_sghs
-pipe = w2v.Word2VecPipeline(
-    corpus_path="results/virall_noncoded_14-04-2023.pickle",
-    output_prefix="aus_w2v_sghs",
-    metadata="Data/metadata_phrog.pickle",
-    vector_size=120,
-    window=15,
-    min_count=2,
-    epochs=250,
-    workers=40,
-    lr_start=0.03324065123940248,
-    lr_min=0.0006380197844771706,
-    hs=1,
-    sg=1,
-    negative=0,
-    ns_exp=0.5515559349266264,
-    sample=0.001,
-    callbacks=[w2v.TrainLogger()],
-    visualise_model=False,
-    encoded=False,
-    save_model= False
-)
+# pipe = w2v.Word2VecPipeline(
+#     corpus_path="results/virall_noncoded_14-04-2023.pickle",
+#     output_prefix="aus_w2v_sghs",
+#     metadata="Data/metadata_phrog.pickle",
+#     vector_size=120,
+#     window=15,
+#     min_count=2,
+#     epochs=250,
+#     workers=40,
+#     lr_start=0.03324065123940248,
+#     lr_min=0.0006380197844771706,
+#     hs=1,
+#     sg=1,
+#     negative=0,
+#     ns_exp=0.5515559349266264,
+#     sample=0.001,
+#     callbacks=[w2v.TrainLogger()],
+#     visualise_model=False,
+#     encoded=False,
+#     save_model= False
+# )
 
 # hypers = {
 #     'vector_size': (50, 200),
@@ -422,8 +422,8 @@ hypers = {
 #     'negative': (0, 300),
 # }
 
-bayes = bay.BayesianOptimizer(pipe, hypers, 12, 23, "aus_w2v_sghs", Path("./logs/aus_w2v_sghs"), aquisition_function='ucb', kappa=10)
-bayes.optimize()
+# bayes = bay.BayesianOptimizer(pipe, hypers, 12, 23, "aus_w2v_sghs", Path("./logs/aus_w2v_sghs"), aquisition_function='ucb', kappa=10)
+# bayes.optimize()
 
 # aus_w2v_sg even categories 59% model word tweak - veeery slow
 # pipe = w2v.Word2VecPipeline(
@@ -457,10 +457,10 @@ bayes.optimize()
 
 # >>> import word2vec_train as w2v
 # >>> from gensim.models import Word2Vec
-# >>> model = Word2Vec.load("logs/aus_w2v_2nd/aus_w2v_2nd_ns06768068921197985_lr0016186931560335408_lrmin00015449634769682278_d120_w4_e500_hs0_neg50_mincount2.model")
+# >>> model = Word2Vec.load("logs/aus_w2v_sghs/aus_w2v_sghs_ns-095_lr01_lrmin1e-06_d89_w2_e250_hs1_neg0_mincount2.model")
 # >>> embedding = w2v.umap_reduce(model.wv, 3)
 # UMAP Magic |████████████████████████████████████████| 1 in 33.1s (0.03/s)
-# >>> visual = w2v.model_visualise(model.wv, embedding, "plots/aus_w2v_2nd_ns06768068921197985_lr0016186931560335408_lrmin00015449634769682278_d120_w4_e500_hs0_neg50_mincount2.html", False)
+# >>> visual = w2v.model_visualise(model.wv, embedding, "plots/aus_w2v_sghs_ns-095_lr01_lrmin1e-06_d89_w2_e250_hs1_neg0_mincount2.html", False)
 # on 0:     INFO >>> Loading dill with phrog metadata
 # Gathering phrog metadata and embedding data |████████████████████████████████████████| 1 in 0.1s (9.19/s)
 # Generating visualisation |████████████████████████████████████████| 1 in 1.3s (0.75/s)
@@ -490,25 +490,25 @@ bayes.optimize()
 #                         save_model= True)
 # pipe.run()
 
-# pipe = w2v.Word2VecPipeline(
-#     corpus_path="results/virall_noncoded_14-04-2023.pickle",
-#     output_prefix="sampletest_aus_w2v_sghs",
-#     metadata="Data/metadata_phrog.pickle",
-#     vector_size=120,
-#     window=15,
-#     min_count=2,
-#     epochs=250,
-#     workers=40,
-#     lr_start=0.03324065123940248,
-#     lr_min=0.0006380197844771706,
-#     hs=1,
-#     sg=1,
-#     negative=0,
-#     ns_exp=0.5515559349266264,
-#     sample=0.001,
-#     callbacks=[w2v.TrainLogger()],
-#     visualise_model=True,
-#     encoded=False,
-#     save_model= True
-# )
-# pipe.run()
+pipe = w2v.Word2VecPipeline(
+    corpus_path="results/virall_noncoded_14-04-2023.pickle",
+    output_prefix="aus_w2v_cbowhs_test",
+    metadata="Data/metadata_phrog.pickle",
+    vector_size=89,
+    window=2,
+    min_count=2,
+    epochs=250,
+    workers=40,
+    lr_start=0.1,
+    lr_min=0.000001,
+    hs=1,
+    sg=0,
+    negative=0,
+    ns_exp=-0.95,
+    sample=0.001,
+    callbacks=[w2v.TrainLogger()],
+    visualise_model=True,
+    encoded=False,
+    save_model= True
+)
+pipe.run()
