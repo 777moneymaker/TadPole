@@ -490,20 +490,43 @@ hypers = {
 #                         save_model= True)
 # pipe.run()
 
+# pipe = w2v.Word2VecPipeline(
+#     corpus_path="results/virall_noncoded_14-04-2023.pickle",
+#     output_prefix="aus_w2v_cbowns_test_funky",
+#     metadata="Data/metadata_phrog.pickle",
+#     vector_size=89,
+#     window=50,
+#     min_count=2,
+#     epochs=60,
+#     workers=40,
+#     lr_start=0.0015449634769682278,
+#     lr_min=0.016186931560335408,
+#     hs=0,
+#     sg=0,
+#     negative=100,
+#     ns_exp=0.6768068921197985,
+#     sample=0.001,
+#     callbacks=[w2v.TrainLogger()],
+#     visualise_model=True,
+#     encoded=False,
+#     save_model= True
+# )
+# pipe.run()
+
 pipe = w2v.Word2VecPipeline(
     corpus_path="results/virall_noncoded_14-04-2023.pickle",
-    output_prefix="aus_w2v_cbowns_test_funky",
+    output_prefix="eval_test_rangepower+pyarrow",
     metadata="Data/metadata_phrog.pickle",
-    vector_size=89,
-    window=50,
+    vector_size=120,
+    window=4,
     min_count=2,
-    epochs=60,
+    epochs=500,
     workers=40,
-    lr_start=0.0015449634769682278,
-    lr_min=0.016186931560335408,
+    lr_start=0.016186931560335408,
+    lr_min=0.0015449634769682278,
     hs=0,
     sg=0,
-    negative=100,
+    negative=50,
     ns_exp=0.6768068921197985,
     sample=0.001,
     callbacks=[w2v.TrainLogger()],
