@@ -515,12 +515,12 @@ hypers = {
 
 pipe = w2v.Word2VecPipeline(
     corpus_path="results/virall_noncoded_14-04-2023.pickle",
-    output_prefix="eval_test_rangepower+pyarrow",
+    output_prefix="checkonly_eval_test_rangepower+pyarrow",
     metadata="Data/metadata_phrog.pickle",
     vector_size=120,
     window=4,
     min_count=2,
-    epochs=500,
+    epochs=5,
     workers=40,
     lr_start=0.016186931560335408,
     lr_min=0.0015449634769682278,
