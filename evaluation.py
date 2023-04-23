@@ -82,6 +82,7 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
         # replace phrogs with functions
         model_result_tuples_to_df = pd.DataFrame(
             result, columns=['phrog_id', 'probability'])
+        model_result_tuples_to_df.astype({'phrog_id': 'string[pyarrow]', 'probability': 'float[pyarrow]'})
         merged = model_result_tuples_to_df.merge(
             func_dict_df, on='phrog_id')  # Same col, just use on=
         # just use loc, add .head immeadiately
@@ -126,18 +127,21 @@ def parallel_scoring(phrog, merged_id_category):
     mx = tuple(max(list_for_scoring, key=key_func))
     summed = max(sum_tuples(list_for_scoring), key=key_func)
     mean = max(mean_tuples(list_for_scoring), key=key_func)
-    power_3 = max(sum_tuples(power_tuples(list_for_scoring, 3)), key=key_func)
-    power_4 = max(sum_tuples(power_tuples(list_for_scoring, 4)), key=key_func)
-    power_5 = max(sum_tuples(power_tuples(list_for_scoring, 5)), key=key_func)
+    # power_3 = max(sum_tuples(power_tuples(list_for_scoring, 3)), key=key_func)
+    # power_4 = max(sum_tuples(power_tuples(list_for_scoring, 4)), key=key_func)
+    # power_5 = max(sum_tuples(power_tuples(list_for_scoring, 5)), key=key_func)
 
     d_phrog_categories[phrog] = {
         "max": mx,
         "sum": summed,
         "mean": mean,
-        "power 3": power_3,
-        "power 4": power_4,
-        "power 5": power_5
+        # "power 3": power_3,
+        # "power 4": power_4,
+        # "power 5": power_5
     }
+
+    powers = [(f"power {power}", max(sum_tuples(power_tuples(list_for_scoring, power)), key=key_func)) for power in np.linspace(3, 5, 0.2)]
+    d_phrog_categories[phrog].update(powers)
 
     return d_phrog_categories
 
