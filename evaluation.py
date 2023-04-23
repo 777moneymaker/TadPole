@@ -10,6 +10,7 @@ import multiprocessing as mp
 import time
 from alive_progress import alive_it
 from alive_progress.animations.spinners import bouncing_spinner_factory
+from tqdm import tqdm
 
 import custom_logger
 import utils
@@ -72,7 +73,7 @@ def validate_chunk(func_dict_df, phrog_categories):
 def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
     local_phrog_categories: dict[str, dict[str, str]] = {}
     print(len(phrog_batch))
-    for phrog in phrog_batch:
+    for phrog in tqdm(phrog_batch):
         # start = time.perf_counter()
         try:
             result = [vector for vector in vectors.most_similar(phrog, topn=60_000) if not vector[0].endswith(phrog[-5:])]
