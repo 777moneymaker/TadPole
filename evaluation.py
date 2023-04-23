@@ -140,7 +140,7 @@ def parallel_scoring(phrog, merged_id_category):
         # "power 5": power_5
     }
 
-    powers = [(f"power {power}", max(sum_tuples(power_tuples(list_for_scoring, power)), key=key_func)) for power in np.linspace(3, 5, 0.2)]
+    powers = [(f"power {power}", max(sum_tuples(power_tuples(list_for_scoring, power)), key=key_func)) for power in np.arange(3, 5.2, 0.2)]
     d_phrog_categories[phrog].update(powers)
 
     return d_phrog_categories
