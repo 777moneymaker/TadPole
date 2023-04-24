@@ -58,7 +58,7 @@ class TrainLogger(CallbackAny2Vec):
 class Word2VecPipeline(object):
     __slots__ = ("corpus_path", "output_prefix", "metadata", "vector_size", "window",
                  "min_count", "epochs", "workers", "lr_start", "lr_min", "sg", "hs",
-                 "callbacks", "negative", "ns_exp", "sample", "show_debug", "n_top_phrogs", "visualise_model",
+                 "callbacks", "negative", "ns_exp", "sample", "show_debug", "n_top_phrogs", "power_range", "visualise_model",
                  "encoded", "result", "model_name", "model_object", "save_model", "correct_percent_per_category",
                  "not_evaluated_number")
 
@@ -66,7 +66,8 @@ class Word2VecPipeline(object):
                  window: int = 5, min_count: int = 5, epochs: int = 5, workers: int = 3,
                  lr_start: float = 0.025, lr_min: float = 0.0001, sg: int = 0, hs: int = 0,
                  callbacks=[TrainLogger()], negative: int = 5, ns_exp: float = 0.75, sample: float = 0.001, show_debug: bool = False,
-                 n_top_phrogs: int = 50, visualise_model: bool = False, encoded: bool = True, save_model: bool = True):
+                 n_top_phrogs: int = 50, power_range: tuple(float, float, float) = (3, 5.2, 0.2), visualise_model: bool = False, 
+                 encoded: bool = True, save_model: bool = True):
         self.corpus_path = corpus_path
         self.output_prefix = output_prefix
         self.metadata = metadata
@@ -85,6 +86,7 @@ class Word2VecPipeline(object):
         self.sample = sample
         self.show_debug = show_debug
         self.n_top_phrogs = n_top_phrogs
+        self.power_range = power_range
         self.visualise_model = visualise_model
         self.encoded = encoded
         self.save_model = save_model
@@ -152,7 +154,7 @@ class Word2VecPipeline(object):
     
     def _evaluate_model(self):
         funcs = utils.read_metadata(Path(self.metadata))
-        prediction, correct_category, not_eval = evl.prediction(func_dict=funcs, model=self.model_object, model_name=self.model_name, top_known_phrogs=self.n_top_phrogs)
+        prediction, correct_category, not_eval = evl.prediction(func_dict=funcs, model=self.model_object, model_name=self.model_name, top_known_phrogs=self.n_top_phrogs, power_range=self.power_range)
         return prediction, correct_category, not_eval
     
     def _umap_reduce(self, vectors_obj: wv.KeyedVectors, n_dims: int):

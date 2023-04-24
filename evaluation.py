@@ -70,9 +70,9 @@ def validate_chunk(func_dict_df, phrog_categories):
     return local_score_tally, local_function_tally, local_used_phrog_function_tally
 
 # @utils.time_this
-def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
+def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs, power_range):
     local_phrog_categories: dict[str, dict[str, str]] = {}
-    print(len(phrog_batch))
+    # print(len(phrog_batch))
     for phrog in tqdm(phrog_batch):
         # start = time.perf_counter()
         try:
@@ -99,7 +99,7 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs):
                                          "scoring using less than {} phrogs.".format(top_known_phrogs))
         merged_id_category = merged[["category", "probability"]]
         local_phrog_categories.update(
-            parallel_scoring(phrog, merged_id_category))
+            parallel_scoring(phrog, merged_id_category, power_range))
         # end = time.perf_counter()
         # runtime = end - start
         # print(f"Done one iteration of phrog from one frog batch in {runtime:0.8f}")
@@ -112,7 +112,7 @@ def batch_list(item_list, batch_count: int = cpu_count() - 1):
 
 
 # @utils.time_this
-def parallel_scoring(phrog, merged_id_category):
+def parallel_scoring(phrog, merged_id_category, power_range):
     d_phrog_categories = {}
     list_for_scoring = [list(row)
                         for row in merged_id_category.itertuples(index=False)]
@@ -141,14 +141,16 @@ def parallel_scoring(phrog, merged_id_category):
         # "power 5": power_5
     }
 
-    powers = [(f"power {power}", max(sum_tuples(power_tuples(list_for_scoring, power)), key=key_func)) for power in np.arange(3, 10.2, 0.2)]
+    powers = [(f"power {power}", max(sum_tuples(power_tuples(list_for_scoring, power)), key=key_func)) for power in np.arange(*power_range)]
     d_phrog_categories[phrog].update(powers)
 
     return d_phrog_categories
 
 
 def prediction(func_dict: dict, model: Union[FastText, Word2Vec], 
-               model_name: str, top_known_phrogs: int = 50, evaluate_mode: bool = True):
+               model_name: str, top_known_phrogs: int = 50, 
+               evaluate_mode: bool = True,
+               power_range: tuple(float, float, float) = (3, 5.2, 0.2)):
     
     # convert dict to pandas dataframe or read it directly
     start = time.perf_counter()
@@ -175,7 +177,7 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
     # parallel function to select best matches and score the model
     print(len(phrogs_to_predict))
     list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
-        batch, vectors, func_dict_df, top_known_phrogs) for batch in alive_it(batch_list(phrogs_to_predict), dual_line=True, spinner=PHROG_SPINNER))
+        batch, vectors, func_dict_df, top_known_phrogs, power_range) for batch in alive_it(batch_list(phrogs_to_predict), dual_line=True, spinner=PHROG_SPINNER))
 
     start = time.perf_counter()
     phrog_categories = {

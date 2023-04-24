@@ -61,14 +61,15 @@ class FastTextPipeline(object):
     __slots__ = ("corpus_path", "output_prefix", "metadata", "vector_size", "window",
                  "min_count", "epochs", "workers", "lr_start", "lr_min", "max_n", "min_n",
                  "sg", "hs", "sorted_vocab", "callbacks", "negative", "ns_exp", "show_debug",
-                 "n_top_phrogs", "visualise_model", "encoded", "result", "model_name", "model_object",
+                 "n_top_phrogs", "power_range", "visualise_model", "encoded", "result", "model_name", "model_object",
                  "save_model", "correct_percent_per_category", "not_evaluated_number")
 
     def __init__(self, corpus_path: str, output_prefix: str, metadata: str, vector_size: int = 100,
                  window: int = 5, min_count: int = 5, epochs: int = 5, workers: int = 3,
                  lr_start: float = 0.025, lr_min: float = 0.0001, max_n: int = 3, min_n: int = 6, sg: int = 0, hs: int = 0,
                  sorted_vocab: int = 1, callbacks=[TrainLogger()], negative: int = 5, ns_exp: float = 0.75, show_debug: bool = False,
-                 n_top_phrogs: int = 50, visualise_model: bool = False, encoded: bool = True, save_model: bool = True):
+                 n_top_phrogs: int = 50, power_range: tuple(float, float, float) = (3, 5.2, 0.2), visualise_model: bool = False, 
+                 encoded: bool = True, save_model: bool = True):
         self.corpus_path = corpus_path
         self.output_prefix = output_prefix
         self.metadata = metadata
@@ -89,6 +90,7 @@ class FastTextPipeline(object):
         self.ns_exp = ns_exp
         self.show_debug = show_debug
         self.n_top_phrogs = n_top_phrogs
+        self.power_range = power_range
         self.visualise_model = visualise_model
         self.encoded = encoded
         self.save_model = save_model
@@ -127,7 +129,7 @@ class FastTextPipeline(object):
     def _evaluate_model(self):
         funcs = utils.read_metadata(Path(self.metadata))
         print(self.model_object)
-        prediction, correct_category, not_eval = evl.prediction(func_dict=funcs, model=self.model_object, model_name=self.model_name, top_known_phrogs=self.n_top_phrogs)
+        prediction, correct_category, not_eval = evl.prediction(func_dict=funcs, model=self.model_object, model_name=self.model_name, top_known_phrogs=self.n_top_phrogs, power_range=self.power_range)
         return prediction, correct_category, not_eval
     
     def _umap_reduce(self, vectors_obj: gensim.models.fasttext.FastTextKeyedVectors, n_dims: int):
