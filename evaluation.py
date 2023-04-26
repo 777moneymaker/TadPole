@@ -11,6 +11,7 @@ import time
 from alive_progress import alive_it
 from alive_progress.animations.spinners import bouncing_spinner_factory
 from tqdm import tqdm
+from typing import Tuple
 
 import custom_logger
 import utils
@@ -150,7 +151,7 @@ def parallel_scoring(phrog, merged_id_category, power_range):
 def prediction(func_dict: dict, model: Union[FastText, Word2Vec], 
                model_name: str, top_known_phrogs: int = 50, 
                evaluate_mode: bool = True,
-               power_range: tuple(float, float, float) = (3, 5.2, 0.2)):
+               power_range: Tuple[float, float, float] = (3, 5.2, 0.2)):
     
     # convert dict to pandas dataframe or read it directly
     start = time.perf_counter()

@@ -66,7 +66,7 @@ class Word2VecPipeline(object):
                  window: int = 5, min_count: int = 5, epochs: int = 5, workers: int = 3,
                  lr_start: float = 0.025, lr_min: float = 0.0001, sg: int = 0, hs: int = 0,
                  callbacks=[TrainLogger()], negative: int = 5, ns_exp: float = 0.75, sample: float = 0.001, show_debug: bool = False,
-                 n_top_phrogs: int = 50, power_range: tuple(float, float, float) = (3, 5.2, 0.2), visualise_model: bool = False, 
+                 n_top_phrogs: int = 50, power_range: Tuple[float, float, float] = (3, 5.2, 0.2), visualise_model: bool = False, 
                  encoded: bool = True, save_model: bool = True):
         self.corpus_path = corpus_path
         self.output_prefix = output_prefix
