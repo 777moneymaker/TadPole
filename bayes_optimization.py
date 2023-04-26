@@ -55,9 +55,9 @@ class ModelOptLogger(_Tracker):
 # TODO: let user choose the aquisition function and set its parameters
 class BayesianOptimizer(object):
 
-    __slots__ = ("initial_model", "hyperparams", "initial_points", "num_iterations","best_model", "best_score", "current_function",
+    __slots__ = ("initial_model", "hyperparams", "initial_points", "num_iterations","best_model", "best_score", "best_function", "current_function",
                  "opt_name", "output_path", "aquisition_function", "kappa", "kappa_decay", "kappa_decay_delay", "xi", 
-                 "current_correct_percentage", "current_not_evaluated_num")
+                 "current_correct_percentage", "best_correct_percentage", "current_not_evaluated_num")
 
     def __init__(self, initial_model: typing.Union[w2v.Word2VecPipeline, ft.FastTextPipeline], hyperparams: dict, initial_points: int,
                   num_iterations: int, opt_name: str, output_path: Path, aquisition_function: typing.Literal['ucb', 'ei', 'poi'] = 'ucb',
