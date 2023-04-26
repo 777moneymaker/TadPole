@@ -38,6 +38,12 @@ class ModelOptLogger(_Tracker):
         data["not_evaluated_num"] = self._not_evaluated
 
         # print(dict(data))
+        # if event == 'optimization:end':
+        #     kwargs = {
+        #         'opt_name': 
+        #     }
+        #     loop = asyncio.get_event_loop()
+        #     loop.run_until_complete(utils.report_opt_result_teams())
 
         with open(self._path, "a") as f:
             f.write(json.dumps(dict(data)) + "\n")
@@ -81,6 +87,9 @@ class BayesianOptimizer(object):
         func = max(scores, key=scores.get)
         score = scores[func]
         return func, score
+
+    def _sample_callback(self, event, instance):
+        print("a callback")
     
     def optimize(self):
         def objective_func(**kwargs):
@@ -138,6 +147,7 @@ class BayesianOptimizer(object):
                                           kappa=self.kappa,
                                           xi=self.xi)
         optimizer.subscribe(Events.OPTIMIZATION_STEP, observer)
+        optimizer.subscribe(Events.OPTIMIZATION_START, self._sample_callback)
         optimizer.maximize(
             init_points=self.initial_points,
             n_iter=self.num_iterations,
