@@ -9,6 +9,7 @@ from bayes_opt.event import Events
 from bayes_opt import UtilityFunction
 import typing
 import os
+import asyncio
 
 
 class ModelOptLogger(_Tracker):
@@ -88,8 +89,16 @@ class BayesianOptimizer(object):
         score = scores[func]
         return func, score
 
-    def _sample_callback(self, event, instance):
-        print("a callback")
+    def _report_opt_result_callback(self, event, instance):
+        kwargs = {
+            'opt_name': self.best_model.output_prefix,
+            'best': self.best_score,
+            'best_func': self.current_function, # TODO: this is not the overall best func i think
+            'hypers': self.hyperparams,
+            'category': self.current_correct_percentage # TODO: not overall best
+        }
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(utils.report_opt_result_teams(**kwargs))
     
     def optimize(self):
         def objective_func(**kwargs):
@@ -147,7 +156,7 @@ class BayesianOptimizer(object):
                                           kappa=self.kappa,
                                           xi=self.xi)
         optimizer.subscribe(Events.OPTIMIZATION_STEP, observer)
-        optimizer.subscribe(event=Events.OPTIMIZATION_START, subscriber="Any hashable object", callback=self._sample_callback)
+        optimizer.subscribe(event=Events.OPTIMIZATION_END, subscriber="Any hashable object", callback=self._sample_callback)
         optimizer.maximize(
             init_points=self.initial_points,
             n_iter=self.num_iterations,

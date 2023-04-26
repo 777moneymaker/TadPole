@@ -3,7 +3,6 @@ import pandas as pd
 from pathlib import Path
 import pickle
 import custom_logger
-import asyncio
 import pymsteams
 
 
@@ -163,28 +162,30 @@ async def report_opt_result_teams(**kwargs):
     api_key = ""
     message = pymsteams.async_connectorcard(api_key)
     message.title("Optymalizacja zakończona")
-    message.text("@Kanał Testowy")
+    message.text("@Kanał Testowy\n trzeba fixa, ale wygenerowane przez optymalizator")
     message.color("34eb80")
     main_section = pymsteams.cardsection()
     main_section.enableMarkdown()
-    kwargs = {
-        'opt_name': "checkonly_eval_test_rangepower+pyarrow",
-        'best': 62.91,
-        'best_funct': "power 5.000000000000002",
-        'hypers': {"lr_min": 0.01, "lr_start": 0.1, "negative": 11.019030469705525, "ns_exp": 0.95, "sample": 1e-05, "window": 2.0},
-        'category': {"transcription regulation": 17.08, "head and packaging": 68.5, "tail": 81.26, "lysis": 35.94, "DNA, RNA and nucleotide metabolism": 66.27, "connector": 28.24, "integration and excision": 4.3}
-
-    }
     main_section.title(f"# {kwargs.get('opt_name', 'Unassigned')}") # optname
-    categories = [f"- *{category_name}*: {category_value}" for category_name, category_value in kwargs['category'].items()].join("\r")
-    hypers = [f"- *{hyper_name}*: {hyper_value}" for hyper_name, hyper_value in kwargs['hypers'].items()].join("\r")
+    categories = "\r".join([f"- *{category_name}*: {category_value}" for category_name, category_value in kwargs['category'].items()])
+    hypers = "\r".join([f"- *{hyper_name}*: {hyper_value}" for hyper_name, hyper_value in kwargs['hypers'].items()])
+    # print(categories)
+    # print(hypers)
     main_text = f"""
-    **Best:** {kwargs.get('best'), 0} ({kwargs.get('best_func'), None})
-    **Klasyfikacje kategorii:**
-        {categories}
-    **Hiperparametry:** 
-        {hypers}
-    **Czas trwania: ** {None}
+
+**Best:** {kwargs.get('best', 0)} ({kwargs.get('best_func', None)})
+
+**Klasyfikacje kategorii:**
+
+{categories}
+
+**Hiperparametry:** 
+
+{hypers}
+
+
+**Czas trwania:** {None}
+
     """
     main_section.enableMarkdown()
     main_section.text(main_text)
