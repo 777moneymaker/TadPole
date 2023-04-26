@@ -68,8 +68,10 @@ class BayesianOptimizer(object):
         self.num_iterations = num_iterations
         self.best_model = None
         self.best_score = 0
+        self.best_function = ""
         self.current_function = ""
         self.current_correct_percentage = None
+        self.best_correct_percentage = None
         self.current_not_evaluated_num = 0
         self.opt_name = opt_name
         self.output_path = output_path
@@ -93,9 +95,9 @@ class BayesianOptimizer(object):
         kwargs = {
             'opt_name': self.best_model.output_prefix,
             'best': self.best_score,
-            'best_func': self.current_function, # TODO: this is not the overall best func i think
+            'best_func': self.best_function,
             'hypers': self.hyperparams,
-            'category': self.current_correct_percentage # TODO: not overall best
+            'category': self.best_correct_percentage
         }
         loop = asyncio.get_event_loop()
         loop.run_until_complete(utils.report_opt_result_teams(**kwargs))
@@ -130,6 +132,8 @@ class BayesianOptimizer(object):
             
             if local_best_score > self.best_score:
                 self.best_score = local_best_score
+                self.best_function = self.current_function
+                self.best_correct_percentage = self.current_correct_percentage
                 self.best_model = self.initial_model
                 best_model_path = self.output_path / f"{self.best_model.model_name}.model"
                 self.best_model.model_object.save(best_model_path.as_posix())

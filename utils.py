@@ -183,9 +183,6 @@ async def report_opt_result_teams(**kwargs):
 
 {hypers}
 
-
-**Czas trwania:** {None}
-
     """
     main_section.enableMarkdown()
     main_section.text(main_text)
