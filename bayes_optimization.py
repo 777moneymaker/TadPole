@@ -147,7 +147,7 @@ class BayesianOptimizer(object):
                                           kappa=self.kappa,
                                           xi=self.xi)
         optimizer.subscribe(Events.OPTIMIZATION_STEP, observer)
-        optimizer.subscribe(Events.OPTIMIZATION_START, self._sample_callback)
+        optimizer.subscribe(event=Events.OPTIMIZATION_START, subscriber="Any hashable object", callback=self._sample_callback)
         optimizer.maximize(
             init_points=self.initial_points,
             n_iter=self.num_iterations,
