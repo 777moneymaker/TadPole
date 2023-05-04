@@ -7,6 +7,7 @@ from bayes_opt import BayesianOptimization
 from bayes_opt.observer import _Tracker
 from bayes_opt.event import Events
 from bayes_opt import UtilityFunction
+from bayes_opt import SequentialDomainReductionTransformer
 import typing
 import os
 import asyncio
@@ -57,11 +58,11 @@ class BayesianOptimizer(object):
 
     __slots__ = ("initial_model", "hyperparams", "initial_points", "num_iterations","best_model", "best_score", "best_function", "current_function",
                  "opt_name", "output_path", "aquisition_function", "kappa", "kappa_decay", "kappa_decay_delay", "xi", 
-                 "current_correct_percentage", "best_correct_percentage", "current_not_evaluated_num")
+                 "current_correct_percentage", "best_correct_percentage", "current_not_evaluated_num", "domain_reduction")
 
     def __init__(self, initial_model: typing.Union[w2v.Word2VecPipeline, ft.FastTextPipeline], hyperparams: dict, initial_points: int,
                   num_iterations: int, opt_name: str, output_path: Path, aquisition_function: typing.Literal['ucb', 'ei', 'poi'] = 'ucb',
-                kappa: float = 2.576, xi: float = 0, kappa_decay: float = 1, kappa_decay_delay: int = 0):
+                kappa: float = 2.576, xi: float = 0, kappa_decay: float = 1, kappa_decay_delay: int = 0, domain_reduction: bool = False):
         self.initial_model = initial_model
         self.hyperparams = hyperparams
         self.initial_points = initial_points
@@ -80,6 +81,7 @@ class BayesianOptimizer(object):
         self.kappa_decay = kappa_decay
         self.kappa_decay_delay = kappa_decay_delay
         self.xi = xi
+        self.domain_reduction = domain_reduction
     
     def _map_hyperparams(self, model, **kwargs):
         for key, value in kwargs.items():
@@ -139,13 +141,23 @@ class BayesianOptimizer(object):
                 self.best_model.model_object.save(best_model_path.as_posix())
                 print(f"[OPT]   New best: {self.best_score}")
             return local_best_score
-    
-        optimizer = BayesianOptimization(
-            f=objective_func,
-            pbounds=self.hyperparams,
-            random_state=1,
-            verbose=2
-        )
+
+        if self.domain_reduction:
+            bounds_transformer =  SequentialDomainReductionTransformer(minimum_window=0.5)
+            optimizer = BayesianOptimization(
+                f=objective_func,
+                pbounds=self.hyperparams,
+                random_state=1,
+                verbose=2,
+                bounds_transformer=bounds_transformer
+            ) 
+        else:
+            optimizer = BayesianOptimization(
+                f=objective_func,
+                pbounds=self.hyperparams,
+                random_state=1,
+                verbose=2
+            )
         
         self.output_path.mkdir(exist_ok=True)
         log_path = self.output_path / f"{self.opt_name}.json"
