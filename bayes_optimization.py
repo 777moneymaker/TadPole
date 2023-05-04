@@ -38,6 +38,7 @@ class ModelOptLogger(_Tracker):
         data["function"] = self._eval_func
         data["correct_percent_per_category"] = self._correct_percent
         data["not_evaluated_num"] = self._not_evaluated
+        print(instance._space.bounds)
         data["current_bounds"] = [tuple(pair[0]) for pair in instance._space.bounds]
 
         # print(dict(data))
