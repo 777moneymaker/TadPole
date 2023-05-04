@@ -478,7 +478,7 @@ quick_hypers = {
 
 
 # bayes = bay.BayesianOptimizer(pipe, hypers, 8, 27, "aus_w2v_2nd_followup_domainreduction", Path("./logs/aus_w2v_2nd_followup_domainreduction"), aquisition_function='ucb', kappa=7.2)
-bayes = bay.BayesianOptimizer(pipe, quick_hypers, 2, 2, "callback_test", Path("./logs/callback_test"), aquisition_function='ucb', kappa=10)
+bayes = bay.BayesianOptimizer(pipe, quick_hypers, 2, 2, "callback_test", Path("./logs/callback_test"), aquisition_function='ucb', kappa=10, domain_reduction=True)
 bayes.optimize()
 
 # aus_w2v_sg even categories 59% model word tweak - veeery slow
