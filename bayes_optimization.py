@@ -14,11 +14,12 @@ import asyncio
 
 
 class ModelOptLogger(_Tracker):
-    def __init__(self, path, eval_func, correct_percent, not_evaluated, reset=True):
+    def __init__(self, path, eval_func, correct_percent, not_evaluated, original_hyperparams, reset=True):
         self._path = path if path[-5:] == ".json" else path + ".json"
         self._eval_func = eval_func
         self._correct_percent = correct_percent
         self._not_evaluated = not_evaluated
+        self._original_hyperparams = original_hyperparams
         if reset:
             try:
                 os.remove(self._path)
@@ -38,8 +39,9 @@ class ModelOptLogger(_Tracker):
         data["function"] = self._eval_func
         data["correct_percent_per_category"] = self._correct_percent
         data["not_evaluated_num"] = self._not_evaluated
-        print(instance._space.bounds)
-        data["current_bounds"] = [tuple(pair[0]) for pair in instance._space.bounds]
+        # print(instance._space.bounds)
+        recovered_bounds = {k: tuple(instance._space.bounds[i]) for i, (k, _) in enumerate(sorted(self._original_hyperparams.items(), key=lambda x: x[0]))}
+        data["current_bounds"] = recovered_bounds
 
         # print(dict(data))
         # if event == 'optimization:end':
@@ -167,7 +169,8 @@ class BayesianOptimizer(object):
         observer = ModelOptLogger(path=log_path.as_posix(), 
                                   eval_func=self.current_function, 
                                   correct_percent=self.current_correct_percentage, 
-                                  not_evaluated=self.current_not_evaluated_num)
+                                  not_evaluated=self.current_not_evaluated_num,
+                                  original_hyperparams=self.hyperparams)
         aquisition_func = UtilityFunction(kind=self.aquisition_function,
                                           kappa_decay_delay=self.kappa_decay_delay,
                                           kappa_decay=self.kappa_decay,
