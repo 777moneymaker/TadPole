@@ -205,7 +205,7 @@ if __name__ == '__main__':
     
     match args.model:
         case 'w2v':
-            corpus = word2vec_tokenizer(Path(args.gff_file), Path(args.mmseq_file), filtering=args.filtering, unannotated_as=args.jokersj)
+            corpus = word2vec_tokenizer(Path(args.gff_file), Path(args.mmseq_file), filtering=args.filtering, unannotated_as=args.jokers)
             pickle_path, text_path = f"{args.output}.pickle", f"{args.output}.txt"
 
             try:
