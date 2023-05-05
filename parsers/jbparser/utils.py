@@ -95,7 +95,8 @@ class BatchParallel(Parallel):
                  batch_size='auto',
                  temp_folder=None, max_nbytes='1M', mmap_mode='r',
                  prefer=None,
-                 require=None):
+                 require=None,
+                 bar=False):
 
         if description is None:
             description = parallelized_function.__name__
@@ -133,7 +134,8 @@ class BatchParallel(Parallel):
                           mmap_mode=mmap_mode,
                           prefer=prefer,
                           require=require,
-                          description=description)
+                          description=description,
+                          bar=bar)
 
         self.result = chain.from_iterable(self.result)
 
