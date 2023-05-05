@@ -205,7 +205,7 @@ if __name__ == '__main__':
     
     match args.model:
         case 'w2v':
-            corpus = word2vec_tokenizer(Path(args.g), Path(args.s), filtering=args.f, unannotated_as=args.j)
+            corpus = word2vec_tokenizer(Path(args.gff_file), Path(args.mmseq_file), filtering=args.filtering, unannotated_as=args.jokersj)
             pickle_path, text_path = f"{args.output}.pickle", f"{args.output}.txt"
 
             try:
@@ -216,7 +216,7 @@ if __name__ == '__main__':
                 print(f"JSON serialization offed with message {e.message}")
                 raise
         case 'ft':
-            corpus = fasttext_seq_tokenizer(Path(args.g), Path(args.s), filtering=args.f, unannotated_as=args.j)
+            corpus = fasttext_seq_tokenizer(Path(args.gff_file), Path(args.mmseq_file), filtering=args.filtering, unannotated_as=args.jokers)
         case _:
             parser.print_help()
     # test_run = word2vec_tokenizer(g, m, filtering=None, unannotated_as='1xs')
