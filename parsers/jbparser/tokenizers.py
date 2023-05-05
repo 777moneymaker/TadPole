@@ -137,7 +137,7 @@ def word2vec_tokenizer(gff: Path,
     # corpus = [annotate_phrogs(s, annotation) for s in raw_sentences]  # TODO [remove after test]
     corpus = [r for r in BatchParallel(annotate_phrogs,
                                        list(raw_sentences),
-                                       kwargs={'annotation_dict': annotation}).result]
+                                       kwargs={'annotation_dict': annotation}, bar=True).result]
 
     if not unannotated_as == 'gid':
 
@@ -145,7 +145,7 @@ def word2vec_tokenizer(gff: Path,
         corpus = [r for r in BatchParallel(handle_unannotated,
                                            list(corpus),
                                            kwargs={'method': unannotated_as,
-                                                   'filter_nonphrog': filter_nonphrog}).result]
+                                                   'filter_nonphrog': filter_nonphrog}, bar=True).result]
 
     return [s for s in corpus if s is not None]
 
