@@ -130,6 +130,7 @@ def word2vec_tokenizer(gff: Path,
                           'gid' - do not transform original gene identifiers
     :return: [[phrog91, 1xs, phrog34, 4xs, (...)], (...)]
     """
+    # TODO: progress bars
     raw_sentences = sentences_from_gff(gff)
     annotation = parse_mmtsv(mmtsv,
                              filtering=filtering,
