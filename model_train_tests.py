@@ -370,26 +370,26 @@ import bayes_optimization as bay
 # )
 
 # aus_w2v_bigcorpus
-pipe = w2v.Word2VecPipeline(
-    corpus_path="results/big_corpus_w2v.pickle",
-    output_prefix="aus_w2v_bigcorpus",
-    metadata="Data/metadata_phrog.pickle",
-    vector_size=80,
-    window=2,
-    min_count=2,
-    epochs=200,
-    workers=40,
-    lr_start=0.005,
-    lr_min=0.0001,
-    hs=0,
-    negative=50,
-    ns_exp=-0.1,
-    sample=0.001,
-    callbacks=[w2v.TrainLogger()],
-    visualise_model=False,
-    encoded=False,
-    save_model= False
-)
+# pipe = w2v.Word2VecPipeline(
+#     corpus_path="results/big_corpus_w2v.pickle",
+#     output_prefix="aus_w2v_bigcorpus",
+#     metadata="Data/metadata_phrog.pickle",
+#     vector_size=80,
+#     window=2,
+#     min_count=2,
+#     epochs=200,
+#     workers=40,
+#     lr_start=0.005,
+#     lr_min=0.0001,
+#     hs=0,
+#     negative=50,
+#     ns_exp=-0.1,
+#     sample=0.001,
+#     callbacks=[w2v.TrainLogger()],
+#     visualise_model=False,
+#     encoded=False,
+#     save_model= False
+# )
 
 # hypers = {
 #     'vector_size': (50, 200),
@@ -424,16 +424,16 @@ pipe = w2v.Word2VecPipeline(
 # }
 
 # aus_w2v_bigcorpus
-hypers = {
-    'epochs': (75, 500),
-    'vector_size': (80, 300),
-    'window': (2, 75),
-    'ns_exp': (-0.95, 0.95),
-    'lr_start': (0.0009, 0.1),
-    'lr_min': (0.000009, 0.01),
-    'negative': (30, 120),
-    'min_count': (2, 30)
-}
+# hypers = {
+#     'epochs': (75, 500),
+#     'vector_size': (80, 300),
+#     'window': (2, 75),
+#     'ns_exp': (-0.95, 0.95),
+#     'lr_start': (0.0009, 0.1),
+#     'lr_min': (0.000009, 0.01),
+#     'negative': (30, 120),
+#     'min_count': (2, 30)
+# }
 
 
 # aus_w2v_sg
@@ -511,9 +511,9 @@ hypers = {
 # }
 
 
-bayes = bay.BayesianOptimizer(pipe, hypers, 10, 35, "aus_w2v_bigcorpus", Path("./logs/aus_w2v_bigcorpus"), aquisition_function='ucb', kappa=7.2, domain_reduction=False)
-# bayes = bay.BayesianOptimizer(pipe, quick_hypers, 2, 2, "callback_test", Path("./logs/callback_test"), aquisition_function='ucb', kappa=10, domain_reduction=True)
-bayes.optimize()
+# bayes = bay.BayesianOptimizer(pipe, hypers, 10, 35, "aus_w2v_bigcorpus", Path("./logs/aus_w2v_bigcorpus"), aquisition_function='ucb', kappa=7.2, domain_reduction=False)
+# # bayes = bay.BayesianOptimizer(pipe, quick_hypers, 2, 2, "callback_test", Path("./logs/callback_test"), aquisition_function='ucb', kappa=10, domain_reduction=True)
+# bayes.optimize()
 
 # aus_w2v_sg even categories 59% model word tweak - veeery slow
 # pipe = w2v.Word2VecPipeline(
@@ -625,3 +625,25 @@ bayes.optimize()
 #     save_model= True
 # )
 # pipe.run()
+
+pipe = w2v.Word2VecPipeline(
+    corpus_path="results/virall_noncoded_14-04-2023.pickle",
+    output_prefix="aus_w2v_bigsmall_test",
+    metadata="Data/metadata_phrog.pickle",
+    vector_size=189,
+    window=7,
+    min_count=19,
+    epochs=197,
+    workers=40,
+    lr_start=0.038334,
+    lr_min=0.003185,
+    hs=0,
+    negative=51,
+    ns_exp=-0.572082,
+    sample=0.001,
+    callbacks=[w2v.TrainLogger()],
+    visualise_model=False,
+    encoded=False,
+    save_model= True
+)
+pipe.run()
