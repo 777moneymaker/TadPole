@@ -4,6 +4,7 @@ import utils
 from pathlib import Path
 import bayes_optimization as bay
 # import evaluation as eval
+from gensim.models import Word2Vec
 
 
 # ft.visualisation_pipeline(
@@ -391,6 +392,28 @@ import bayes_optimization as bay
 #     save_model= False
 # )
 
+# aus_w2v_auscorpus
+pipe = w2v.Word2VecPipeline(
+    corpus_path="results/AUS.corpus.pkl",
+    output_prefix="aus_w2v_auscorpus",
+    metadata="Data/metadata_phrog.pickle",
+    vector_size=180,
+    window=2,
+    min_count=2,
+    epochs=200,
+    workers=40,
+    lr_start=0.005,
+    lr_min=0.0001,
+    hs=0,
+    negative=50,
+    ns_exp=-0.1,
+    sample=0.001,
+    callbacks=[w2v.TrainLogger()],
+    visualise_model=False,
+    encoded=False,
+    save_model= False
+)
+
 # hypers = {
 #     'vector_size': (50, 200),
 #     'epochs': (100, 500),
@@ -435,6 +458,17 @@ import bayes_optimization as bay
 #     'min_count': (2, 30)
 # }
 
+# aus_w2v_auscorpus
+hypers = {
+    #'epochs': (75, 500), 200
+    #'vector_size': (80, 300), 180
+    'window': (1, 15),
+    'ns_exp': (-0.95, 0.1),
+    'lr_start': (0.00001, 0.1),
+    'lr_min': (0.0000001, 0.01),
+    'negative': (20, 60),
+    'min_count': (10, 45)
+}
 
 # aus_w2v_sg
 # hypers = {
@@ -511,9 +545,9 @@ import bayes_optimization as bay
 # }
 
 
-# bayes = bay.BayesianOptimizer(pipe, hypers, 10, 35, "aus_w2v_bigcorpus", Path("./logs/aus_w2v_bigcorpus"), aquisition_function='ucb', kappa=7.2, domain_reduction=False)
+bayes = bay.BayesianOptimizer(pipe, hypers, 10, 35, "aus_w2v_auscorpus", Path("./logs/aus_w2v_auscorpus"), aquisition_function='ucb', kappa=7.2, domain_reduction=False)
 # # bayes = bay.BayesianOptimizer(pipe, quick_hypers, 2, 2, "callback_test", Path("./logs/callback_test"), aquisition_function='ucb', kappa=10, domain_reduction=True)
-# bayes.optimize()
+bayes.optimize()
 
 # aus_w2v_sg even categories 59% model word tweak - veeery slow
 # pipe = w2v.Word2VecPipeline(
@@ -626,24 +660,55 @@ import bayes_optimization as bay
 # )
 # pipe.run()
 
-pipe = w2v.Word2VecPipeline(
-    corpus_path="results/virall_noncoded_14-04-2023.pickle",
-    output_prefix="aus_w2v_bigsmall_test",
-    metadata="Data/metadata_phrog.pickle",
-    vector_size=189,
-    window=7,
-    min_count=19,
-    epochs=197,
-    workers=40,
-    lr_start=0.038334,
-    lr_min=0.003185,
-    hs=0,
-    negative=51,
-    ns_exp=-0.572082,
-    sample=0.001,
-    callbacks=[w2v.TrainLogger()],
-    visualise_model=False,
-    encoded=False,
-    save_model= True
-)
-pipe.run()
+# pipe = w2v.Word2VecPipeline(
+#     corpus_path="results/virall_noncoded_14-04-2023.pickle",
+#     output_prefix="aus_w2v_bigsmall_test",
+#     metadata="Data/metadata_phrog.pickle",
+#     vector_size=189,
+#     window=7,
+#     min_count=19,
+#     epochs=197,
+#     workers=40,
+#     lr_start=0.038334,
+#     lr_min=0.003185,
+#     hs=0,
+#     negative=51,
+#     ns_exp=-0.572082,
+#     sample=0.001,
+#     callbacks=[w2v.TrainLogger()],
+#     visualise_model=False,
+#     encoded=False,
+#     save_model= True
+# )
+# pipe.run()
+
+# ## merge models
+# model_small = Word2Vec.load("logs/aus_w2v_2nd/aus_w2v_2nd_ns06768068921197985_lr0016186931560335408_lrmin00015449634769682278_d120_w4_e500_hs0_neg50_mincount2.model")
+# model_big = Word2Vec.load("logs/aus_w2v_bigcorpus/aus_w2v_bigcorpus_ns-035821676466215857_lr004119140981062489_lrmin00015265021199645495_d112_w4_e211_hs0_neg33_mincount22.model")
+# # model_small.wv.add_vectors(model_big.wv.index_to_key, model_big.wv.vectors)
+# common_vocab = set(model_small.wv.index_to_key).union(set(model_big.wv.index_to_key))
+# merged_model = Word2Vec(vector_size=model_small.vector_size, min_count=1)
+# merged_model.build_vocab([list(common_vocab)])
+# # for word in common_vocab:
+# #     merged_model.wv[word] = (model_small.wv[word] + model_big.wv[word]) / 2
+# # OR:
+# model_small.build_vocab([list(model_big.wv.index_to_key)], update=True)
+# model_small.train([list(model_big.wv.index_to_key)], total_examples=model_small.corpus_count, epochs=model_small.epochs)
+
+# model_big.build_vocab([list(model_small.wv.index_to_key)], update=True)
+# model_big.train([list(model_small.wv.index_to_key)], total_examples=model_big.corpus_count, epochs=model_big.epochs)
+
+
+# model_small = Word2Vec.load("logs/aus_w2v_2nd/aus_w2v_2nd_ns06768068921197985_lr0016186931560335408_lrmin00015449634769682278_d120_w4_e500_hs0_neg50_mincount2.model")
+# model_big = Word2Vec.load("logs/aus_w2v_bigcorpus/aus_w2v_bigcorpus_ns-035821676466215857_lr004119140981062489_lrmin00015265021199645495_d112_w4_e211_hs0_neg33_mincount22.model")
+# model_small.build_vocab([list(model_big.wv.index_to_key)], update=True)
+# model_small.train([list(model_big.wv.index_to_key)], total_examples=model_big.corpus_count, epochs=model_big.epochs, callbacks=[w2v.TrainLogger()], compute_loss=True)
+
+
+
+# model_small = Word2Vec.load("logs/aus_w2v_2nd/aus_w2v_2nd_ns06768068921197985_lr0016186931560335408_lrmin00015449634769682278_d120_w4_e500_hs0_neg50_mincount2.model")
+# model_big = Word2Vec.load("logs/aus_w2v_bigcorpus/aus_w2v_bigcorpus_ns-035821676466215857_lr004119140981062489_lrmin00015265021199645495_d112_w4_e211_hs0_neg33_mincount22.model")
+# common_vocab = set(model_small.wv.index_to_key).union(set(model_big.wv.index_to_key))
+# merged_model = Word2Vec(vector_size=model_small.vector_size, min_count=1)
+# merged_model.build_vocab([list(common_vocab)])
+# merged_model.train([list(model_big.wv.index_to_key)], total_examples=model_big.corpus_count, epochs=model_big.epochs, callbacks=[w2v.TrainLogger()], compute_loss=True)
