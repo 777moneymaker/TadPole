@@ -731,6 +731,6 @@ pipe = w2v.Word2VecPipeline(
     callbacks=[w2v.TrainLogger()],
     visualise_model=False,
     encoded=False,
-    save_model= False
+    save_model= True
 )
 pipe.run()
