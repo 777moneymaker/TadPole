@@ -733,3 +733,4 @@ pipe = w2v.Word2VecPipeline(
     encoded=False,
     save_model= False
 )
+pipe.run()
