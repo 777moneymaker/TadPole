@@ -189,6 +189,7 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
 
     # parallel function to select best matches and score the model
     print(len(phrogs_to_predict))
+    print(t_dict)
     list_phrog_categories = Parallel(verbose=True, n_jobs=-1)(delayed(batch_exec)(
         batch, vectors, func_dict_df, top_known_phrogs, power_range) for batch in alive_it(batch_list(phrogs_to_predict), dual_line=True, spinner=PHROG_SPINNER))
 
