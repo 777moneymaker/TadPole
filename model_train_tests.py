@@ -201,7 +201,7 @@ pipe = ft.FastTextPipeline(
    vector_size=20,
    window=2,
    min_count=2,
-   epochs=10,
+   epochs=1,
    workers=40,
     # lr_start=0.005,
     # lr_min=0.0001,
@@ -514,12 +514,14 @@ pipe = ft.FastTextPipeline(
 
 # aus_ft
 hypers = {
-    'vector_size': (50, 250),
+    # 'vector_size': (50, 250),
+    'vector_size': (20, 40),
     # 'epochs': 500, 
     'ns_exp': (-0.1, 0.7),
     'lr_start': (0.005, 0.25),
     'lr_min': (0.00001, 0.01),
-    'negative': (45, 300),
+    # 'negative': (45, 300),
+    'negative': (5, 10),
     'max_n': (5, 12), #ngram max
     'min_n': (2, 8) #ngram min
 }
