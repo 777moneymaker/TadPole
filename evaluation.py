@@ -169,6 +169,7 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
     runtime = end - start
     print(f"Done known_func_phrog_list in {runtime:0.8f}")
 
+    print(type(model))
     if isinstance(model, Word2Vec):
             vectors = model.wv
     elif isinstance(model, FastText):
