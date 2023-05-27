@@ -169,16 +169,15 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
     runtime = end - start
     print(f"Done known_func_phrog_list in {runtime:0.8f}")
 
-    match model:
-        case Word2Vec():
+    if isinstance(model, Word2Vec):
             vectors = model.wv
-        case FastText():
-            # TODO; declare the file in more user friendly way
-            with open('results/fasttext_consensus_corpus_translation.json', 'r') as f:
-                t_dict = json.load(f)
-            vectors = utils.sanitze_vectors(model=model, translator_dict=t_dict)
-        case _:
-            raise TypeError('Unsupported model type')
+    elif isinstance(model, FastText):
+        # TODO; declare the file in more user friendly way
+        with open('results/fasttext_consensus_corpus_translation.json', 'r') as f:
+            t_dict = json.load(f)
+        vectors = utils.sanitze_vectors(model=model, translator_dict=t_dict)
+    else:
+        raise TypeError('Unsupported model type')
     
 
     if evaluate_mode:
