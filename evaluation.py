@@ -172,13 +172,16 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
 
     print(type(model))
     if isinstance(model, word2vec.Word2Vec):
+            print("w2v")
             vectors = model.wv
     elif isinstance(model, fasttext.FastText):
+        print("ft")
         # TODO; declare the file in more user friendly way
         with open('results/fasttext_consensus_corpus_translation.json', 'r') as f:
             t_dict = json.load(f)
         vectors = utils.sanitze_vectors(model=model, translator_dict=t_dict)
     else:
+        print("2137")
         raise TypeError('Unsupported model type')
     
 
