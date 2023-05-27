@@ -183,8 +183,8 @@ def fasttext_seq_tokenizer(gff: Path,
                              filtering=filtering,
                              max_evalue=max_evalue)
     phrog_consensus = pfx.Fasta(phrogs_faa.as_posix())
-    for name in phrog_consensus.keys():
-        print(name)
+    # for name in phrog_consensus.keys():
+    #     print(name)
     # print(phrog_consensus['phrog_1'])
     # for n, s in phrog_consensus:
     #     print(n, s)
@@ -194,7 +194,7 @@ def fasttext_seq_tokenizer(gff: Path,
                                             phrog_consensus,
                                             all_proteins)
                           for s in raw_sentences]
-    translator_dict = {seq: seq_id for seq_id, seq in phrog_consensus}
+    translator_dict = {phrog_consensus[seq_id]: seq_id for seq_id in phrog_consensus.keys()}
     return sequence_sentences, translator_dict
 
 
