@@ -4,6 +4,9 @@ from pathlib import Path
 import pickle
 import custom_logger
 import pymsteams
+from copy import deepcopy
+from typing import Dict, Set, Union
+from gensim.models import Word2Vec, FastText, KeyedVectors
 
 
 colour_map = {
@@ -189,3 +192,32 @@ async def report_opt_result_teams(**kwargs):
     message.addSection(main_section)
     
     await message.send()
+
+
+def sanitze_vectors(model: Union[Word2Vec, FastText],
+                    prefix: str = None,
+                    filter: Set[str] = None,
+                    translator_dict: Dict[str, str] = None) -> KeyedVectors:
+    """
+
+    :param model: trained Word2Vec or FastText model
+    :param prefix: word prefix used to filter words e.g. "phrog_"
+    :param filter: set of words to keep in the model
+    :param translator_dict: {word_from_model: word_to_model} (e.g. {sequence: id})
+    :return: filtered "model.wv" KeyedVectors object
+    """
+    sanitzed = deepcopy(model.wv)
+
+    if prefix:
+        tokens_to_keep = {k: i for k, i in sanitzed.key_to_index.items() if k.startswith(prefix)}
+    elif filter:
+        tokens_to_keep = {k: i for k, i in sanitzed.key_to_index.items() if k in filter}
+    elif translator_dict:
+        tokens_to_keep = {translator_dict[k]: i for k, i in sanitzed.key_to_index.items() if k in translator_dict}
+    else:
+        raise ValueError(f'Exactly one of the: "prefix", "filter_list", "translator_dict"arguments is required')
+    indices = list(tokens_to_keep.values())
+    sanitzed.key_to_index = {k: i for i, k in enumerate(tokens_to_keep)}
+    sanitzed.index_to_key = [k for k in tokens_to_keep]
+    sanitzed.vectors = sanitzed.vectors[indices]
+    return sanitzed
