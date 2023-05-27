@@ -183,7 +183,9 @@ def fasttext_seq_tokenizer(gff: Path,
                              filtering=filtering,
                              max_evalue=max_evalue)
     phrog_consensus = pfx.Fasta(phrogs_faa.as_posix())
-    print(phrog_consensus['phrog_1'])
+    for name in phrog_consensus.keys():
+        print(name)
+    # print(phrog_consensus['phrog_1'])
     # for n, s in phrog_consensus:
     #     print(n, s)
 
