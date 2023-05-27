@@ -193,27 +193,27 @@ from gensim.models import Word2Vec
 #     save_model= False
 # )
 
-## aus_ft
-pipe = ft.FastTextPipeline(
-   corpus_path="results/fasttext_consensus_corpus.pickle",
-   output_prefix="ft_consensus_test",
-   metadata="Data/metadata_phrog.pickle",
-   vector_size=20,
-   window=2,
-   min_count=2,
-   epochs=1,
-   workers=40,
-    # lr_start=0.005,
-    # lr_min=0.0001,
-   lr_start=0.1,
-   lr_min=0.0001,
-   hs=0,
-   negative=75,
-   ns_exp=-0.75,
-   visualise_model=False,
-   encoded=False,
-   save_model=False
-)
+# ## aus_ft
+# pipe = ft.FastTextPipeline(
+#    corpus_path="results/fasttext_consensus_corpus.pickle", # this was different
+#    output_prefix="ft_consensus_test",
+#    metadata="Data/metadata_phrog.pickle",
+#    vector_size=20,
+#    window=2,
+#    min_count=2,
+#    epochs=350,
+#    workers=40,
+#     # lr_start=0.005,
+#     # lr_min=0.0001,
+#    lr_start=0.1,
+#    lr_min=0.0001,
+#    hs=0,
+#    negative=75,
+#    ns_exp=-0.75,
+#    visualise_model=False,
+#    encoded=False,
+#    save_model=False
+# )
 
 # validate_pipe = ft.FastTextPipeline(
 #     corpus_path="results/virall_encode_02-04-2023.pickle",
@@ -414,6 +414,28 @@ pipe = ft.FastTextPipeline(
 #     save_model= False
 # )
 
+## ft_consensus
+pipe = ft.FastTextPipeline(
+   corpus_path="results/fasttext_consensus_corpus.pickle",
+   output_prefix="ft_consensus",
+   metadata="Data/metadata_phrog.pickle",
+   vector_size=20,
+   window=2,
+   min_count=2,
+   epochs=200,
+   workers=40,
+    # lr_start=0.005,
+    # lr_min=0.0001,
+   lr_start=0.1,
+   lr_min=0.0001,
+   hs=0,
+   negative=75,
+   ns_exp=-0.75,
+   visualise_model=False,
+   encoded=False,
+   save_model=False
+)
+
 # hypers = {
 #     'vector_size': (50, 200),
 #     'epochs': (100, 500),
@@ -512,16 +534,32 @@ pipe = ft.FastTextPipeline(
 #     'lr_min': (0.000001, 0.2),
 # }
 
-# aus_ft
+# # aus_ft
+# hypers = {
+#     # 'vector_size': (50, 250),
+#     'vector_size': (20, 40),
+#     # 'epochs': 500, 
+#     'ns_exp': (-0.1, 0.7),
+#     'lr_start': (0.005, 0.25),
+#     'lr_min': (0.00001, 0.01),
+#     # 'negative': (45, 300),
+#     'negative': (5, 10),
+#     'max_n': (5, 12), #ngram max
+#     'min_n': (2, 8) #ngram min
+# }
+
+# ft_consensus
 hypers = {
     # 'vector_size': (50, 250),
-    'vector_size': (20, 40),
-    # 'epochs': 500, 
-    'ns_exp': (-0.1, 0.7),
-    'lr_start': (0.005, 0.25),
-    'lr_min': (0.00001, 0.01),
+    'vector_size': (75, 250),
+    'min_count': (2, 20),
+    'window': (2, 20),
+    'epochs': (200, 500), 
+    'ns_exp': (-0.95, 0.95),
+    'lr_start': (0.0009, 0.25),
+    'lr_min': (0.000009, 0.1),
     # 'negative': (45, 300),
-    'negative': (5, 10),
+    'negative': (20, 300),
     'max_n': (5, 12), #ngram max
     'min_n': (2, 8) #ngram min
 }
@@ -547,8 +585,8 @@ hypers = {
 # }
 
 
-# bayes = bay.BayesianOptimizer(pipe, hypers, 10, 35, "aus_w2v_auscorpus", Path("./logs/aus_w2v_auscorpus"), aquisition_function='ucb', kappa=7.2, domain_reduction=False)
-bayes = bay.BayesianOptimizer(pipe, hypers, 2, 2, "ft_consensus_test", Path("./logs/ft_consensus_test"), aquisition_function='ucb', kappa=10, domain_reduction=False)
+bayes = bay.BayesianOptimizer(pipe, hypers, 10, 35, "ft_consensus", Path("./logs/ft_consensus"), aquisition_function='ucb', kappa=7.2, domain_reduction=False)
+# bayes = bay.BayesianOptimizer(pipe, hypers, 2, 2, "ft_consensus_test", Path("./logs/ft_consensus_test"), aquisition_function='ucb', kappa=10, domain_reduction=False)
 bayes.optimize()
 
 # aus_w2v_sg even categories 59% model word tweak - veeery slow
