@@ -130,6 +130,12 @@ def word2vec_tokenizer(gff: Path,
                           'gid' - do not transform original gene identifiers
     :return: [[phrog91, 1xs, phrog34, 4xs, (...)], (...)]
     """
+    # print(f'gff: {gff}; type={type(gff)}')
+    # print(f'mmtsv: {mmtsv}')
+    # print(f'filtering: {filtering}')
+    # print(f'max_evalue: {max_evalue}')
+    # print(f'unannotated_as: {unannotated_as}')
+    # print(f'filter_nonphrog: {filter_nonphrog}')
     # TODO: progress bars
     raw_sentences = sentences_from_gff(gff)
     annotation = parse_mmtsv(mmtsv,
@@ -182,7 +188,8 @@ def fasttext_seq_tokenizer(gff: Path,
                                             phrog_consensus,
                                             all_proteins)
                           for s in raw_sentences]
-    return sequence_sentences
+    translator_dict = {seq: seq_id for seq_id, seq in phrog_consensus}
+    return sequence_sentences, translator_dict
 
 
 if __name__ == '__main__':
@@ -190,24 +197,33 @@ if __name__ == '__main__':
     # m = Path('toy.mmseqs2.tsv')
     # pf = Path('MSA_Phrogs_M50_CONSENSUS.fasta')
     # af = Path('toy.proteins.faa')
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--model", help="For which model the corpus will be created?", choices=['w2v', 'ft'])
-    parser.add_argument("-g", "--gff_file", help="Path to gff file.")
-    parser.add_argument("-s", "--mmseq_file", help="Path to mmseqs2 protein-phrog annotation file.")
-    parser.add_argument("-f", "--filtering", 
-                        help="what MMseqs2 alignments should be reported:\nNone - all domains\n'best' - only one top scoring domain for each protein\n'cull' - all domains unless they overlap with higher scoring one [default]", 
-                        choices=['None', 'best', 'cull'])
-    parser.add_argument("-j", "--jokers", 
-                        help="unannotated genes (jokers) should be represented as:\n'1xs' - merge strings of unannotated genes and represent them as a number [default]\n'x1' - number unannotated genes within the string and represent each separately\n'x' - transforms each unannotated gene to simple 'x'\n'gid' - do not transform original gene identifiers",
-                        choices=['1xs', 'x1', 'x', 'gid'])
-    parser.add_argument("-o", "--output", help="prefix/prefix-path for output files")
-    #TODO: arguments for fasttext
-    args = parser.parse_args()
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("-g", "--gff", help="Path to gff file.", type=Path)
+    parser.add_argument("-m", "--mmtsv", help="Path to mmseqs2 protein-phrog annotation file.", type=Path)
+    parser.add_argument("-f", "--filtering", choices=['None', 'best', 'cull'], default='cull', type=str,
+                        help="what MMseqs2 alignments should be reported:\nNone - all domains\n'best' - only one top scoring domain for each protein\n'cull' - all domains unless they overlap with higher scoring one [default]")
+    parser.add_argument("-e", "--max_evalue", type=float, default=1e-3, help="Maximum MMseqs2 evalue of a domain to consider")
+    parser.add_argument("-o", "--output", help="prefix/prefix-path for output files", type=str)
+
+    subparsers = parser.add_subparsers(title='Available models', description='For which model the corpus will be created?', dest='subparser_model')
+
+    w2v_parser = subparsers.add_parser('word2vec', help='Generate the corpus for word2vec')
+    w2v_parser.add_argument("-j", "--unannotated_as", choices=['1xs', 'x1', 'x', 'gid'], default='1xs', type=str,
+                        help="unannotated genes (jokers) should be represented as:\n'1xs' - merge strings of unannotated genes and represent them as a number [default]\n'x1' - number unannotated genes within the string and represent each separately\n'x' - transforms each unannotated gene to simple 'x'\n'gid' - do not transform original gene identifiers")
+    w2v_parser.add_argument("-n", "--filter_nonphrog", help="idk", default=True, type=bool)
     
-    match args.model:
-        case 'w2v':
-            corpus = word2vec_tokenizer(Path(args.gff_file), Path(args.mmseq_file), filtering=args.filtering, unannotated_as=args.jokers)
-            pickle_path, text_path = f"{args.output}.pickle", f"{args.output}.txt"
+    ft_parser = subparsers.add_parser('fasttext', help='Generate the corpus for FastText')
+    ft_parser.add_argument("-c", "--phrogs_faa", help="Fasta file with PHROG consensus sequences", type=Path)
+    ft_parser.add_argument("-a", "--prodigal_faa", help="Fasta file with other proteins", type=Path)
+
+    args = parser.parse_args()
+
+    pickle_path, text_path = f"{args.output}.pickle", f"{args.output}.txt"
+    
+    match args.subparser_model:
+        case 'word2vec':
+            # corpus = word2vec_tokenizer(Path(args.gff_file), Path(args.mmseq_file), filtering=args.filtering, unannotated_as=args.jokers)
+            corpus = word2vec_tokenizer(**{k: v for k, v in vars(args).items() if k in word2vec_tokenizer.__code__.co_varnames})
 
             try:
                 with open(pickle_path, "wb") as fh1, open(text_path, "w", encoding="utf-8") as fh2:
@@ -216,8 +232,17 @@ if __name__ == '__main__':
             except TypeError as e:
                 print(f"JSON serialization offed with message {e.message}")
                 raise
-        case 'ft':
-            corpus = fasttext_seq_tokenizer(Path(args.gff_file), Path(args.mmseq_file), filtering=args.filtering, unannotated_as=args.jokers)
+        case 'fasttext':
+            corpus, translation = fasttext_seq_tokenizer(**{k: v for k, v in vars(args).items() if k in fasttext_seq_tokenizer.__code__.co_varnames})
+            trans_path = f"{args.output}_translation.json"
+            try:
+                with open(pickle_path, "wb") as fh1, open(text_path, "w", encoding="utf-8") as fh2, open(trans_path, 'w') as fh3:
+                    pickle.dump(corpus, fh1)
+                    fh2.write(json.dumps(corpus))
+                    json.dump(translation, fh3)
+            except TypeError as e:
+                print(f"JSON serialization offed with message {e.message}")
+                raise
         case _:
             parser.print_help()
     # test_run = word2vec_tokenizer(g, m, filtering=None, unannotated_as='1xs')

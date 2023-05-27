@@ -581,10 +581,10 @@ from gensim.models import Word2Vec
 
 # >>> import word2vec_train as w2v
 # >>> from gensim.models import Word2Vec
-# >>> model = Word2Vec.load("logs/aus_w2v_sghs/aus_w2v_sghs_ns-095_lr01_lrmin1e-06_d89_w2_e250_hs1_neg0_mincount2.model")
+# >>> model = Word2Vec.load("logs/aus_w2v_auscorpus/aus_w2v_auscorpus_ns-03451567394644681_lr0024171862536102377_lrmin0006037547436526886_d180_w2_e200_hs0_neg34_mincount34.model")
 # >>> embedding = w2v.umap_reduce(model.wv, 3)
 # UMAP Magic |████████████████████████████████████████| 1 in 33.1s (0.03/s)
-# >>> visual = w2v.model_visualise(model.wv, embedding, "plots/aus_w2v_sghs_ns-095_lr01_lrmin1e-06_d89_w2_e250_hs1_neg0_mincount2.html", False)
+# >>> visual = w2v.model_visualise(model.wv, embedding, "plots/aus_w2v_auscorpus_ns-03451567394644681_lr0024171862536102377_lrmin0006037547436526886_d180_w2_e200_hs0_neg34_mincount34.html", False)
 # on 0:     INFO >>> Loading dill with phrog metadata
 # Gathering phrog metadata and embedding data |████████████████████████████████████████| 1 in 0.1s (9.19/s)
 # Generating visualisation |████████████████████████████████████████| 1 in 1.3s (0.75/s)
@@ -682,6 +682,16 @@ from gensim.models import Word2Vec
 # )
 # pipe.run()
 
+
+# import word2vec_train as w2v
+# import utils
+# from pathlib import Path
+# import bayes_optimization as bay
+# import evaluation
+# from gensim.models import Word2Vec
+# import numpy as np
+# from scipy.linalg import orthogonal_procrustes
+
 # ## merge models
 # model_small = Word2Vec.load("logs/aus_w2v_2nd/aus_w2v_2nd_ns06768068921197985_lr0016186931560335408_lrmin00015449634769682278_d120_w4_e500_hs0_neg50_mincount2.model")
 # model_big = Word2Vec.load("logs/aus_w2v_bigcorpus/aus_w2v_bigcorpus_ns-035821676466215857_lr004119140981062489_lrmin00015265021199645495_d112_w4_e211_hs0_neg33_mincount22.model")
@@ -713,6 +723,50 @@ from gensim.models import Word2Vec
 # merged_model.build_vocab([list(common_vocab)])
 # merged_model.train([list(model_big.wv.index_to_key)], total_examples=model_big.corpus_count, epochs=model_big.epochs, callbacks=[w2v.TrainLogger()], compute_loss=True)
 
+# funcs = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
+# model_small = Word2Vec.load("train_test/aus_w2v_2nd_mix_ns06768068921197985_lr0016186931560335408_lrmin00015449634769682278_d112_w4_e500_hs0_neg50_mincount2.model")
+# model_big = Word2Vec.load("logs/aus_w2v_bigcorpus/aus_w2v_bigcorpus_ns-035821676466215857_lr004119140981062489_lrmin00015265021199645495_d112_w4_e211_hs0_neg33_mincount22.model")
+# # common_vocab = set(model_small.wv.index_to_key).intersection(set(model_big.wv.index_to_key))
+# common_vocab = set(model_small.wv.index_to_key).union(set(model_big.wv.index_to_key))
+# merged_model = Word2Vec(vector_size=model_small.vector_size, min_count=1)
+# merged_model.build_vocab([list(common_vocab)])
+# for word in common_vocab:
+#     merged_model.wv[word] = (model_small.wv[word] + model_big.wv[word]) / 2
+# eval = evaluation.prediction(func_dict=funcs, model=merged_model, model_name="merged_model_avg")
+
+
+# merged_model = Word2Vec(vector_size=model_small.vector_size + model_big.vector_size, min_count=1)
+# merged_model.build_vocab([list(model_small.wv.index_to_key) + list(model_big.wv.index_to_key)])
+# for word in merged_model.wv.index_to_key:
+#     merged_model.wv[word] = np.concatenate((model_small.wv[word], model_big.wv[word]))
+
+
+# common_vocab = set(model_small.wv.index_to_key).intersection(set(model_big.wv.index_to_key))
+# vecs1 = np.array([model_small.wv[word] for word in common_vocab])
+# vecs2 = np.array([model_big.wv[word] for word in common_vocab])
+# M, _ = orthogonal_procrustes(vecs1, vecs2)
+# vecs2_aligned = vecs2.dot(M)
+# merged_model = Word2Vec(vector_size=model_small.vector_size, min_count=1)
+# merged_model.build_vocab([list(common_vocab)])
+# for i, word in enumerate(common_vocab):
+#     merged_model.wv[word] = (vecs1[i] + vecs2_aligned[i]) / 2
+
+
+# common_vocab = set(model_small.wv.index_to_key).intersection(set(model_big.wv.index_to_key))
+# total_counts = {}
+# for word in common_vocab:
+#     total_counts[word] = model_small.wv.get_vecattr(word, 'count') + model_big.wv.get_vecattr(word, 'count')
+# weights1 = {word: model_small.wv.get_vecattr(word, 'count') / total_counts[word] for word in common_vocab}
+# weights2 = {word: model_big.wv.get_vecattr(word, 'count') / total_counts[word] for word in common_vocab}
+# merged_model = Word2Vec(vector_size=model_small.vector_size, min_count=1)
+# merged_model.build_vocab([list(common_vocab)])
+# for word in common_vocab:
+#     merged_model.wv[word] = weights1[word] * model_small.wv.get_vecattr(word, 'count') + weights2[word] * model_big.wv.get_vecattr(word, 'count')
+
+# for word in common_vocab:
+#     count = (model_small.wv.get_vecattr(word, 'count') + model_big.wv.get_vecattr(word, 'count'))
+#     merged_vector = (model_small.wv[word] * (model_small.wv.get_vecattr(word, 'count') / count)) + (model_big.wv[word] * (model_big.wv.get_vecattr(word, 'count') / count))
+#     merged_model.wv[word] = merged_vector
 
 pipe = w2v.Word2VecPipeline(
     corpus_path="results/virall_noncoded_14-04-2023.pickle",
@@ -734,3 +788,7 @@ pipe = w2v.Word2VecPipeline(
     save_model= True
 )
 pipe.run()
+
+# train_test/aus_w2v_2nd_mix_ns06768068921197985_lr0016186931560335408_lrmin00015449634769682278_d112_w4_e500_hs0_neg50_mincount2.model
+
+
