@@ -205,7 +205,8 @@ if __name__ == '__main__':
     parser.add_argument("-e", "--max_evalue", type=float, default=1e-3, help="Maximum MMseqs2 evalue of a domain to consider")
     parser.add_argument("-o", "--output", help="prefix/prefix-path for output files", type=str)
 
-    subparsers = parser.add_subparsers(title='Available models', description='For which model the corpus will be created?', dest='subparser_model')
+    subparsers = parser.add_subparsers(title='Available models', description='For which model the corpus will be created?', dest='subparser_model',
+                                       help="Call this script with model name and -h to get help, e.g. tokenizers.py word2vec -h")
 
     w2v_parser = subparsers.add_parser('word2vec', help='Generate the corpus for word2vec')
     w2v_parser.add_argument("-j", "--unannotated_as", choices=['1xs', 'x1', 'x', 'gid'], default='1xs', type=str,
