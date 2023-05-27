@@ -171,10 +171,11 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
     print(f"Done known_func_phrog_list in {runtime:0.8f}")
 
     print(type(model))
+    print(type(model) == gensim.models.fasttext.FastText)
     if isinstance(model, gensim.models.word2vec.Word2Vec):
         print("w2v")
         vectors = model.wv
-    elif isinstance(model,  gensim.models.fasttext.FastText):
+    elif isinstance(model, gensim.models.fasttext.FastText):
         print("ft")
         # TODO; declare the file in more user friendly way
         with open('results/fasttext_consensus_corpus_translation.json', 'r') as f:
