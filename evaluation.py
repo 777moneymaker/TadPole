@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 from typing import Union
-from gensim.models import fasttext, word2vec
+import gensim
 from gensim.models import FastText, Word2Vec
 from collections import defaultdict
 from joblib import Parallel, delayed, parallel_backend
@@ -171,10 +171,10 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
     print(f"Done known_func_phrog_list in {runtime:0.8f}")
 
     print(type(model))
-    if isinstance(model, word2vec.Word2Vec):
+    if isinstance(model, gensim.models.word2vec.Word2Vec):
             print("w2v")
             vectors = model.wv
-    elif isinstance(model, fasttext.FastText):
+    elif isinstance(model,  gensim.models.fasttext.FastText):
         print("ft")
         # TODO; declare the file in more user friendly way
         with open('results/fasttext_consensus_corpus_translation.json', 'r') as f:
