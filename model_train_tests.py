@@ -211,7 +211,7 @@ pipe = ft.FastTextPipeline(
    negative=75,
    ns_exp=-0.75,
    visualise_model=False,
-   encoded=True,
+   encoded=False,
    save_model=False
 )
 
