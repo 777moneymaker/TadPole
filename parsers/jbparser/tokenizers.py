@@ -208,12 +208,12 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(title='Available models', description='For which model the corpus will be created?', dest='subparser_model',
                                        help="Call this script with model name and -h to get help, e.g. tokenizers.py word2vec -h")
 
-    w2v_parser = subparsers.add_parser('word2vec', help='Generate the corpus for word2vec')
+    w2v_parser = subparsers.add_parser('word2vec', help='Generate the corpus for word2vec', formatter_class=argparse.RawTextHelpFormatter)
     w2v_parser.add_argument("-j", "--unannotated_as", choices=['1xs', 'x1', 'x', 'gid'], default='1xs', type=str,
                         help="unannotated genes (jokers) should be represented as:\n'1xs' - merge strings of unannotated genes and represent them as a number [default]\n'x1' - number unannotated genes within the string and represent each separately\n'x' - transforms each unannotated gene to simple 'x'\n'gid' - do not transform original gene identifiers")
     w2v_parser.add_argument("-n", "--filter_nonphrog", help="idk", default=True, type=bool)
     
-    ft_parser = subparsers.add_parser('fasttext', help='Generate the corpus for FastText')
+    ft_parser = subparsers.add_parser('fasttext', help='Generate the corpus for FastText', formatter_class=argparse.RawTextHelpFormatter)
     ft_parser.add_argument("-c", "--phrogs_faa", help="Fasta file with PHROG consensus sequences", type=Path)
     ft_parser.add_argument("-a", "--prodigal_faa", help="Fasta file with other proteins", type=Path)
 
