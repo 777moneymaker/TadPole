@@ -183,7 +183,8 @@ def fasttext_seq_tokenizer(gff: Path,
                              filtering=filtering,
                              max_evalue=max_evalue)
     phrog_consensus = pfx.Fasta(phrogs_faa.as_posix())
-    print(phrog_consensus)
+    for n, s in phrog_consensus:
+        print(n, s)
     all_proteins = pfx.Fasta(prodigal_faa.as_posix())
     sequence_sentences = [annotate_sequeces(s, annotation,
                                             phrog_consensus,
