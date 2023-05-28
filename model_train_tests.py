@@ -855,3 +855,4 @@ pipe = ft.FastTextPipeline(
    save_model=True
 )
 
+pipe.run()
