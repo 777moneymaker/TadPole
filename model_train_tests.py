@@ -585,9 +585,9 @@ hypers = {
 # }
 
 
-bayes = bay.BayesianOptimizer(pipe, hypers, 10, 35, "ft_consensus", Path("./logs/ft_consensus"), aquisition_function='ucb', kappa=7.2, domain_reduction=False)
-# bayes = bay.BayesianOptimizer(pipe, hypers, 2, 2, "ft_consensus_test", Path("./logs/ft_consensus_test"), aquisition_function='ucb', kappa=10, domain_reduction=False)
-bayes.optimize()
+# bayes = bay.BayesianOptimizer(pipe, hypers, 10, 35, "ft_consensus", Path("./logs/ft_consensus"), aquisition_function='ucb', kappa=7.2, domain_reduction=False)
+# # bayes = bay.BayesianOptimizer(pipe, hypers, 2, 2, "ft_consensus_test", Path("./logs/ft_consensus_test"), aquisition_function='ucb', kappa=10, domain_reduction=False)
+# bayes.optimize()
 
 # aus_w2v_sg even categories 59% model word tweak - veeery slow
 # pipe = w2v.Word2VecPipeline(
@@ -831,4 +831,27 @@ bayes.optimize()
 
 # train_test/aus_w2v_2nd_mix_ns06768068921197985_lr0016186931560335408_lrmin00015449634769682278_d112_w4_e500_hs0_neg50_mincount2.model
 
+## ft_consensus_snipe
+pipe = ft.FastTextPipeline(
+   corpus_path="results/fasttext_consensus_corpus.pickle",
+   output_prefix="ft_consensus_snipe",
+   metadata="Data/metadata_phrog.pickle",
+   vector_size=62,
+   window=2,
+   min_count=2,
+   epochs=5,
+   workers=64,
+    # lr_start=0.005,
+    # lr_min=0.0001,
+   min_n=2,
+   max_n=8,
+   lr_start=0.08727363947530192,
+   lr_min=0.0074157752401361075,
+   hs=0,
+   negative=137,
+   ns_exp=0.24751227405245746,
+   visualise_model=True,
+   encoded=False,
+   save_model=True
+)
 
