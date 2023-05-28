@@ -415,26 +415,26 @@ from gensim.models import Word2Vec
 # )
 
 ## ft_consensus
-pipe = ft.FastTextPipeline(
-   corpus_path="results/fasttext_consensus_corpus.pickle",
-   output_prefix="ft_consensus",
-   metadata="Data/metadata_phrog.pickle",
-   vector_size=20,
-   window=2,
-   min_count=2,
-   epochs=200,
-   workers=40,
-    # lr_start=0.005,
-    # lr_min=0.0001,
-   lr_start=0.1,
-   lr_min=0.0001,
-   hs=0,
-   negative=75,
-   ns_exp=-0.75,
-   visualise_model=False,
-   encoded=False,
-   save_model=False
-)
+# pipe = ft.FastTextPipeline(
+#    corpus_path="results/fasttext_consensus_corpus.pickle",
+#    output_prefix="ft_consensus",
+#    metadata="Data/metadata_phrog.pickle",
+#    vector_size=20,
+#    window=2,
+#    min_count=2,
+#    epochs=200,
+#    workers=40,
+#     # lr_start=0.005,
+#     # lr_min=0.0001,
+#    lr_start=0.1,
+#    lr_min=0.0001,
+#    hs=0,
+#    negative=75,
+#    ns_exp=-0.75,
+#    visualise_model=False,
+#    encoded=False,
+#    save_model=False
+# )
 
 # hypers = {
 #     'vector_size': (50, 200),
