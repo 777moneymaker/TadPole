@@ -161,7 +161,8 @@ def parallel_scoring(phrog, merged_id_category, power_range):
     # correct-old
     # return d_phrog_categories
     # raw only
-    return d_phrog_categories[phrog]["power 4.600000000000001"]
+    d_phrog_categories[phrog] = d_phrog_categories[phrog]["power 4.600000000000001"]
+    return d_phrog_categories
 
 
 def prediction(func_dict: dict, model: Union[FastText, Word2Vec], 
