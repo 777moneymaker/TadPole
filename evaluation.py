@@ -130,6 +130,7 @@ def parallel_scoring(phrog, merged_id_category, power_range):
     # mean: max value after taking a mean prob for each category
     # power: max value after summing probs to the power of n
     # other functions return tuples, so...
+    # raw only:
     mx = tuple(max(list_for_scoring, key=key_func))
     summed = sum_tuples(list_for_scoring)
     mean = mean_tuples(list_for_scoring)
@@ -149,8 +150,12 @@ def parallel_scoring(phrog, merged_id_category, power_range):
         # "power 4": power_4,
         # "power 5": power_5
     }
-
-    powers = [(f"power {power}", max(sum_tuples(power_tuples(list_for_scoring, power)), key=key_func)) for power in np.arange(*power_range)]
+    
+    # correct-old
+    # powers = [(f"power {power}", max(sum_tuples(power_tuples(list_for_scoring, power)), key=key_func)) for power in np.arange(*power_range)]
+    # d_phrog_categories[phrog].update(powers)
+    # raw only
+    powers = [(f"power {power}", sum_tuples(power_tuples(list_for_scoring, power))) for power in np.arange(*power_range)]
     d_phrog_categories[phrog].update(powers)
 
     return d_phrog_categories
