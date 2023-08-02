@@ -158,7 +158,10 @@ def parallel_scoring(phrog, merged_id_category, power_range):
     powers = [(f"power {power}", sum_tuples(power_tuples(list_for_scoring, power))) for power in np.arange(*power_range)]
     d_phrog_categories[phrog].update(powers)
 
-    return d_phrog_categories
+    # correct-old
+    # return d_phrog_categories
+    # raw only
+    return d_phrog_categories[phrog]["power 4.600000000000001"]
 
 
 def prediction(func_dict: dict, model: Union[FastText, Word2Vec], 
