@@ -101,7 +101,7 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs, power_range
             custom_logger.logger.warning("Not enough close phrogs with known function - "
                                          "scoring using less than {} phrogs.".format(top_known_phrogs))
         merged_id_category = merged[["category", "probability"]]
-        merged_id_category_group = merged_id_category.groupby("category")
+        merged_id_category_group = merged_id_category.groupby("category").apply(lambda x: x.sort_values(["probability"], ascending=False))
         print(merged_id_category_group)
         local_phrog_categories.update(
             parallel_scoring(phrog, merged_id_category, power_range))
