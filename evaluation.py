@@ -153,7 +153,8 @@ def parallel_scoring(phrog, merged_id_category, power_range):
 def prediction(func_dict: dict, model: Union[FastText, Word2Vec], 
                model_name: str, top_known_phrogs: int = 50, 
                evaluate_mode: bool = True,
-               power_range: Tuple[float, float, float] = (3, 5.2, 0.2)):
+               power_range: Tuple[float, float, float] = (3, 5.2, 0.2),
+               raw_out: bool = False):
     
     # convert dict to pandas dataframe or read it directly
     start = time.perf_counter()
@@ -204,9 +205,11 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
         k: v for x in list_phrog_categories for k, v in x.items()}
     end = time.perf_counter()
     print(len(phrog_categories))
+    if raw_out:
+        with open('aus_raw_probs.json', 'w', encoding='utf-8') as f:
+            json.dump(phrog_categories, f, ensure_ascii=False, indent=4)
     runtime = end - start
     print(f"Done phrog_categories in {runtime:0.8f}")
-
     # TODO: put to docstring
     # Dictionary phrog: {
     #   scoring_function: category
