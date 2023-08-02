@@ -131,8 +131,12 @@ def parallel_scoring(phrog, merged_id_category, power_range):
     # power: max value after summing probs to the power of n
     # other functions return tuples, so...
     mx = tuple(max(list_for_scoring, key=key_func))
-    summed = max(sum_tuples(list_for_scoring), key=key_func)
-    mean = max(mean_tuples(list_for_scoring), key=key_func)
+    summed = sum_tuples(list_for_scoring)
+    mean = mean_tuples(list_for_scoring)
+    # correct-old:
+    # mx = tuple(max(list_for_scoring, key=key_func))
+    # summed = max(sum_tuples(list_for_scoring), key=key_func)
+    # mean = max(mean_tuples(list_for_scoring), key=key_func)
     # power_3 = max(sum_tuples(power_tuples(list_for_scoring, 3)), key=key_func)
     # power_4 = max(sum_tuples(power_tuples(list_for_scoring, 4)), key=key_func)
     # power_5 = max(sum_tuples(power_tuples(list_for_scoring, 5)), key=key_func)
