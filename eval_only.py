@@ -5,6 +5,6 @@ from pathlib import Path
 
 
 funcs = utils.read_metadata(Path("Data/metadata_phrog.pickle"))
-model = Word2Vec.load("train_test/sg_w2v_ns06768068921197985_lr0016186931560335408_lrmin00015449634769682278_d120_w4_e500_hs0_neg50_mincount2.model")
-model_name = "sg_w2v_ns06768068921197985_lr0016186931560335408_lrmin00015449634769682278_d120_w4_e500_hs0_neg50_mincount2"
-eval = evaluation.prediction(func_dict=funcs, model=model, model_name=model_name)
+model = Word2Vec.load("logs/aus_w2v_auscorpus/aus_w2v_auscorpus_ns-03451567394644681_lr0024171862536102377_lrmin0006037547436526886_d180_w2_e200_hs0_neg34_mincount34.model")
+model_name = "aus_w2v_auscorpus"
+eval = evaluation.prediction(func_dict=funcs, model=model, model_name="aus_w2v_auscorpus", raw_out=True, evaluate_mode=False)
