@@ -188,7 +188,8 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
         raise TypeError('Unsupported model type')
     
 
-    if evaluate_mode:
+    # TODO: CHECK: is it still applicable? anyway - I changed logic for compatibility and new joke assignment - because of new parsers etc.
+    if evaluate_mode or raw_out:
         phrogs_to_predict = known_func_phrog_list
     else:
         model_keys = model.wv.key_to_index
