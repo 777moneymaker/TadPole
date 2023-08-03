@@ -90,19 +90,25 @@ def batch_exec(phrog_batch, vectors, func_dict_df, top_known_phrogs, power_range
         merged = model_result_tuples_to_df.merge(
             func_dict_df, on='phrog_id')  # Same col, just use on=
         # just use loc, add .head immeadiately
-        # separated to accomodate a very rare edge 
-        merged = merged.loc[((merged['category'] != 'unknown function') & (
-        merged['category'] != 'other') & (merged['category'] != 'moron, auxiliary metabolic gene and host takeover'))]
-        if merged.empty:
-            custom_logger.logger.error("All closest phrogs had unknown function - "
-                                       "all were dropped, no data left to score.")
+        # separated to accomodate a very rare edge
+        
+        # uncomment if not raw
+        # merged = merged.loc[((merged['category'] != 'unknown function') & (
+        # merged['category'] != 'other') & (merged['category'] != 'moron, auxiliary metabolic gene and host takeover'))]
+        # if merged.empty:
+        #     custom_logger.logger.error("All closest phrogs had unknown function - "
+        #                                "all were dropped, no data left to score.")
+            
         merged = merged.head(top_known_phrogs)
         if len(merged) < top_known_phrogs:
             custom_logger.logger.warning("Not enough close phrogs with known function - "
                                          "scoring using less than {} phrogs.".format(top_known_phrogs))
         merged_id_category = merged[["category", "probability"]]
+        
+        # debug for raw
         merged_id_category_group = merged_id_category.groupby("category").apply(lambda x: x.sort_values(["probability"], ascending=False))
         print(merged_id_category_group)
+
         local_phrog_categories.update(
             parallel_scoring(phrog, merged_id_category, power_range))
         # end = time.perf_counter()
@@ -180,8 +186,11 @@ def prediction(func_dict: dict, model: Union[FastText, Word2Vec],
 
     # create a list of phrogs with known function
     start = time.perf_counter()
-    known_func_phrog_list = func_dict_df[((func_dict_df['category'] != 'unknown function') & (
-        func_dict_df['category'] != 'other')& (func_dict_df['category'] != 'moron, auxiliary metabolic gene and host takeover'))]['phrog_id'].tolist()
+    if not raw_out:
+        known_func_phrog_list = func_dict_df[((func_dict_df['category'] != 'unknown function') & (
+            func_dict_df['category'] != 'other')& (func_dict_df['category'] != 'moron, auxiliary metabolic gene and host takeover'))]['phrog_id'].tolist()
+    else:
+        known_func_phrog_list = func_dict_df['phrog_id'].tolist()
     end = time.perf_counter()
     runtime = end - start
     print(f"Done known_func_phrog_list in {runtime:0.8f}")
